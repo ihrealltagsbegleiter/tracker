@@ -335,6 +335,17 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;
 }
 
+
+/* ─── SORTABLE ROUTINEN ─────────────────────────────────────── */
+.routine-item{touch-action:none}
+.routine-item.dragging{opacity:0.4;border-style:dashed}
+.routine-item.drag-over{border-color:var(--gold);background:#1a2030}
+.drag-handle{
+  color:var(--text3);font-size:1rem;cursor:grab;padding:0.3rem 0.4rem 0.3rem 0;
+  touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0;
+}
+.drag-handle:active{cursor:grabbing}
+
 </style>
 </head>
 <body>
@@ -778,28 +789,26 @@ function renderRoutines(){
   document.getElementById('routineProgress').style.width = pct+'%';
 
   list.innerHTML = '';
-  // Sort: undone first
-  const sorted = [...allRoutines].sort((a,b)=>{
-    const ad = isRoutineDone(a.id,TODAY)?1:0;
-    const bd = isRoutineDone(b.id,TODAY)?1:0;
-    return ad-bd;
-  });
+  // Sort: by stored order field
+  const sorted = [...allRoutines].sort((a,b)=>(a.order??999)-(b.order??999));
   sorted.forEach(r=>{
     const isDone = isRoutineDone(r.id, TODAY);
     const streak = getRoutineStreak(r.id);
     const el = document.createElement('div');
     el.className = 'routine-item'+(isDone?' done':'');
+    el.dataset.id = r.id;
     el.innerHTML = `
-      <div class="routine-check">${isDone?'✓':''}</div>
-      <div class="routine-info">
+      <div class="drag-handle" title="Verschieben">⠿</div>
+      <div class="routine-check" onclick="toggleRoutine('${r.id}');event.stopPropagation()">${isDone?'✓':''}</div>
+      <div class="routine-info" onclick="toggleRoutine('${r.id}')">
         <div class="routine-name">${esc(r.name)}</div>
         <div class="routine-time">${r.time||''}${r.time&&streak?' · ':''}<span class="routine-streak">${streak>1?'🔥'+streak+'d Streak':''}</span></div>
       </div>
       <button onclick="deleteRoutineConfirm('${r.id}',event)" style="background:none;border:none;color:var(--text3);font-size:0.9rem;cursor:pointer;padding:0.3rem">⋯</button>
     `;
-    el.onclick = ()=>toggleRoutine(r.id);
     list.appendChild(el);
   });
+  initDragSort(list);
 }
 
 function isRoutineDone(rid, date){
@@ -1324,6 +1333,82 @@ async function clearAllData(){
   localStorage.clear();
   closeModal();
   location.reload();
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// DRAG-TO-SORT (Touch + Mouse)
+// ══════════════════════════════════════════════════════════════════
+function initDragSort(list){
+  let dragEl=null, placeholder=null, startY=0, offsetY=0;
+
+  function getItems(){ return [...list.querySelectorAll('.routine-item')]; }
+
+  function pointerDown(e){
+    // Only trigger from drag handle
+    if(!e.target.closest('.drag-handle')) return;
+    e.preventDefault();
+    dragEl = e.target.closest('.routine-item');
+    if(!dragEl) return;
+
+    const rect = dragEl.getBoundingClientRect();
+    offsetY = (e.touches?e.touches[0].clientY:e.clientY) - rect.top;
+    startY = rect.top;
+
+    // Create placeholder
+    placeholder = document.createElement('div');
+    placeholder.style.cssText = `height:${rect.height}px;border:1px dashed var(--border2);border-radius:var(--r2);margin-bottom:0.5rem;background:var(--bg3);`;
+    dragEl.parentNode.insertBefore(placeholder, dragEl.nextSibling);
+
+    dragEl.classList.add('dragging');
+    dragEl.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;z-index:100;pointer-events:none;top:${rect.top}px;margin:0;`;
+
+    document.addEventListener('pointermove', pointerMove, {passive:false});
+    document.addEventListener('pointerup', pointerUp);
+  }
+
+  function pointerMove(e){
+    if(!dragEl) return;
+    e.preventDefault();
+    const y = (e.touches?e.touches[0].clientY:e.clientY);
+    dragEl.style.top = (y - offsetY) + 'px';
+
+    // Find insertion point
+    const items = getItems().filter(i=>i!==dragEl);
+    let after = null;
+    for(const item of items){
+      const box = item.getBoundingClientRect();
+      if(y > box.top + box.height/2) after = item;
+    }
+    if(after){ after.parentNode.insertBefore(placeholder, after.nextSibling); }
+    else if(items.length){ items[0].parentNode.insertBefore(placeholder, items[0]); }
+  }
+
+  function pointerUp(){
+    if(!dragEl) return;
+    document.removeEventListener('pointermove', pointerMove);
+    document.removeEventListener('pointerup', pointerUp);
+
+    // Drop
+    dragEl.style.cssText = '';
+    dragEl.classList.remove('dragging');
+    placeholder.parentNode.insertBefore(dragEl, placeholder);
+    placeholder.remove();
+    placeholder = null;
+
+    // Persist new order
+    saveRoutineOrder(getItems().map(el=>el.dataset.id));
+    dragEl = null;
+  }
+
+  list.addEventListener('pointerdown', pointerDown);
+}
+
+async function saveRoutineOrder(ids){
+  for(let i=0;i<ids.length;i++){
+    const r = allRoutines.find(r=>r.id===ids[i]);
+    if(r){ r.order=i; await dbPut('routines',r); }
+  }
 }
 
 </script>
