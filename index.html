@@ -2316,7 +2316,14 @@ function closeModal(){ document.getElementById('modal').style.display='none'; }
 // ══════════════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ══════════════════════════════════════════════════════════════════
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/tracker/sw.js').catch(()=>{});
+if('serviceWorker' in navigator){
+  // Unregister all old SWs first to clear broken caches
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  }).catch(()=>{}).finally(()=>{
+    navigator.serviceWorker.register('/tracker/sw.js').catch(()=>{});
+  });
+}
 
 // ══════════════════════════════════════════════════════════════════
 // START
