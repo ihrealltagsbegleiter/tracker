@@ -992,44 +992,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 </style>
 </head>
 <body>
-<script>
-// ── DEBUG OVERLAY ─────────────────────────────────────────────
-(function(){
-  const log = [];
-  const _orig = {log: console.log, error: console.error, warn: console.warn};
-  ['log','error','warn'].forEach(m => {
-    console[m] = (...a) => { _orig[m](...a); log.push(m.toUpperCase()+': '+a.join(' ')); };
-  });
-  window.onerror = (msg,src,line) => { log.push('ONERROR L'+line+': '+msg); showDebug(); return false; };
-  window.addEventListener('unhandledrejection', e => { log.push('PROMISE: '+e.reason); showDebug(); });
-  
-  window._dbgLog = log;
-  
-  window.showDebug = function(){
-    let el = document.getElementById('_dbg');
-    if(!el){
-      el = document.createElement('div');
-      el.id = '_dbg';
-      el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:9999;max-height:50vh;overflow-y:auto;border-bottom:2px solid #0f0';
-      document.body.appendChild(el);
-    }
-    el.innerHTML = '<b>DEBUG v11.4</b><br>' + log.slice(-20).join('<br>');
-  };
-  
-  // Show after 2 seconds regardless
-  setTimeout(() => {
-    log.push('--- State ---');
-    log.push('_useIDB: ' + _useIDB);
-    log.push('db: ' + (db ? 'connected' : 'null'));
-    log.push('allDays: ' + (typeof allDays !== 'undefined' ? allDays.length+' days' : 'undefined'));
-    log.push('TODAY: ' + (typeof TODAY !== 'undefined' ? TODAY : 'undefined'));
-    log.push('init exists: ' + (typeof init));
-    log.push('indexedDB: ' + (typeof indexedDB));
-    log.push('views active: ' + [...document.querySelectorAll('.view.active')].map(v=>v.id).join(','));
-    showDebug();
-  }, 2000);
-})();
-</script>
 <div class="app">
 
   <!-- HEADER -->
