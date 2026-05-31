@@ -346,6 +346,65 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 .drag-handle:active{cursor:grabbing}
 
+
+/* ─── MAHLZEITEN TRACKING ───────────────────────────────────── */
+.meal-section{margin-bottom:1rem}
+.meal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:0.5rem;
+}
+.meal-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3)}
+.meal-time-badge{font-family:'Syne Mono',monospace;font-size:0.68rem;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:0.15rem 0.45rem;border-radius:4px}
+
+.meal-entries{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.4rem;min-height:0}
+.meal-entry{
+  display:flex;align-items:center;gap:0.3rem;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;padding:0.3rem 0.6rem 0.3rem 0.75rem;
+  font-size:0.78rem;font-weight:500;color:var(--text);
+  animation:fadeIn 0.15s ease;
+}
+.meal-entry-del{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:0.8rem;padding:0 0.1rem;line-height:1;
+  transition:color 0.1s;
+}
+.meal-entry-del:active{color:var(--red)}
+
+.meal-add-row{display:flex;gap:0.4rem;align-items:center}
+.meal-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;padding:0.5rem 0.85rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;
+  -webkit-appearance:none;
+}
+.meal-input:focus{border-color:var(--gold)}
+.meal-input::placeholder{color:var(--text3)}
+.meal-add-btn{
+  width:34px;height:34px;border-radius:50%;background:var(--gold);
+  border:none;color:#000;font-size:1.2rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-weight:700;transition:transform 0.1s;
+}
+.meal-add-btn:active{transform:scale(0.9)}
+
+/* Suggestions dropdown */
+.meal-suggestions{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);margin-top:0.3rem;overflow:hidden;
+  max-height:160px;overflow-y:auto;
+}
+.meal-suggestions:empty{display:none}
+.meal-suggestion{
+  padding:0.6rem 0.85rem;font-size:0.82rem;color:var(--text2);
+  cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.1s;
+}
+.meal-suggestion:last-child{border-bottom:none}
+.meal-suggestion:active{background:var(--bg3)}
+.meal-suggestion mark{background:none;color:var(--gold);font-weight:700}
+
+.meal-divider{height:1px;background:var(--border);margin:0.75rem 0}
+
 </style>
 </head>
 <body>
@@ -423,9 +482,71 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div class="pain-dots" id="painDots"></div>
       </div>
 
-      <!-- Ernährung -->
+      <!-- Mahlzeiten -->
+      <div class="card" id="mealCard">
+        <div class="card-title">MAHLZEITEN</div>
+
+        <div class="meal-section" id="meal-fruehstueck">
+          <div class="meal-header">
+            <span class="meal-label">☀️ Frühstück</span>
+            <span class="meal-time-badge">06–10 Uhr</span>
+          </div>
+          <div class="meal-entries" id="entries-fruehstueck"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-fruehstueck" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('fruehstueck')" onkeydown="mealKeydown(event,'fruehstueck')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('fruehstueck')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-fruehstueck"></div>
+        </div>
+
+        <div class="meal-divider"></div>
+
+        <div class="meal-section" id="meal-mittagessen">
+          <div class="meal-header">
+            <span class="meal-label">🌤 Mittagessen</span>
+            <span class="meal-time-badge">11–14 Uhr</span>
+          </div>
+          <div class="meal-entries" id="entries-mittagessen"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-mittagessen" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('mittagessen')" onkeydown="mealKeydown(event,'mittagessen')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('mittagessen')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-mittagessen"></div>
+        </div>
+
+        <div class="meal-divider"></div>
+
+        <div class="meal-section" id="meal-abendessen">
+          <div class="meal-header">
+            <span class="meal-label">🌙 Abendessen</span>
+            <span class="meal-time-badge">17–21 Uhr</span>
+          </div>
+          <div class="meal-entries" id="entries-abendessen"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-abendessen" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('abendessen')" onkeydown="mealKeydown(event,'abendessen')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('abendessen')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-abendessen"></div>
+        </div>
+
+        <div class="meal-divider"></div>
+
+        <div class="meal-section" id="meal-snacks">
+          <div class="meal-header">
+            <span class="meal-label">🍎 Snacks</span>
+          </div>
+          <div class="meal-entries" id="entries-snacks"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-snacks" placeholder="Snack hinzufügen…" autocomplete="off" oninput="showSuggestions('snacks')" onkeydown="mealKeydown(event,'snacks')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('snacks')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-snacks"></div>
+        </div>
+      </div>
+
+      <!-- Ernährungsqualität -->
       <div class="card">
-        <div class="card-title">ERNÄHRUNG</div>
+        <div class="card-title">ERNÄHRUNGSQUALITÄT</div>
         <div class="tag-grid" id="ernTag"></div>
       </div>
 
@@ -640,7 +761,8 @@ function dbDelete(store,key){
 const TODAY = new Date().toISOString().slice(0,10);
 let state = {
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
-  ern: [], neg: [], akt: [], note: ''
+  ern: [], neg: [], akt: [], note: '',
+  meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
 };
 let statsPeriod = 7;
 let allDays = [], allRoutines = [], routineCompletions = [];
@@ -671,6 +793,7 @@ async function init(){
     document.getElementById('hrvVal').textContent = state.hrv;
     document.getElementById('energyVal').textContent = state.energy;
     document.getElementById('noteText').value = state.note||'';
+    if(todayData.meals) { state.meals = todayData.meals; renderAllMeals(); }
     // Mark save button
     document.getElementById('saveBtn').textContent = 'Aktualisieren';
   }
@@ -1410,6 +1533,114 @@ async function saveRoutineOrder(ids){
     if(r){ r.order=i; await dbPut('routines',r); }
   }
 }
+
+
+// ══════════════════════════════════════════════════════════════════
+// MAHLZEITEN TRACKING
+// ══════════════════════════════════════════════════════════════════
+const MEAL_SLOTS = ['fruehstueck','mittagessen','abendessen','snacks'];
+
+// Memory: all meals ever entered, stored in localStorage
+function getMealMemory(){
+  try { return JSON.parse(localStorage.getItem('meal_memory')||'[]'); }
+  catch(e){ return []; }
+}
+function addToMealMemory(item){
+  const mem = getMealMemory();
+  const clean = item.trim().toLowerCase();
+  if(!clean) return;
+  // Store original casing, deduplicate case-insensitively
+  const existing = mem.find(m=>m.toLowerCase()===clean);
+  if(!existing){
+    mem.unshift(item.trim()); // newest first
+    if(mem.length > 500) mem.pop(); // cap at 500
+    localStorage.setItem('meal_memory', JSON.stringify(mem));
+  }
+}
+
+function renderAllMeals(){
+  MEAL_SLOTS.forEach(slot => renderMealEntries(slot));
+}
+
+function renderMealEntries(slot){
+  const wrap = document.getElementById('entries-'+slot);
+  if(!wrap) return;
+  const entries = state.meals[slot]||[];
+  wrap.innerHTML = entries.map((item,i) => `
+    <div class="meal-entry">
+      <span>${esc(item)}</span>
+      <button class="meal-entry-del" onclick="removeMealEntry('${slot}',${i})">×</button>
+    </div>`).join('');
+}
+
+function addMealEntry(slot){
+  const input = document.getElementById('input-'+slot);
+  const val = input.value.trim();
+  if(!val) return;
+  if(!state.meals[slot]) state.meals[slot]=[];
+  state.meals[slot].push(val);
+  addToMealMemory(val);
+  input.value='';
+  hideSuggestions(slot);
+  renderMealEntries(slot);
+}
+
+function removeMealEntry(slot, idx){
+  state.meals[slot].splice(idx,1);
+  renderMealEntries(slot);
+}
+
+function mealKeydown(e, slot){
+  if(e.key==='Enter'){ e.preventDefault(); addMealEntry(slot); }
+  if(e.key==='Escape') hideSuggestions(slot);
+  if(e.key==='ArrowDown'){
+    const first = document.querySelector('#sugg-'+slot+' .meal-suggestion');
+    if(first) first.focus();
+  }
+}
+
+function showSuggestions(slot){
+  const input = document.getElementById('input-'+slot);
+  const query = input.value.trim().toLowerCase();
+  const sugg = document.getElementById('sugg-'+slot);
+  if(!query){ sugg.innerHTML=''; return; }
+
+  const mem = getMealMemory();
+  // Also include all meals from past days
+  const pastMeals = allDays.flatMap(d=>Object.values(d.meals||{}).flat());
+  const allKnown = [...new Set([...mem, ...pastMeals])];
+
+  const matches = allKnown
+    .filter(m=>m.toLowerCase().includes(query))
+    .filter(m=>!(state.meals[slot]||[]).map(x=>x.toLowerCase()).includes(m.toLowerCase()))
+    .slice(0,8);
+
+  if(!matches.length){ sugg.innerHTML=''; return; }
+
+  sugg.innerHTML = matches.map(m=>{
+    const hi = m.replace(new RegExp('('+query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi'), '<mark>$1</mark>');
+    return `<div class="meal-suggestion" tabindex="0"
+      onclick="selectSuggestion('${slot}','${m.replace(/'/g,"\'")}')"
+      onkeydown="if(event.key==='Enter')selectSuggestion('${slot}','${m.replace(/'/g,"\'")}');if(event.key==='Escape')hideSuggestions('${slot}')"
+    >${hi}</div>`;
+  }).join('');
+}
+
+function selectSuggestion(slot, val){
+  document.getElementById('input-'+slot).value = val;
+  hideSuggestions(slot);
+  addMealEntry(slot);
+}
+
+function hideSuggestions(slot){
+  const el = document.getElementById('sugg-'+slot);
+  if(el) el.innerHTML='';
+}
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#mealCard')) MEAL_SLOTS.forEach(hideSuggestions);
+});
 
 </script>
 </body>
