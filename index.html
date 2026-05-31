@@ -950,241 +950,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
-      <!-- Wellbeing -->
-      <div class="card">
-        <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
-        <div class="wellbeing-display">
-          <div class="wellbeing-number" id="wellbeingNum">5</div>
-          <div class="wellbeing-label" id="wellbeingLabel">Neutral</div>
-        </div>
-        <div class="slider-wrap">
-          <input type="range" min="1" max="10" value="5" id="wellbeingSlider" oninput="updateWellbeing(this.value)"/>
-          <div class="slider-labels"><span>1 – Sehr schlecht</span><span>10 – Ausgezeichnet</span></div>
-        </div>
-      </div>
-
-
-      <!-- Stimmung -->
-      <div class="card">
-        <div class="card-title">STIMMUNG</div>
-        <div class="mood-grid" id="moodGrid"></div>
-      </div>
-      <!-- Schlaf -->
-      <div class="card">
-        <div class="card-title">SCHLAF</div>
-        <div class="step-row">
-          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
-          <div>
-            <div class="step-val" id="sleepVal">7.0</div>
-            <div class="step-unit">Stunden</div>
-          </div>
-          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
-        </div>
-      </div>
-
-      <!-- HRV & Energie -->
-      <div class="metrics-grid" style="margin-bottom:0.75rem">
-        <div class="card" style="margin-bottom:0">
-          <div class="card-title">HRV</div>
-          <div class="step-row" style="padding:0.3rem 0">
-            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('hrv',-1)">−</button>
-            <div>
-              <div class="step-val" id="hrvVal" style="font-size:1.6rem">55</div>
-              <div class="step-unit">ms</div>
-            </div>
-            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('hrv',1)">+</button>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:0">
-          <div class="card-title">ENERGIE</div>
-          <div class="step-row" style="padding:0.3rem 0">
-            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('energy',-1)">−</button>
-            <div>
-              <div class="step-val" id="energyVal" style="font-size:1.6rem">7</div>
-              <div class="step-unit">/ 10</div>
-            </div>
-            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('energy',1)">+</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Schmerzen -->
-      <div class="card">
-        <div class="card-title">SCHMERZEN (0 = keine)</div>
-        <div class="pain-dots" id="painDots"></div>
-        <div class="pain-tags-wrap">
-          <div class="tag-group-header" style="margin-top:0.6rem">
-            <span class="card-title" style="margin-bottom:0;font-size:0.65rem">ORT / ART</span>
-            <button class="tag-edit-btn" id="painEditBtn" onclick="toggleTagEdit('pain')">Bearbeiten</button>
-          </div>
-          <div class="tag-grid" id="painTag" style="margin-top:0.4rem"></div>
-          <div class="tag-add-row" id="painAddRow" style="display:none">
-            <input class="tag-add-input" id="painAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('pain')"/>
-            <button class="tag-add-submit" onclick="addCustomTag('pain')">+</button>
-          </div>
-        </div>
-        <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
-      </div>
-
-      <!-- Mahlzeiten -->
-      <div class="card" id="mealCard">
-        <div class="card-title">MAHLZEITEN</div>
-
-        <div class="meal-section" id="meal-fruehstueck">
-          <div class="meal-header">
-            <span class="meal-label">☀️ Frühstück</span>
-            <span class="meal-time-badge">06–10 Uhr</span>
-          </div>
-          <div class="meal-entries" id="entries-fruehstueck"></div>
-          <div class="meal-add-row">
-            <input class="meal-input" id="input-fruehstueck" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('fruehstueck')" onkeydown="mealKeydown(event,'fruehstueck')"/>
-            <button class="meal-add-btn" onclick="addMealEntry('fruehstueck')">+</button>
-          </div>
-          <div class="meal-suggestions" id="sugg-fruehstueck"></div>
-        </div>
-
-        <div class="meal-divider"></div>
-
-        <div class="meal-section" id="meal-mittagessen">
-          <div class="meal-header">
-            <span class="meal-label">🌤 Mittagessen</span>
-            <span class="meal-time-badge">11–14 Uhr</span>
-          </div>
-          <div class="meal-entries" id="entries-mittagessen"></div>
-          <div class="meal-add-row">
-            <input class="meal-input" id="input-mittagessen" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('mittagessen')" onkeydown="mealKeydown(event,'mittagessen')"/>
-            <button class="meal-add-btn" onclick="addMealEntry('mittagessen')">+</button>
-          </div>
-          <div class="meal-suggestions" id="sugg-mittagessen"></div>
-        </div>
-
-        <div class="meal-divider"></div>
-
-        <div class="meal-section" id="meal-abendessen">
-          <div class="meal-header">
-            <span class="meal-label">🌙 Abendessen</span>
-            <span class="meal-time-badge">17–21 Uhr</span>
-          </div>
-          <div class="meal-entries" id="entries-abendessen"></div>
-          <div class="meal-add-row">
-            <input class="meal-input" id="input-abendessen" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('abendessen')" onkeydown="mealKeydown(event,'abendessen')"/>
-            <button class="meal-add-btn" onclick="addMealEntry('abendessen')">+</button>
-          </div>
-          <div class="meal-suggestions" id="sugg-abendessen"></div>
-        </div>
-
-        <div class="meal-divider"></div>
-
-        <div class="meal-section" id="meal-snacks">
-          <div class="meal-header">
-            <span class="meal-label">🍎 Snacks</span>
-          </div>
-          <div class="meal-entries" id="entries-snacks"></div>
-          <div class="meal-add-row">
-            <input class="meal-input" id="input-snacks" placeholder="Snack hinzufügen…" autocomplete="off" oninput="showSuggestions('snacks')" onkeydown="mealKeydown(event,'snacks')"/>
-            <button class="meal-add-btn" onclick="addMealEntry('snacks')">+</button>
-          </div>
-          <div class="meal-suggestions" id="sugg-snacks"></div>
-        </div>
-      </div>
-
-      <!-- Ernährungsqualität -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">ERNÄHRUNGSQUALITÄT</div>
-          <button class="tag-edit-btn" id="ernEditBtn" onclick="toggleTagEdit('ern')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="ernTag"></div>
-        <div class="tag-add-row" id="ernAddRow" style="display:none">
-          <input class="tag-add-input" id="ernAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('ern')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('ern')">+</button>
-        </div>
-      </div>
-
-      <!-- Was lief nicht gut -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
-          <button class="tag-edit-btn" id="negEditBtn" onclick="toggleTagEdit('neg')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="negTag"></div>
-        <div class="tag-add-row" id="negAddRow" style="display:none">
-          <input class="tag-add-input" id="negAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('neg')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
-        </div>
-        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
-      </div>
-
-      <!-- Aktivität -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
-          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="aktTag"></div>
-        <div class="tag-add-row" id="aktAddRow" style="display:none">
-          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
-        </div>
-      </div>
-
-
-      <!-- Medikamente & Supplements -->
-      <div class="card">
-        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
-        <div id="medList"></div>
-        <div class="med-add-row">
-          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
-          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
-          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
-        </div>
-        <div id="medSugg" class="med-sugg"></div>
-      </div>
-
-      <!-- Dankbarkeit -->
-      <div class="card">
-        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
-        <div id="gratitudeList">
-          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
-        </div>
-      </div>
-
-      <!-- Deep Work -->
-      <div class="card">
-        <div class="card-title">DEEP WORK</div>
-        <div class="deep-work-wrap">
-          <div class="deep-work-row">
-            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
-            <div>
-              <div class="dw-total" id="dwTotal">0.0</div>
-              <div class="dw-unit">Stunden</div>
-            </div>
-          </div>
-          <div class="dw-goal-row">
-            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
-            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
-            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Erfolge -->
-      <div class="card" id="winsCard">
-        <div class="card-title">🏆 KLEINE ERFOLGE</div>
-        <div class="win-list" id="winList"></div>
-        <div class="win-add-row">
-          <input class="win-input" id="winInput"
-            placeholder="Was hast du heute erreicht?…"
-            autocomplete="off"
-            oninput="showWinSugg()"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
-          />
-          <button class="win-add-btn" onclick="addWin()">+</button>
-        </div>
-        <div class="win-sugg" id="winSugg"></div>
-      </div>
 
       <!-- Gedanken / Brain Dump -->
       <div class="card" id="thoughtsCard">
@@ -3656,3 +3421,256 @@ function thoughtToTomorrowFrog(id){
 </script>
 </body>
 </html>
+
+      <!-- Wellbeing -->
+      <div class="card">
+        <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
+        <div class="wellbeing-display">
+          <div class="wellbeing-number" id="wellbeingNum">5</div>
+          <div class="wellbeing-label" id="wellbeingLabel">Neutral</div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" min="1" max="10" value="5" id="wellbeingSlider" oninput="updateWellbeing(this.value)"/>
+          <div class="slider-labels"><span>1 – Sehr schlecht</span><span>10 – Ausgezeichnet</span></div>
+        </div>
+      </div>
+
+
+      <!-- Stimmung -->
+      <div class="card">
+        <div class="card-title">STIMMUNG</div>
+        <div class="mood-grid" id="moodGrid"></div>
+      </div>
+      <!-- Schlaf -->
+      <div class="card">
+        <div class="card-title">SCHLAF</div>
+        <div class="step-row">
+          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
+          <div>
+            <div class="step-val" id="sleepVal">7.0</div>
+            <div class="step-unit">Stunden</div>
+          </div>
+          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
+        </div>
+      </div>
+
+      <!-- HRV & Energie -->
+      <div class="metrics-grid" style="margin-bottom:0.75rem">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title">HRV</div>
+          <div class="step-row" style="padding:0.3rem 0">
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('hrv',-1)">−</button>
+            <div>
+              <div class="step-val" id="hrvVal" style="font-size:1.6rem">55</div>
+              <div class="step-unit">ms</div>
+            </div>
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('hrv',1)">+</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title">ENERGIE</div>
+          <div class="step-row" style="padding:0.3rem 0">
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('energy',-1)">−</button>
+            <div>
+              <div class="step-val" id="energyVal" style="font-size:1.6rem">7</div>
+              <div class="step-unit">/ 10</div>
+            </div>
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('energy',1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schmerzen -->
+      <div class="card">
+        <div class="card-title">SCHMERZEN (0 = keine)</div>
+        <div class="pain-dots" id="painDots"></div>
+        <div class="pain-tags-wrap">
+          <div class="tag-group-header" style="margin-top:0.6rem">
+            <span class="card-title" style="margin-bottom:0;font-size:0.65rem">ORT / ART</span>
+            <button class="tag-edit-btn" id="painEditBtn" onclick="toggleTagEdit('pain')">Bearbeiten</button>
+          </div>
+          <div class="tag-grid" id="painTag" style="margin-top:0.4rem"></div>
+          <div class="tag-add-row" id="painAddRow" style="display:none">
+            <input class="tag-add-input" id="painAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('pain')"/>
+            <button class="tag-add-submit" onclick="addCustomTag('pain')">+</button>
+          </div>
+        </div>
+        <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
+      </div>
+
+      <!-- Mahlzeiten -->
+      <div class="card" id="mealCard">
+        <div class="card-title">MAHLZEITEN</div>
+
+        <div class="meal-section" id="meal-fruehstueck">
+          <div class="meal-header">
+            <span class="meal-label">☀️ Frühstück</span>
+            <span class="meal-time-badge">06–10 Uhr</span>
+          </div>
+          <div class="meal-entries" id="entries-fruehstueck"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-fruehstueck" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('fruehstueck')" onkeydown="mealKeydown(event,'fruehstueck')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('fruehstueck')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-fruehstueck"></div>
+        </div>
+
+        <div class="meal-divider"></div>
+
+        <div class="meal-section" id="meal-mittagessen">
+          <div class="meal-header">
+            <span class="meal-label">🌤 Mittagessen</span>
+            <span class="meal-time-badge">11–14 Uhr</span>
+          </div>
+          <div class="meal-entries" id="entries-mittagessen"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-mittagessen" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('mittagessen')" onkeydown="mealKeydown(event,'mittagessen')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('mittagessen')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-mittagessen"></div>
+        </div>
+
+        <div class="meal-divider"></div>
+
+        <div class="meal-section" id="meal-abendessen">
+          <div class="meal-header">
+            <span class="meal-label">🌙 Abendessen</span>
+            <span class="meal-time-badge">17–21 Uhr</span>
+          </div>
+          <div class="meal-entries" id="entries-abendessen"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-abendessen" placeholder="Was hast du gegessen?" autocomplete="off" oninput="showSuggestions('abendessen')" onkeydown="mealKeydown(event,'abendessen')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('abendessen')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-abendessen"></div>
+        </div>
+
+        <div class="meal-divider"></div>
+
+        <div class="meal-section" id="meal-snacks">
+          <div class="meal-header">
+            <span class="meal-label">🍎 Snacks</span>
+          </div>
+          <div class="meal-entries" id="entries-snacks"></div>
+          <div class="meal-add-row">
+            <input class="meal-input" id="input-snacks" placeholder="Snack hinzufügen…" autocomplete="off" oninput="showSuggestions('snacks')" onkeydown="mealKeydown(event,'snacks')"/>
+            <button class="meal-add-btn" onclick="addMealEntry('snacks')">+</button>
+          </div>
+          <div class="meal-suggestions" id="sugg-snacks"></div>
+        </div>
+      </div>
+
+      <!-- Ernährungsqualität -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">ERNÄHRUNGSQUALITÄT</div>
+          <button class="tag-edit-btn" id="ernEditBtn" onclick="toggleTagEdit('ern')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="ernTag"></div>
+        <div class="tag-add-row" id="ernAddRow" style="display:none">
+          <input class="tag-add-input" id="ernAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('ern')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('ern')">+</button>
+        </div>
+      </div>
+
+      <!-- Was lief nicht gut -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
+          <button class="tag-edit-btn" id="negEditBtn" onclick="toggleTagEdit('neg')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="negTag"></div>
+        <div class="tag-add-row" id="negAddRow" style="display:none">
+          <input class="tag-add-input" id="negAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('neg')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
+        </div>
+        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
+      </div>
+
+      <!-- Aktivität -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
+          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="aktTag"></div>
+        <div class="tag-add-row" id="aktAddRow" style="display:none">
+          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
+        </div>
+      </div>
+
+
+      <!-- Medikamente & Supplements -->
+      <div class="card">
+        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
+        <div id="medList"></div>
+        <div class="med-add-row">
+          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
+          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
+          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
+        </div>
+        <div id="medSugg" class="med-sugg"></div>
+      </div>
+
+      <!-- Dankbarkeit -->
+      <div class="card">
+        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
+        <div id="gratitudeList">
+          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
+        </div>
+      </div>
+
+      <!-- Deep Work -->
+      <div class="card">
+        <div class="card-title">DEEP WORK</div>
+        <div class="deep-work-wrap">
+          <div class="deep-work-row">
+            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
+            <div>
+              <div class="dw-total" id="dwTotal">0.0</div>
+              <div class="dw-unit">Stunden</div>
+            </div>
+          </div>
+          <div class="dw-goal-row">
+            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
+            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
+            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Erfolge -->
+      <div class="card" id="winsCard">
+        <div class="card-title">🏆 KLEINE ERFOLGE</div>
+        <div class="win-list" id="winList"></div>
+        <div class="win-add-row">
+          <input class="win-input" id="winInput"
+            placeholder="Was hast du heute erreicht?…"
+            autocomplete="off"
+            oninput="showWinSugg()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
+          />
+          <button class="win-add-btn" onclick="addWin()">+</button>
+        </div>
+        <div class="win-sugg" id="winSugg"></div>
+      </div>
+
+      <!-- Erfolge -->
+      <div class="card" id="winsCard">
+        <div class="card-title">🏆 KLEINE ERFOLGE</div>
+        <div class="win-list" id="winList"></div>
+        <div class="win-add-row">
+          <input class="win-input" id="winInput"
+            placeholder="Was hast du heute erreicht?…"
+            autocomplete="off"
+            oninput="showWinSugg()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
+          />
+          <button class="win-add-btn" onclick="addWin()">+</button>
+        </div>
+        <div class="win-sugg" id="winSugg"></div>
+      </div>
+
