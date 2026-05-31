@@ -1180,20 +1180,23 @@ function saveTagOpts(key, opts){
 function buildTagGrid(id, opts, key){
   // opts param kept for compatibility but we use stored opts
   const storedOpts = getTagOpts(key);
+  // Map tag key → state property (pain uses pain_tags)
+  const STATE_KEY_MAP = {pain:'pain_tags'};
+  const stateKey = STATE_KEY_MAP[key] || key;
   const wrap = document.getElementById(id);
   wrap.innerHTML = '';
   const editing = tagEditMode[key];
   storedOpts.forEach(opt=>{
     const t = document.createElement('div');
-    t.className = 'tag'+(state[key].includes(opt)?' active':'')+(editing?' deletable':'');
+    t.className = 'tag'+(state[stateKey].includes(opt)?' active':'')+(editing?' deletable':'');
     if(editing){
       t.innerHTML = esc(opt) + `<button class="tag-del" onclick="deleteCustomTag('${key}','${opt.replace(/'/g,"\'")}',event)">×</button>`;
     } else {
       t.textContent = opt;
       t.onclick = ()=>{
         t.classList.toggle('active');
-        if(state[key].includes(opt)) state[key] = state[key].filter(x=>x!==opt);
-        else state[key].push(opt);
+        if(state[stateKey].includes(opt)) state[stateKey] = state[stateKey].filter(x=>x!==opt);
+        else state[stateKey].push(opt);
       };
     }
     wrap.appendChild(t);
@@ -1228,7 +1231,9 @@ function deleteCustomTag(key, opt, e){
   e.stopPropagation();
   const opts = getTagOpts(key).filter(o=>o!==opt);
   saveTagOpts(key, opts);
-  state[key] = state[key].filter(o=>o!==opt);
+  const STATE_KEY_MAP = {pain:'pain_tags'};
+  const stateKey = STATE_KEY_MAP[key] || key;
+  state[stateKey] = state[stateKey].filter(o=>o!==opt);
   buildTagGrid(key+'Tag', [], key);
 }
 
