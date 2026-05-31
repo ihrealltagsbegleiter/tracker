@@ -1,655 +1,963 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="theme-color" content="#0a0a0f"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="Sprachnotiz"/>
-  <link rel="manifest" href="/manifest.json"/>
-  <link rel="apple-touch-icon" href="/icon-192.png"/>
-  <title>Sprachnotiz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-    html,body{height:100%;overflow:hidden}
-    body{background:#0a0a0f;color:#e8e4df;font-family:'DM Sans',sans-serif;overscroll-behavior:none}
-    .app{height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top,16px) 0 env(safe-area-inset-bottom,16px);overflow:hidden}
-    .header{text-align:center;padding:1rem 1rem 0.6rem;flex-shrink:0}
-    .header h1{font-family:'DM Serif Display',serif;font-size:1.7rem;color:#e8e4df;letter-spacing:-0.02em}
-    .header h1 span{color:#c8a97e;font-style:italic}
-    .header p{font-size:0.7rem;color:#444;margin-top:0.2rem;letter-spacing:0.07em;text-transform:uppercase}
-    .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 1rem 2rem}
-    .card{background:#13131a;border:1px solid #1e1e2a;border-radius:16px;padding:1.2rem;margin-bottom:1rem}
-    .mode-tabs{display:flex;gap:0.3rem;margin-bottom:1.2rem;background:#0a0a0f;padding:3px;border-radius:10px;border:1px solid #1e1e2a}
-    .tab-btn{flex:1;padding:0.55rem 0.2rem;background:transparent;border:none;border-radius:7px;color:#444;font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:500;cursor:pointer;transition:all 0.2s}
-    .tab-btn.active{background:#1e1e2a;color:#c8a97e}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0c0f14"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tracker"/>
+<link rel="manifest" href="/manifest.json"/>
+<title>Daily Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0c0f14;
+  --bg2:#111520;
+  --bg3:#161b26;
+  --border:#1e2535;
+  --border2:#252e42;
+  --text:#e8eaf0;
+  --text2:#8890a8;
+  --text3:#4a5268;
+  --gold:#d4a843;
+  --gold2:#f0c96a;
+  --green:#4caf82;
+  --red:#e05555;
+  --blue:#5b8dee;
+  --purple:#9b72e8;
+  --r:14px;
+  --r2:10px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Syne',sans-serif;color:var(--text);overscroll-behavior:none}
 
-    /* RECORD */
-    .record-center{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:0.5rem 0 0.3rem}
-    .timer{font-family:'DM Serif Display',serif;font-size:2.4rem;color:#e05555;letter-spacing:0.08em;transition:color 0.3s}
-    .timer.idle{color:#2a2a38}
-    .record-btn{width:86px;height:86px;border-radius:50%;border:none;cursor:pointer;font-size:1.9rem;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;transition:all 0.2s}
-    .record-btn.idle{background:#c8a97e;box-shadow:0 4px 20px rgba(200,169,126,0.3)}
-    .record-btn.recording{background:#e05555;animation:pulse 1.4s infinite}
-    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(224,85,85,0.4)}50%{box-shadow:0 0 0 16px rgba(224,85,85,0)}}
-    .rec-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:#444;text-align:center;line-height:1.4}
-    .rec-label.active{color:#e05555}
-    .rec-hint{font-size:0.7rem;color:#333;text-align:center;margin-top:0.3rem;line-height:1.5}
+/* ─── LAYOUT ────────────────────────────────────────────────── */
+.app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 1rem 6rem}
+.content::-webkit-scrollbar{display:none}
 
-    /* KEY REQUIRED NOTICE */
-    .key-notice{background:#1a1510;border:1px solid #c8a97e33;border-radius:10px;padding:0.8rem 1rem;margin-bottom:0.8rem;font-size:0.78rem;color:#888;line-height:1.6;text-align:center}
-    .key-notice strong{color:#c8a97e}
+/* ─── HEADER ─────────────────────────────────────────────────── */
+.header{
+  padding:calc(env(safe-area-inset-top,12px) + 12px) 1rem 0.75rem;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.header-left{}
+.header-title{font-size:1.25rem;font-weight:800;letter-spacing:-0.03em;color:var(--text)}
+.header-date{font-size:0.7rem;color:var(--text3);margin-top:1px;font-family:'Syne Mono',monospace;letter-spacing:0.05em}
+.streak-badge{
+  display:flex;align-items:center;gap:0.3rem;
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:0.35rem 0.7rem;border-radius:20px;
+  font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:0.02em
+}
 
-    /* UPLOAD */
-    .upload-area{border:2px dashed #1e1e2a;border-radius:12px;padding:1.6rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s}
-    .upload-area.done{border-color:#3a5e42}
-    .upload-area.loading{pointer-events:none;opacity:0.7}
-    .upload-icon{font-size:2rem;margin-bottom:0.5rem}
-    .upload-area p{color:#555;font-size:0.82rem;margin-top:0.2rem}
-    .upload-area strong{color:#c8a97e}
-    .key-badge{display:inline-flex;align-items:center;gap:0.35rem;font-size:0.7rem;color:#555;margin-top:0.7rem;cursor:pointer;padding:0.3rem 0.75rem;border:1px solid #1e1e2a;border-radius:20px;background:transparent;font-family:'DM Sans',sans-serif}
-    .key-badge.set{color:#5a9e6a;border-color:#1e3a24}
+/* ─── BOTTOM NAV ─────────────────────────────────────────────── */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;
+  padding:0.5rem 0 calc(env(safe-area-inset-bottom,8px) + 0.5rem);
+  background:var(--bg);border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;
+  flex-shrink:0;z-index:50;
+}
+.nav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:0.2rem;
+  background:none;border:none;cursor:pointer;padding:0.3rem 0.8rem;
+  font-family:'Syne',sans-serif;
+}
+.nav-icon{font-size:1.1rem;transition:transform 0.15s}
+.nav-label{font-size:0.62rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);transition:color 0.15s}
+.nav-btn.active .nav-label{color:var(--gold)}
+.nav-btn.active .nav-icon{transform:translateY(-1px)}
+.nav-btn:active .nav-icon{transform:scale(0.9)}
 
-    /* TRANSCRIPT */
-    .section-label{font-size:0.66rem;text-transform:uppercase;letter-spacing:0.1em;color:#3a3a4a;margin-bottom:0.5rem;font-weight:600}
-    .transcript-box{width:100%;background:#0a0a0f;border:1px solid #1e1e2a;border-radius:10px;padding:0.85rem 1rem;color:#888;font-size:0.84rem;line-height:1.65;min-height:70px;max-height:150px;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:'DM Sans',sans-serif;white-space:pre-wrap}
-    textarea.transcript-box{resize:none;outline:none}
-    textarea.transcript-box:focus{border-color:#c8a97e33}
+/* ─── VIEWS ──────────────────────────────────────────────────── */
+.view{display:none;animation:fadeIn 0.2s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-    /* BUTTONS */
-    .analyze-btn{width:100%;padding:0.9rem;background:#c8a97e;color:#0a0a0f;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;letter-spacing:0.04em;margin-top:0.9rem;-webkit-user-select:none;user-select:none;transition:all 0.2s}
-    .analyze-btn:active{transform:scale(0.98)}
-    .analyze-btn:disabled{opacity:0.3;cursor:not-allowed}
-    .processing-bar{display:flex;align-items:center;gap:0.7rem;color:#c8a97e;font-size:0.8rem;padding:0.7rem 0}
-    .dot-loader span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#c8a97e;margin:0 2px;animation:blink 1.2s infinite}
-    .dot-loader span:nth-child(2){animation-delay:0.2s}
-    .dot-loader span:nth-child(3){animation-delay:0.4s}
-    @keyframes blink{0%,100%{opacity:0.2;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+/* ─── SECTION HEADERS ────────────────────────────────────────── */
+.section-title{
+  font-size:0.65rem;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text3);
+  padding:1.2rem 0 0.6rem;
+}
 
-    /* SUMMARY */
-    .summary-card{background:#13131a;border:1px solid #c8a97e22;border-radius:16px;padding:1.2rem;margin-bottom:1rem;animation:fadeUp 0.35s ease}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .summary-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid #1e1e2a}
-    .summary-title{font-family:'DM Serif Display',serif;font-size:1.15rem;color:#c8a97e}
-    .copy-btn{padding:0.4rem 0.8rem;background:transparent;border:1px solid #2a2a38;border-radius:6px;color:#555;font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;min-width:80px;text-align:center;transition:all 0.2s}
-    .copy-btn.copied{border-color:#5a9e6a;color:#5a9e6a}
-    .summary-content{color:#bbb8b2;font-size:0.84rem;line-height:1.8}
-    .summary-content h2{font-family:'DM Serif Display',serif;font-size:0.98rem;color:#e8e4df;margin:1.1rem 0 0.4rem;font-weight:400}
-    .summary-content h2:first-child{margin-top:0}
-    .summary-content h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:#c8a97e;margin:0.9rem 0 0.3rem;font-weight:600}
-    .summary-content ul{list-style:none;margin:0.3rem 0 0.8rem;padding:0}
-    .summary-content ul li{padding:0.15rem 0 0.15rem 1rem;position:relative}
-    .summary-content ul li::before{content:'›';position:absolute;left:0;color:#c8a97e}
-    .summary-content ol{list-style:none;counter-reset:item;margin:0.3rem 0 0.8rem;padding:0}
-    .summary-content ol li{padding:0.15rem 0 0.15rem 1.4rem;position:relative;counter-increment:item}
-    .summary-content ol li::before{content:counter(item)'.';position:absolute;left:0;color:#c8a97e;font-size:0.78rem}
-    .summary-content strong{color:#e8e4df}
-    .summary-content p{margin:0.3rem 0}
+/* ─── CARDS ──────────────────────────────────────────────────── */
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:1rem;margin-bottom:0.75rem;
+}
+.card-title{font-size:0.78rem;font-weight:700;color:var(--text2);letter-spacing:0.04em;margin-bottom:0.75rem}
 
-    /* ERROR / RESET */
-    .error-box{background:#1a0f0f;border:1px solid #5a2020;border-radius:10px;padding:0.75rem 1rem;color:#e05555;font-size:0.8rem;margin-bottom:0.8rem;line-height:1.5}
-    .reset-btn{display:block;width:100%;padding:0.75rem;background:transparent;border:1px solid #1e1e2a;border-radius:12px;color:#555;font-size:0.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:0.5rem}
+/* ─── TODAY: WELLBEING SLIDER ────────────────────────────────── */
+.wellbeing-display{
+  text-align:center;padding:1.2rem 0 0.5rem;
+}
+.wellbeing-number{
+  font-family:'Lora',serif;font-size:4rem;font-weight:400;
+  line-height:1;color:var(--gold);transition:color 0.3s;
+}
+.wellbeing-label{font-size:0.72rem;color:var(--text3);margin-top:0.4rem;letter-spacing:0.08em;text-transform:uppercase}
+.slider-wrap{padding:0.5rem 0 0.25rem}
+input[type=range]{
+  width:100%;height:6px;-webkit-appearance:none;appearance:none;
+  background:var(--bg3);border-radius:3px;outline:none;border:none;
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:var(--gold);cursor:pointer;border:3px solid var(--bg);
+  box-shadow:0 0 10px rgba(212,168,67,0.4);transition:transform 0.1s;
+}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
+.slider-labels{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-top:0.3rem}
 
-    /* MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;z-index:200}
-    .modal{background:#13131a;border:1px solid #2a2a38;border-radius:20px 20px 0 0;padding:1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom,0));width:100%}
-    .modal h3{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#e8e4df;margin-bottom:0.4rem}
-    .modal p{font-size:0.78rem;color:#555;margin-bottom:1.2rem;line-height:1.6}
-    .modal a{color:#c8a97e;text-decoration:none}
-    .key-input{width:100%;background:#0a0a0f;border:1px solid #2a2a38;border-radius:10px;padding:0.85rem 1rem;color:#e8e4df;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;margin-bottom:0.85rem;-webkit-appearance:none}
-    .key-input:focus{border-color:#c8a97e44}
-    .modal-actions{display:flex;gap:0.6rem}
-    .key-save{flex:1;padding:0.8rem;background:#c8a97e;color:#0a0a0f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer}
-    .key-cancel{padding:0.8rem 1rem;background:transparent;border:1px solid #1e1e2a;border-radius:10px;color:#444;font-family:'DM Sans',sans-serif;font-size:0.86rem;cursor:pointer}
+/* ─── TODAY: METRICS GRID ────────────────────────────────────── */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem}
+.metric-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
+  padding:0.8rem;cursor:pointer;transition:border-color 0.15s;
+}
+.metric-card:active{border-color:var(--border2);background:#1a2030}
+.metric-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.5rem}
+.metric-value{font-family:'Syne Mono',monospace;font-size:1.3rem;font-weight:400;color:var(--text)}
+.metric-unit{font-size:0.65rem;color:var(--text3);margin-left:2px}
+.metric-sub{font-size:0.68rem;color:var(--text3);margin-top:0.2rem}
 
-    /* INSTALL */
-    .install-banner{display:none;background:#13131a;border:1px solid #c8a97e33;border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.8rem;font-size:0.78rem;color:#888;align-items:center;gap:0.6rem}
-    .install-banner.visible{display:flex}
-    .install-btn{margin-left:auto;padding:0.35rem 0.8rem;background:#c8a97e;color:#0a0a0f;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap}
+/* ─── STEP BUTTONS (für Schlaf, Schmerz etc.) ────────────────── */
+.step-row{display:flex;align-items:center;gap:0.5rem;justify-content:center;padding:0.5rem 0}
+.step-btn{
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--border2);
+  background:var(--bg3);color:var(--text);font-size:1.2rem;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.12s;font-family:'Syne',sans-serif;font-weight:700;
+}
+.step-btn:active{transform:scale(0.9);background:var(--border2)}
+.step-val{
+  font-family:'Syne Mono',monospace;font-size:2rem;color:var(--text);
+  min-width:80px;text-align:center;
+}
+.step-unit{font-size:0.72rem;color:var(--text3);text-align:center;margin-top:0.2rem}
 
-    ::-webkit-scrollbar{width:3px}
-    ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:#2a2a38;border-radius:2px}
-  </style>
+/* ─── PAIN SCALE ─────────────────────────────────────────────── */
+.pain-dots{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;padding:0.4rem 0}
+.pain-dot{
+  width:36px;height:36px;border-radius:50%;border:2px solid var(--border2);
+  background:var(--bg3);color:var(--text2);font-size:0.82rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.12s;font-family:'Syne Mono',monospace;
+}
+.pain-dot.active{background:var(--red);border-color:var(--red);color:#fff}
+.pain-dot[data-v="0"].active{background:var(--green);border-color:var(--green)}
+.pain-dot[data-v="1"].active,.pain-dot[data-v="2"].active{background:#8bc34a;border-color:#8bc34a}
+.pain-dot[data-v="3"].active,.pain-dot[data-v="4"].active{background:var(--gold);border-color:var(--gold);color:#000}
+.pain-dot[data-v="5"].active,.pain-dot[data-v="6"].active{background:#ff9800;border-color:#ff9800;color:#000}
+
+/* ─── TAGS ───────────────────────────────────────────────────── */
+.tag-grid{display:flex;flex-wrap:wrap;gap:0.45rem;padding:0.25rem 0}
+.tag{
+  padding:0.35rem 0.75rem;border-radius:20px;
+  border:1px solid var(--border2);background:var(--bg3);
+  color:var(--text2);font-size:0.75rem;font-weight:600;cursor:pointer;
+  transition:all 0.12s;letter-spacing:0.02em;
+}
+.tag.active{background:var(--gold);border-color:var(--gold);color:#000}
+.tag:active{transform:scale(0.95)}
+
+/* ─── TEXTAREA ───────────────────────────────────────────────── */
+textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.75rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.84rem;line-height:1.6;
+  resize:none;outline:none;-webkit-appearance:none;
+}
+textarea:focus{border-color:var(--gold);background:#181f2e}
+textarea::placeholder{color:var(--text3)}
+
+/* ─── SAVE BUTTON ────────────────────────────────────────────── */
+.save-btn{
+  width:100%;padding:1rem;background:var(--gold);color:#000;
+  border:none;border-radius:var(--r);font-family:'Syne',sans-serif;
+  font-size:0.9rem;font-weight:800;cursor:pointer;letter-spacing:0.05em;
+  text-transform:uppercase;transition:all 0.15s;margin-top:0.5rem;
+}
+.save-btn:active{transform:scale(0.98);background:var(--gold2)}
+.save-btn.saved{background:var(--green);color:#fff}
+
+/* ─── ROUTINEN ───────────────────────────────────────────────── */
+.routine-item{
+  display:flex;align-items:center;gap:0.75rem;
+  padding:0.85rem;background:var(--bg2);
+  border:1px solid var(--border);border-radius:var(--r2);
+  margin-bottom:0.5rem;cursor:pointer;transition:border-color 0.15s;
+}
+.routine-item.done{border-color:var(--green)!important}
+.routine-check{
+  width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:0.9rem;transition:all 0.15s;
+}
+.routine-item.done .routine-check{background:var(--green);border-color:var(--green);color:#fff}
+.routine-info{flex:1;min-width:0}
+.routine-name{font-size:0.86rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.routine-item.done .routine-name{color:var(--text2);text-decoration:line-through}
+.routine-time{font-size:0.65rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-top:2px}
+.routine-streak{font-size:0.7rem;color:var(--gold);font-weight:700}
+
+.add-routine-btn{
+  width:100%;padding:0.8rem;background:transparent;border:1px dashed var(--border2);
+  border-radius:var(--r2);color:var(--text3);font-family:'Syne',sans-serif;
+  font-size:0.82rem;cursor:pointer;letter-spacing:0.04em;margin-top:0.25rem;
+}
+.add-routine-btn:active{background:var(--bg3)}
+
+/* ─── STATS ──────────────────────────────────────────────────── */
+.period-tabs{display:flex;gap:0.3rem;background:var(--bg3);padding:3px;border-radius:8px;border:1px solid var(--border);margin-bottom:1rem}
+.period-tab{flex:1;padding:0.45rem;background:transparent;border:none;border-radius:5px;color:var(--text3);font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;letter-spacing:0.04em;transition:all 0.15s}
+.period-tab.active{background:var(--bg2);color:var(--gold)}
+
+.stat-row{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-icon{font-size:1.2rem;width:30px;text-align:center;flex-shrink:0}
+.stat-info{flex:1}
+.stat-name{font-size:0.82rem;font-weight:600;margin-bottom:2px}
+.stat-val{font-family:'Syne Mono',monospace;font-size:0.72rem;color:var(--text3)}
+.stat-bar-wrap{width:80px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.stat-bar{height:100%;border-radius:3px;transition:width 0.6s ease;background:var(--gold)}
+
+/* ─── CHART ──────────────────────────────────────────────────── */
+.chart-wrap{padding:0.5rem 0;overflow:hidden}
+.chart-svg{width:100%;display:block}
+
+/* ─── CORRELATION ────────────────────────────────────────────── */
+.corr-item{
+  padding:0.75rem;background:var(--bg3);border-radius:var(--r2);
+  margin-bottom:0.5rem;border-left:3px solid var(--border2);
+}
+.corr-item.pos{border-left-color:var(--green)}
+.corr-item.neg{border-left-color:var(--red)}
+.corr-label{font-size:0.78rem;font-weight:600;margin-bottom:3px}
+.corr-val{font-family:'Syne Mono',monospace;font-size:0.7rem;color:var(--text3)}
+
+/* ─── MODAL ──────────────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.8);
+  display:flex;align-items:flex-end;z-index:200;
+  animation:fadeIn 0.15s ease;
+}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  padding:1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom,0));
+  width:100%;max-height:80vh;overflow-y:auto;
+}
+.modal-title{font-family:'Lora',serif;font-size:1.2rem;color:var(--text);margin-bottom:0.3rem}
+.modal-sub{font-size:0.75rem;color:var(--text3);margin-bottom:1.25rem;line-height:1.5}
+.input{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.8rem 1rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;
+  margin-bottom:0.7rem;-webkit-appearance:none;
+}
+.input:focus{border-color:var(--gold)}
+.modal-actions{display:flex;gap:0.6rem;margin-top:0.5rem}
+.btn-primary{flex:1;padding:0.85rem;background:var(--gold);color:#000;border:none;border-radius:var(--r2);font-family:'Syne',sans-serif;font-size:0.86rem;font-weight:800;cursor:pointer;letter-spacing:0.04em}
+.btn-secondary{padding:0.85rem 1.1rem;background:transparent;border:1px solid var(--border2);border-radius:var(--r2);color:var(--text3);font-family:'Syne',sans-serif;font-size:0.86rem;cursor:pointer}
+.btn-danger{flex:1;padding:0.85rem;background:transparent;border:1px solid var(--red);border-radius:var(--r2);color:var(--red);font-family:'Syne',sans-serif;font-size:0.86rem;cursor:pointer}
+select.input{cursor:pointer}
+
+/* ─── EMPTY STATE ────────────────────────────────────────────── */
+.empty{text-align:center;padding:3rem 1.5rem;color:var(--text3)}
+.empty-icon{font-size:2.5rem;margin-bottom:0.75rem;display:block}
+.empty-text{font-size:0.84rem;line-height:1.6}
+
+/* ─── TOAST ──────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,8px) + 8px);
+  left:50%;transform:translateX(-50%) translateY(0);
+  background:var(--green);color:#fff;font-size:0.8rem;font-weight:700;
+  padding:0.6rem 1.2rem;border-radius:20px;z-index:300;
+  transition:opacity 0.3s;white-space:nowrap;letter-spacing:0.04em;
+  pointer-events:none;
+}
+.toast.hidden{opacity:0}
+
+/* ─── PROGRESS RING ──────────────────────────────────────────── */
+.progress-ring-wrap{display:flex;align-items:center;justify-content:center;padding:0.75rem 0}
+.progress-ring-label{font-family:'Syne Mono',monospace;font-size:0.78rem;color:var(--text3);text-align:center;margin-top:0.4rem}
+
+/* ─── ROUTINE PROGRESS BAR ───────────────────────────────────── */
+.routine-progress{
+  height:4px;background:var(--bg3);border-radius:2px;margin-bottom:0.75rem;overflow:hidden;
+}
+.routine-progress-fill{height:100%;border-radius:2px;background:var(--gold);transition:width 0.4s ease}
+</style>
 </head>
 <body>
 <div class="app">
+
+  <!-- HEADER -->
   <div class="header">
-    <h1>Sprach<span>notiz</span></h1>
-    <p>Ihre Alltagsbegleiter</p>
+    <div class="header-left">
+      <div class="header-title">Daily Tracker</div>
+      <div class="header-date" id="headerDate">—</div>
+    </div>
+    <div class="streak-badge">🔥 <span id="streakCount">0</span></div>
   </div>
-  <div class="scroll-area" id="scrollArea">
 
-    <div class="install-banner" id="installBanner">
-      <span id="installText">📲 Zum Homescreen hinzufügen</span>
-      <button class="install-btn" id="installBtn">Installieren</button>
+  <!-- CONTENT -->
+  <div class="content" id="appContent">
+
+    <!-- VIEW: HEUTE -->
+    <div class="view active" id="view-heute">
+      <!-- Wellbeing -->
+      <div class="card">
+        <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
+        <div class="wellbeing-display">
+          <div class="wellbeing-number" id="wellbeingNum">5</div>
+          <div class="wellbeing-label" id="wellbeingLabel">Neutral</div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" min="1" max="10" value="5" id="wellbeingSlider" oninput="updateWellbeing(this.value)"/>
+          <div class="slider-labels"><span>1 – Sehr schlecht</span><span>10 – Ausgezeichnet</span></div>
+        </div>
+      </div>
+
+      <!-- Schlaf -->
+      <div class="card">
+        <div class="card-title">SCHLAF</div>
+        <div class="step-row">
+          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
+          <div>
+            <div class="step-val" id="sleepVal">7.0</div>
+            <div class="step-unit">Stunden</div>
+          </div>
+          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
+        </div>
+      </div>
+
+      <!-- HRV & Energie -->
+      <div class="metrics-grid">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title">HRV</div>
+          <div class="step-row" style="padding:0.3rem 0">
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('hrv',-1)">−</button>
+            <div>
+              <div class="step-val" id="hrvVal" style="font-size:1.6rem">55</div>
+              <div class="step-unit">ms</div>
+            </div>
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('hrv',1)">+</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title">ENERGIE</div>
+          <div class="step-row" style="padding:0.3rem 0">
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('energy',-1)">−</button>
+            <div>
+              <div class="step-val" id="energyVal" style="font-size:1.6rem">7</div>
+              <div class="step-unit">/ 10</div>
+            </div>
+            <button class="step-btn" style="width:32px;height:32px;font-size:1rem" onclick="adjustVal('energy',1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schmerzen -->
+      <div class="card" style="margin-top:0.75rem">
+        <div class="card-title">SCHMERZEN (0 = keine)</div>
+        <div class="pain-dots" id="painDots"></div>
+      </div>
+
+      <!-- Ernährung -->
+      <div class="card">
+        <div class="card-title">ERNÄHRUNG</div>
+        <div class="tag-grid" id="ernTag"></div>
+      </div>
+
+      <!-- Was lief nicht gut -->
+      <div class="card">
+        <div class="card-title">WAS LIEF NICHT GUT?</div>
+        <div class="tag-grid" id="negTag"></div>
+        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
+      </div>
+
+      <!-- Aktivität -->
+      <div class="card">
+        <div class="card-title">AKTIVITÄT</div>
+        <div class="tag-grid" id="aktTag"></div>
+      </div>
+
+      <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
     </div>
 
-    <div class="error-box" id="errorBox" style="display:none"></div>
+    <!-- VIEW: ROUTINEN -->
+    <div class="view" id="view-routinen">
+      <div class="section-title">HEUTE</div>
+      <div class="routine-progress"><div class="routine-progress-fill" id="routineProgress" style="width:0%"></div></div>
+      <div id="routineList"></div>
+      <button class="add-routine-btn" onclick="openAddRoutine()">+ Neue Routine hinzufügen</button>
+    </div>
 
-    <!-- Loading overlay -->
-    <div class="card" id="loadingCard" style="display:none">
-      <div class="processing-bar">
-        <div class="dot-loader"><span></span><span></span><span></span></div>
-        <span id="loadingLabel">Verarbeite…</span>
+    <!-- VIEW: STATISTIKEN -->
+    <div class="view" id="view-stats">
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab active" onclick="setPeriod(7,this)">7T</button>
+        <button class="period-tab" onclick="setPeriod(14,this)">14T</button>
+        <button class="period-tab" onclick="setPeriod(30,this)">30T</button>
+      </div>
+      <div class="card">
+        <div class="card-title">LEBENSGEFÜHL – VERLAUF</div>
+        <div class="chart-wrap" id="wellbeingChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">DURCHSCHNITTE</div>
+        <div id="avgStats"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">HÄUFIGSTE EINTRÄGE</div>
+        <div id="tagStats"></div>
       </div>
     </div>
 
-    <div class="card" id="mainCard">
-      <div class="mode-tabs">
-        <button class="tab-btn active" onclick="switchTab('record')">🎙 Aufnehmen</button>
-        <button class="tab-btn" onclick="switchTab('upload')">📁 Datei</button>
-        <button class="tab-btn" onclick="switchTab('text')">✏️ Text</button>
-      </div>
-
-      <!-- AUFNEHMEN -->
-      <div id="tab-record">
-        <div id="keyNoticeRecord" class="key-notice" style="display:none">
-          Für Aufnahmen wird <strong>OpenAI API-Key</strong> benötigt.<br/>
-          <span style="cursor:pointer;color:#c8a97e;text-decoration:underline" onclick="openKeyModal()">Key jetzt eingeben →</span>
-        </div>
-        <div class="record-center">
-          <div class="timer idle" id="timer">00:00</div>
-          <button class="record-btn idle" id="recordBtn" onclick="toggleRecording()">🎙</button>
-          <span class="rec-label" id="recLabel">Tippen zum Starten</span>
-        </div>
-        <p class="rec-hint">Aufnahme wird nach dem Stoppen automatisch transkribiert</p>
-      </div>
-
-      <!-- DATEI -->
-      <div id="tab-upload" style="display:none">
-        <div class="upload-area" id="uploadArea" onclick="handleUploadClick()">
-          <div class="upload-icon" id="uploadIcon">🎵</div>
-          <p id="uploadText"><strong>Audio-Datei auswählen</strong></p>
-          <p id="uploadSub" style="color:#444;font-size:0.75rem;margin-top:0.3rem">MP3 · WAV · M4A · WebM · OGG · FLAC</p>
-        </div>
-        <div style="text-align:center">
-          <button class="key-badge" id="keyBadge" onclick="openKeyModal()">⚙ OpenAI API-Key eingeben</button>
-        </div>
-        <input type="file" id="fileInput" accept="audio/*,.mp3,.mp4,.m4a,.wav,.ogg,.webm,.flac,.mpeg,.mpga" style="display:none" onchange="handleFileChange(event)"/>
-      </div>
-
-      <!-- TEXT -->
-      <div id="tab-text" style="display:none">
-        <div class="section-label">Text eingeben oder einfügen</div>
-        <textarea class="transcript-box" id="textInput" rows="6" placeholder="Notiz oder Transkript hier einfügen..."></textarea>
-      </div>
-
-      <!-- TRANSKRIPT -->
-      <div id="transcriptSection" style="display:none;margin-top:1rem">
-        <div class="section-label">Transkript</div>
-        <div class="transcript-box" id="transcriptBox"></div>
-      </div>
-
-      <!-- ACTION -->
-      <div id="uploadProcessing" class="processing-bar" style="display:none;margin-top:0.9rem">
-        <div class="dot-loader"><span></span><span></span><span></span></div>
-        <span id="uploadLabel">Whisper transkribiert…</span>
-      </div>
-      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeWithClaude()" disabled>
-        Zusammenfassung erstellen →
-      </button>
+    <!-- VIEW: INSIGHTS -->
+    <div class="view" id="view-insights">
+      <div class="section-title">WAS TUT DIR GUT?</div>
+      <div id="corrList"></div>
     </div>
 
-    <div class="summary-card" id="summaryCard" style="display:none">
-      <div class="summary-header">
-        <span class="summary-title">Zusammenfassung</span>
-        <button class="copy-btn" id="copyBtn" onclick="copyResult()">Kopieren</button>
-      </div>
-      <div class="summary-content" id="summaryContent"></div>
-    </div>
+  </div><!-- /content -->
 
-    <button class="reset-btn" id="resetBtn" style="display:none" onclick="resetAll()">＋ Neue Notiz</button>
-  </div>
+  <!-- BOTTOM NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showView('heute',this)">
+      <span class="nav-icon">◎</span>
+      <span class="nav-label">Heute</span>
+    </button>
+    <button class="nav-btn" onclick="showView('routinen',this)">
+      <span class="nav-icon">✓</span>
+      <span class="nav-label">Routinen</span>
+    </button>
+    <button class="nav-btn" onclick="showView('stats',this)">
+      <span class="nav-icon">∿</span>
+      <span class="nav-label">Statistik</span>
+    </button>
+    <button class="nav-btn" onclick="showView('insights',this)">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">Insights</span>
+    </button>
+  </nav>
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target.id==='modal')closeModal()">
+  <div class="modal" id="modalContent"></div>
 </div>
 
-<!-- KEY MODAL -->
-<div class="modal-overlay" id="keyModal" style="display:none" onclick="if(event.target.id==='keyModal')closeKeyModal()">
-  <div class="modal">
-    <h3>OpenAI API-Key</h3>
-    <p>Für Aufnahmen und Datei-Upload erforderlich.<br/>
-    Lokal gespeichert – kein Server-Upload.<br/>
-    <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></p>
-    <input class="key-input" id="keyInput" type="password" placeholder="sk-proj-..." onkeydown="if(event.key==='Enter')saveKey()"/>
-    <div class="modal-actions">
-      <button class="key-save" onclick="saveKey()">Speichern</button>
-      <button class="key-cancel" onclick="closeKeyModal()">Abbrechen</button>
-    </div>
-  </div>
-</div>
+<!-- TOAST -->
+<div class="toast hidden" id="toast"></div>
 
 <script>
-const SYSTEM_PROMPT = `Du bist ein präziser Assistent für Anja, Geschäftsführerin von "Ihre Alltagsbegleiter" (ambulanter Pflegedienst).
-
-Analysiere die transkribierte Sprachnotiz und liefere:
-
-## Themen
-(bullet points, max. 5 – nur Kernthemen)
-
-## Zusammenfassung
-(2-4 Sätze, sachlich, keine Floskeln)
-
-## Aufgaben & nächste Schritte
-(nummerierte Liste – nur wenn explizit im Text vorhanden, sonst weglassen)
-
-## Kategorie
-(genau eine: Mitarbeiter | Abrechnung | Kunden/Patienten | Organisation | Strategie | Sonstiges)
-
-Stil: Direkt, faktenbasiert. Keine einleitenden Sätze.`;
-
-// ── STATE ──────────────────────────────────────────────────────────────────
-let currentTab = 'record';
-let isRecording = false;
-let mediaRecorder = null;
-let audioChunks = [];
-let timerInterval = null;
-let timerSeconds = 0;
-let openaiKey = localStorage.getItem('oai_key') || '';
-let summaryText = '';
-let deferredPrompt = null;
-let pendingFileAfterKey = false;
-let recordAfterKey = false;
-
-// ── INIT ───────────────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  showInstallBanner('android');
-});
-
-const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-if (isIos && !isStandalone) showInstallBanner('ios');
-
-updateKeyBadge();
-checkKeyNotice();
-
-function showInstallBanner(type) {
-  const banner = document.getElementById('installBanner');
-  banner.classList.add('visible');
-  if (type === 'ios') {
-    document.getElementById('installText').textContent = '📲 Teilen → "Zum Home-Bildschirm"';
-    document.getElementById('installBtn').style.display = 'none';
-  } else {
-    document.getElementById('installBtn').onclick = async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const r = await deferredPrompt.userChoice;
-      if (r.outcome === 'accepted') banner.classList.remove('visible');
+// ══════════════════════════════════════════════════════════════════
+// DB (IndexedDB)
+// ══════════════════════════════════════════════════════════════════
+let db;
+const DB_NAME = 'tracker_v1', DB_VERSION = 1;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e=>{
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('days'))
+        d.createObjectStore('days',{keyPath:'date'});
+      if(!d.objectStoreNames.contains('routines'))
+        d.createObjectStore('routines',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('routine_completions'))
+        d.createObjectStore('routine_completions',{keyPath:'key'});
     };
-  }
-}
-
-// ── TABS ───────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  if (isRecording) stopRecording(false); // stop without transcribing
-  currentTab = tab;
-  ['record','upload','text'].forEach(t =>
-    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none'
-  );
-  document.querySelectorAll('.tab-btn').forEach((b,i) =>
-    b.classList.toggle('active', ['record','upload','text'][i]===tab)
-  );
-  clearTranscript();
-}
-
-// ── RECORDING (via MediaRecorder → Whisper) ────────────────────────────────
-function toggleRecording() {
-  if (!openaiKey) { recordAfterKey = true; openKeyModal(); return; }
-  if (isRecording) stopRecording(true); else startRecording();
-}
-
-async function startRecording() {
-  clearError();
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks = [];
-
-    // Pick best supported format
-    const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].find(t => MediaRecorder.isTypeSupported(t)) || '';
-    mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onstop = () => stream.getTracks().forEach(t => t.stop());
-    mediaRecorder.start(1000); // collect chunks every second
-
-    isRecording = true;
-    timerSeconds = 0;
-    timerInterval = setInterval(() => {
-      timerSeconds++;
-      const m = String(Math.floor(timerSeconds/60)).padStart(2,'0');
-      const s = String(timerSeconds%60).padStart(2,'0');
-      document.getElementById('timer').textContent = m+':'+s;
-    }, 1000);
-
-    const btn = document.getElementById('recordBtn');
-    btn.className = 'record-btn recording'; btn.textContent = '⏹';
-    document.getElementById('timer').className = 'timer';
-    document.getElementById('recLabel').className = 'rec-label active';
-    document.getElementById('recLabel').textContent = '● Aufnahme läuft – erneut tippen zum Stoppen';
-  } catch(e) {
-    if (e.name === 'NotAllowedError') {
-      showError('Mikrofon-Zugriff verweigert. Bitte in den Browser-Einstellungen → Berechtigungen → Mikrofon erlauben.');
-    } else {
-      showError('Aufnahme-Fehler: ' + e.message);
-    }
-  }
-}
-
-function stopRecording(transcribe) {
-  isRecording = false;
-  clearInterval(timerInterval);
-
-  const btn = document.getElementById('recordBtn');
-  btn.className = 'record-btn idle'; btn.textContent = '🎙';
-  document.getElementById('timer').className = 'timer idle';
-  document.getElementById('recLabel').className = 'rec-label';
-  document.getElementById('recLabel').textContent = 'Tippen zum Starten';
-
-  if (!mediaRecorder) return;
-  mediaRecorder.onstop = () => {
-    mediaRecorder.stream?.getTracks().forEach(t => t.stop());
-    if (transcribe && audioChunks.length > 0) {
-      const mimeType = mediaRecorder.mimeType || 'audio/webm';
-      const blob = new Blob(audioChunks, {type: mimeType});
-      transcribeBlob(blob, mimeType);
-    }
-    audioChunks = [];
-  };
-  try { mediaRecorder.stop(); } catch(e) {}
-  mediaRecorder = null;
-}
-
-// ── WHISPER TRANSCRIPTION ──────────────────────────────────────────────────
-async function transcribeBlob(blob, mimeType) {
-  clearTranscript();
-  document.getElementById('uploadProcessing').style.display = 'flex';
-  document.getElementById('uploadLabel').textContent = 'Whisper transkribiert Aufnahme…';
-  document.getElementById('analyzeBtn').style.display = 'none';
-
-  try {
-    const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
-    const file = new File([blob], 'aufnahme.' + ext, {type: mimeType});
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('model', 'whisper-1');
-    formData.append('language', 'de');
-    formData.append('response_format', 'text');
-
-    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {Authorization: 'Bearer ' + openaiKey},
-      body: formData
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err?.error?.message || 'HTTP ' + res.status);
-    }
-
-    const text = await res.text();
-    if (!text?.trim()) throw new Error('Keine Sprache erkannt. Bitte erneut versuchen.');
-    setTranscript(text.trim());
-  } catch(e) {
-    if (e.message.includes('401') || e.message.toLowerCase().includes('incorrect')) {
-      localStorage.removeItem('oai_key'); openaiKey = '';
-      updateKeyBadge(); checkKeyNotice();
-      showError('API-Key ungültig. Bitte neu eingeben.');
-      openKeyModal();
-    } else {
-      showError('Transkriptions-Fehler: ' + e.message);
-    }
-  } finally {
-    document.getElementById('uploadProcessing').style.display = 'none';
-    document.getElementById('analyzeBtn').style.display = '';
-    checkAnalyzeBtn();
-  }
-}
-
-// ── FILE UPLOAD ────────────────────────────────────────────────────────────
-function handleUploadClick() {
-  if (!openaiKey) { pendingFileAfterKey = true; openKeyModal(); return; }
-  document.getElementById('fileInput').click();
-}
-
-async function handleFileChange(e) {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  if (file.size > 25 * 1024 * 1024) {
-    showError('Datei zu groß (max. 25 MB).'); return;
-  }
-
-  clearError(); clearTranscript();
-  document.getElementById('uploadArea').classList.add('loading');
-  document.getElementById('uploadIcon').textContent = '⏳';
-  document.getElementById('uploadText').innerHTML = '<strong>Whisper transkribiert…</strong>';
-  document.getElementById('uploadSub').textContent = 'Bitte warten';
-  document.getElementById('uploadProcessing').style.display = 'flex';
-  document.getElementById('uploadLabel').textContent = 'Whisper transkribiert Datei…';
-  document.getElementById('analyzeBtn').style.display = 'none';
-
-  try {
-    // Fix missing MIME type (Samsung Internet quirk)
-    let uploadFile = file;
-    if (!file.type || !file.type.startsWith('audio/')) {
-      const ext = file.name.split('.').pop().toLowerCase();
-      const mimeMap = {mp3:'audio/mpeg',mp4:'audio/mp4',m4a:'audio/mp4',
-        wav:'audio/wav',ogg:'audio/ogg',oga:'audio/ogg',webm:'audio/webm',
-        flac:'audio/flac',mpeg:'audio/mpeg',mpga:'audio/mpeg'};
-      const mime = mimeMap[ext] || 'audio/mpeg';
-      uploadFile = new File([file], file.name, {type: mime});
-    }
-
-    const formData = new FormData();
-    formData.append('file', uploadFile);
-    formData.append('model', 'whisper-1');
-    formData.append('language', 'de');
-    formData.append('response_format', 'text');
-
-    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {Authorization: 'Bearer ' + openaiKey},
-      body: formData
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err?.error?.message || 'HTTP ' + res.status);
-    }
-
-    const text = await res.text();
-    if (!text?.trim()) throw new Error('Keine Sprache in der Datei erkannt.');
-    setTranscript(text.trim());
-
-    document.getElementById('uploadArea').classList.remove('loading');
-    document.getElementById('uploadArea').classList.add('done');
-    document.getElementById('uploadIcon').textContent = '✅';
-    document.getElementById('uploadText').innerHTML = '<strong>' + file.name + '</strong>';
-    document.getElementById('uploadSub').textContent = 'Fertig · Neue Datei auswählen';
-  } catch(e) {
-    document.getElementById('uploadArea').classList.remove('loading','done');
-    document.getElementById('uploadIcon').textContent = '🎵';
-    document.getElementById('uploadText').innerHTML = '<strong>Audio-Datei auswählen</strong>';
-    document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG · FLAC';
-    if (e.message.includes('401') || e.message.toLowerCase().includes('incorrect')) {
-      localStorage.removeItem('oai_key'); openaiKey = '';
-      updateKeyBadge(); checkKeyNotice();
-      showError('API-Key ungültig. Bitte neu eingeben.');
-      openKeyModal();
-    } else { showError('Fehler: ' + e.message); }
-  } finally {
-    document.getElementById('uploadProcessing').style.display = 'none';
-    document.getElementById('analyzeBtn').style.display = '';
-    checkAnalyzeBtn();
-  }
-}
-
-// ── CLAUDE ANALYSE ─────────────────────────────────────────────────────────
-async function analyzeWithClaude() {
-  const text = getTranscriptText();
-  if (!text.trim()) return;
-  clearError();
-  document.getElementById('mainCard').style.display = 'none';
-  document.getElementById('loadingCard').style.display = '';
-  document.getElementById('loadingLabel').textContent = 'Claude analysiert Inhalt…';
-  document.getElementById('summaryCard').style.display = 'none';
-  document.getElementById('resetBtn').style.display = 'none';
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: [{role:'user', content:'Transkript:\n\n'+text}]
-      })
-    });
-    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message||'HTTP '+res.status); }
-    const data = await res.json();
-    summaryText = (data.content||[]).map(b=>b.text||'').join('');
-    if (!summaryText) throw new Error('Keine Antwort erhalten.');
-    showSummary(summaryText);
-  } catch(e) {
-    showError('Analyse-Fehler: ' + e.message);
-    document.getElementById('mainCard').style.display = '';
-  } finally {
-    document.getElementById('loadingCard').style.display = 'none';
-  }
-}
-
-// ── MARKDOWN → HTML ────────────────────────────────────────────────────────
-function mdToHtml(md) {
-  const lines = md.split('\n');
-  let html = '', inUl = false, inOl = false;
-  const close = () => { if(inUl){html+='</ul>';inUl=false;} if(inOl){html+='</ol>';inOl=false;} };
-  const esc = s => s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  lines.forEach(line => {
-    if (/^## .+/.test(line)) { close(); html += '<h2>'+esc(line.slice(3))+'</h2>'; }
-    else if (/^### .+/.test(line)) { close(); html += '<h3>'+line.slice(4)+'</h3>'; }
-    else if (/^- .+/.test(line)) { if(inOl){html+='</ol>';inOl=false;} if(!inUl){html+='<ul>';inUl=true;} html+='<li>'+esc(line.slice(2))+'</li>'; }
-    else if (/^\d+\. .+/.test(line)) { if(inUl){html+='</ul>';inUl=false;} if(!inOl){html+='<ol>';inOl=true;} html+='<li>'+esc(line.replace(/^\d+\. /,''))+'</li>'; }
-    else if (line.trim()) { close(); html+='<p>'+esc(line)+'</p>'; }
-    else { close(); }
+    req.onsuccess = e=>{ db=e.target.result; res(db); };
+    req.onerror = e=>rej(e);
   });
-  close();
-  return html;
+}
+function dbPut(store,obj){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readwrite');
+    const r = tx.objectStore(store).put(obj);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=rej;
+  });
+}
+function dbGet(store,key){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readonly');
+    const r = tx.objectStore(store).get(key);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=rej;
+  });
+}
+function dbGetAll(store){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readonly');
+    const r = tx.objectStore(store).getAll();
+    r.onsuccess=()=>res(r.result);
+    r.onerror=rej;
+  });
+}
+function dbDelete(store,key){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readwrite');
+    const r = tx.objectStore(store).delete(key);
+    r.onsuccess=()=>res();
+    r.onerror=rej;
+  });
 }
 
-function showSummary(md) {
-  document.getElementById('summaryContent').innerHTML = mdToHtml(md);
-  document.getElementById('summaryCard').style.display = '';
-  document.getElementById('resetBtn').style.display = '';
-  document.getElementById('scrollArea').scrollTop = 0;
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+const TODAY = new Date().toISOString().slice(0,10);
+let state = {
+  wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
+  ern: [], neg: [], akt: [], note: ''
+};
+let statsPeriod = 7;
+let allDays = [], allRoutines = [], routineCompletions = [];
+
+// Options
+const ERN_OPTS = ['Ausgewogen','Viel Gemüse','Wenig Zucker','Fast Food','Alkohol','Kaffee++','Viel Wasser','Wenig gegessen'];
+const NEG_OPTS = ['Schlecht geschlafen','Stress Arbeit','Müdigkeit','Migräne','Rücken','Verdauung','Stimmungstief','Soziale Probleme','Überforderung'];
+const AKT_OPTS = ['Spazieren','Yoga','Sport','Radfahren','Schwimmen','Dehnen','Tanzen','Kraft'];
+const PAIN_MAX = 10;
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+async function init(){
+  await openDB();
+  allDays = await dbGetAll('days');
+  allRoutines = await dbGetAll('routines');
+  routineCompletions = await dbGetAll('routine_completions');
+
+  // Load today if exists
+  const todayData = await dbGet('days', TODAY);
+  if(todayData){
+    state = {...state, ...todayData};
+    // restore slider
+    document.getElementById('wellbeingSlider').value = state.wellbeing;
+    updateWellbeing(state.wellbeing);
+    document.getElementById('sleepVal').textContent = state.sleep.toFixed(1);
+    document.getElementById('hrvVal').textContent = state.hrv;
+    document.getElementById('energyVal').textContent = state.energy;
+    document.getElementById('noteText').value = state.note||'';
+    // Mark save button
+    document.getElementById('saveBtn').textContent = 'Aktualisieren';
+  }
+
+  buildPainDots();
+  buildTagGrid('ernTag', ERN_OPTS, 'ern');
+  buildTagGrid('negTag', NEG_OPTS, 'neg');
+  buildTagGrid('aktTag', AKT_OPTS, 'akt');
+  updateHeader();
+  renderRoutines();
+  renderStats();
+  renderInsights();
+  updateStreak();
 }
 
-function copyResult() {
-  const btn = document.getElementById('copyBtn');
-  const done = () => { btn.textContent='✓ Kopiert'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='Kopieren';btn.classList.remove('copied');},2000); };
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(summaryText).then(done).catch(() => fallbackCopy(done));
-  } else fallbackCopy(done);
-}
-function fallbackCopy(cb) {
-  const ta = document.createElement('textarea');
-  ta.value = summaryText;
-  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
-  document.body.appendChild(ta); ta.focus(); ta.select();
-  try { document.execCommand('copy'); cb(); } catch(e) {}
-  document.body.removeChild(ta);
-}
-
-// ── HELPERS ────────────────────────────────────────────────────────────────
-function setTranscript(text) {
-  if (currentTab === 'text') return;
-  const box = document.getElementById('transcriptBox');
-  box.textContent = text||'';
-  document.getElementById('transcriptSection').style.display = text ? '' : 'none';
-  if (text) box.scrollTop = box.scrollHeight;
-  checkAnalyzeBtn();
-}
-function getTranscriptText() {
-  return currentTab==='text' ? document.getElementById('textInput').value : document.getElementById('transcriptBox').textContent;
-}
-function clearTranscript() {
-  document.getElementById('transcriptBox').textContent = '';
-  document.getElementById('textInput').value = '';
-  document.getElementById('transcriptSection').style.display = 'none';
-  checkAnalyzeBtn();
-}
-function checkAnalyzeBtn() {
-  document.getElementById('analyzeBtn').disabled = !getTranscriptText().trim();
-}
-document.getElementById('textInput').addEventListener('input', checkAnalyzeBtn);
-
-function showError(msg) {
-  const el = document.getElementById('errorBox');
-  el.textContent = '⚠ '+msg; el.style.display = '';
-  document.getElementById('scrollArea').scrollTop = 0;
-}
-function clearError() { document.getElementById('errorBox').style.display = 'none'; }
-
-function checkKeyNotice() {
-  document.getElementById('keyNoticeRecord').style.display = openaiKey ? 'none' : '';
+// ══════════════════════════════════════════════════════════════════
+// TODAY
+// ══════════════════════════════════════════════════════════════════
+const WELLBEING_LABELS = ['','Sehr schlecht','Schlecht','Ziemlich schlecht','Unterdurchschnittlich','Neutral','Ganz gut','Gut','Sehr gut','Ausgezeichnet','Fantastisch'];
+function updateWellbeing(v){
+  v = parseInt(v);
+  state.wellbeing = v;
+  const el = document.getElementById('wellbeingNum');
+  el.textContent = v;
+  document.getElementById('wellbeingLabel').textContent = WELLBEING_LABELS[v]||'';
+  // Color
+  const h = v<=3?0:v<=5?30:v<=7?60:120;
+  el.style.color = `hsl(${h},70%,${v<=3?50:55}%)`;
 }
 
-function resetAll() {
-  if (isRecording) stopRecording(false);
-  clearError(); clearTranscript();
-  timerSeconds = 0;
-  document.getElementById('timer').textContent = '00:00';
-  summaryText = '';
-  document.getElementById('summaryCard').style.display = 'none';
-  document.getElementById('resetBtn').style.display = 'none';
-  document.getElementById('mainCard').style.display = '';
-  document.getElementById('loadingCard').style.display = 'none';
-  document.getElementById('uploadProcessing').style.display = 'none';
-  document.getElementById('analyzeBtn').style.display = '';
-  document.getElementById('uploadIcon').textContent = '🎵';
-  document.getElementById('uploadText').innerHTML = '<strong>Audio-Datei auswählen</strong>';
-  document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG · FLAC';
-  document.getElementById('uploadArea').classList.remove('done','loading');
-  document.getElementById('copyBtn').textContent = 'Kopieren';
-  document.getElementById('copyBtn').classList.remove('copied');
-  switchTab('record');
+const LIMITS = {sleep:[2,14,0.5],hrv:[10,200,1],energy:[1,10,1]};
+function adjustVal(key, delta){
+  const [min,max] = LIMITS[key];
+  const decimals = key==='sleep'?1:0;
+  state[key] = Math.min(max, Math.max(min, +(state[key]+delta).toFixed(1)));
+  const ids = {sleep:'sleepVal',hrv:'hrvVal',energy:'energyVal'};
+  document.getElementById(ids[key]).textContent = decimals ? state[key].toFixed(1) : state[key];
 }
 
-// ── KEY MODAL ──────────────────────────────────────────────────────────────
-function openKeyModal() {
-  document.getElementById('keyInput').value = openaiKey||'';
-  document.getElementById('keyModal').style.display = 'flex';
-  setTimeout(()=>document.getElementById('keyInput').focus(), 350);
+function buildPainDots(){
+  const wrap = document.getElementById('painDots');
+  wrap.innerHTML = '';
+  for(let i=0;i<=PAIN_MAX;i++){
+    const d = document.createElement('div');
+    d.className = 'pain-dot'+(state.pain===i?' active':'');
+    d.dataset.v = i;
+    d.textContent = i;
+    d.onclick = ()=>{
+      state.pain = i;
+      wrap.querySelectorAll('.pain-dot').forEach(x=>x.classList.toggle('active', parseInt(x.dataset.v)===i));
+    };
+    wrap.appendChild(d);
+  }
 }
-function closeKeyModal() {
-  document.getElementById('keyModal').style.display = 'none';
-  pendingFileAfterKey = false; recordAfterKey = false;
+
+function buildTagGrid(id, opts, key){
+  const wrap = document.getElementById(id);
+  wrap.innerHTML = '';
+  opts.forEach(opt=>{
+    const t = document.createElement('div');
+    t.className = 'tag'+(state[key].includes(opt)?' active':'');
+    t.textContent = opt;
+    t.onclick = ()=>{
+      t.classList.toggle('active');
+      if(state[key].includes(opt)) state[key] = state[key].filter(x=>x!==opt);
+      else state[key].push(opt);
+    };
+    wrap.appendChild(t);
+  });
 }
-function saveKey() {
-  const v = document.getElementById('keyInput').value.trim();
-  if (!v || !v.startsWith('sk-')) {
-    document.getElementById('keyInput').style.borderColor='#e05555';
-    setTimeout(()=>document.getElementById('keyInput').style.borderColor='',1500);
+
+async function saveToday(){
+  state.note = document.getElementById('noteText').value;
+  state.date = TODAY;
+  await dbPut('days', state);
+  // Refresh allDays
+  allDays = await dbGetAll('days');
+  updateStreak();
+  renderStats();
+  renderInsights();
+
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✓ Gespeichert';
+  btn.classList.add('saved');
+  showToast('Tag gespeichert!');
+  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = 'Aktualisieren'; },2500);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STREAK
+// ══════════════════════════════════════════════════════════════════
+function updateStreak(){
+  const dates = allDays.map(d=>d.date).sort().reverse();
+  let streak = 0, cur = new Date(TODAY);
+  for(;;){
+    const ds = cur.toISOString().slice(0,10);
+    if(dates.includes(ds)){ streak++; cur.setDate(cur.getDate()-1); }
+    else break;
+    if(streak>365) break;
+  }
+  document.getElementById('streakCount').textContent = streak + ' Tag' + (streak===1?'':'e');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ROUTINEN
+// ══════════════════════════════════════════════════════════════════
+function renderRoutines(){
+  const list = document.getElementById('routineList');
+  if(!allRoutines.length){
+    list.innerHTML = '<div class="empty"><span class="empty-icon">✓</span><div class="empty-text">Noch keine Routinen.<br>Füge deine täglichen Gewohnheiten hinzu.</div></div>';
+    document.getElementById('routineProgress').style.width='0%';
     return;
   }
-  openaiKey = v;
-  localStorage.setItem('oai_key', v);
-  updateKeyBadge(); checkKeyNotice();
-  closeKeyModal();
-  if (pendingFileAfterKey) { pendingFileAfterKey=false; setTimeout(()=>document.getElementById('fileInput').click(),200); }
-  if (recordAfterKey) { recordAfterKey=false; setTimeout(startRecording, 200); }
+  const done = allRoutines.filter(r=>isRoutineDone(r.id, TODAY)).length;
+  const pct = Math.round(done/allRoutines.length*100);
+  document.getElementById('routineProgress').style.width = pct+'%';
+
+  list.innerHTML = '';
+  // Sort: undone first
+  const sorted = [...allRoutines].sort((a,b)=>{
+    const ad = isRoutineDone(a.id,TODAY)?1:0;
+    const bd = isRoutineDone(b.id,TODAY)?1:0;
+    return ad-bd;
+  });
+  sorted.forEach(r=>{
+    const isDone = isRoutineDone(r.id, TODAY);
+    const streak = getRoutineStreak(r.id);
+    const el = document.createElement('div');
+    el.className = 'routine-item'+(isDone?' done':'');
+    el.innerHTML = `
+      <div class="routine-check">${isDone?'✓':''}</div>
+      <div class="routine-info">
+        <div class="routine-name">${esc(r.name)}</div>
+        <div class="routine-time">${r.time||''}${r.time&&streak?' · ':''}<span class="routine-streak">${streak>1?'🔥'+streak+'d Streak':''}</span></div>
+      </div>
+      <button onclick="deleteRoutineConfirm('${r.id}',event)" style="background:none;border:none;color:var(--text3);font-size:0.9rem;cursor:pointer;padding:0.3rem">⋯</button>
+    `;
+    el.onclick = ()=>toggleRoutine(r.id);
+    list.appendChild(el);
+  });
 }
-function updateKeyBadge() {
-  const b = document.getElementById('keyBadge');
-  if (openaiKey) { b.textContent='✓ Whisper-Key gesetzt'; b.classList.add('set'); }
-  else { b.textContent='⚙ OpenAI API-Key eingeben'; b.classList.remove('set'); }
+
+function isRoutineDone(rid, date){
+  return routineCompletions.some(c=>c.key===rid+'_'+date);
 }
+async function toggleRoutine(rid){
+  const key = rid+'_'+TODAY;
+  if(isRoutineDone(rid,TODAY)){
+    await dbDelete('routine_completions', key);
+    routineCompletions = routineCompletions.filter(c=>c.key!==key);
+  } else {
+    await dbPut('routine_completions',{key,rid,date:TODAY});
+    routineCompletions.push({key,rid,date:TODAY});
+    showToast('✓ Erledigt!');
+  }
+  renderRoutines();
+}
+function getRoutineStreak(rid){
+  let streak=0, cur=new Date(TODAY);
+  for(let i=0;i<365;i++){
+    const ds = cur.toISOString().slice(0,10);
+    if(routineCompletions.some(c=>c.rid===rid&&c.date===ds)){ streak++; cur.setDate(cur.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function openAddRoutine(){
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">Neue Routine</div>
+    <div class="modal-sub">Was möchtest du täglich tun?</div>
+    <input class="input" id="rName" placeholder="Routine-Name (z.B. Meditation)" type="text"/>
+    <input class="input" id="rTime" placeholder="Uhrzeit (z.B. 07:00)" type="time"/>
+    <select class="input" id="rCat">
+      <option value="">Kategorie wählen…</option>
+      <option>Morgenroutine</option><option>Sport</option><option>Gesundheit</option>
+      <option>Lernen</option><option>Entspannung</option><option>Sonstiges</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveRoutine()">Hinzufügen</button>
+      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>
+  `;
+  document.getElementById('modal').style.display='flex';
+  setTimeout(()=>document.getElementById('rName').focus(),350);
+}
+async function saveRoutine(){
+  const name = document.getElementById('rName').value.trim();
+  if(!name){ document.getElementById('rName').style.borderColor='var(--red)'; return; }
+  const r = { id: Date.now().toString(), name, time: document.getElementById('rTime').value, cat: document.getElementById('rCat').value };
+  await dbPut('routines',r);
+  allRoutines.push(r);
+  closeModal();
+  renderRoutines();
+  showToast('Routine hinzugefügt!');
+}
+function deleteRoutineConfirm(rid, e){
+  e.stopPropagation();
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">Routine löschen?</div>
+    <div class="modal-sub">Diese Aktion kann nicht rückgängig gemacht werden.</div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="deleteRoutine('${rid}')">Löschen</button>
+      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>
+  `;
+  document.getElementById('modal').style.display='flex';
+}
+async function deleteRoutine(rid){
+  await dbDelete('routines',rid);
+  allRoutines = allRoutines.filter(r=>r.id!==rid);
+  closeModal();
+  renderRoutines();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STATISTIKEN
+// ══════════════════════════════════════════════════════════════════
+function setPeriod(n, btn){
+  statsPeriod = n;
+  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStats();
+}
+
+function renderStats(){
+  const days = getRecentDays(statsPeriod);
+  renderWellbeingChart(days);
+  renderAvgStats(days);
+  renderTagStats(days);
+}
+
+function getRecentDays(n){
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-(n-1));
+  const cutoffStr = cutoff.toISOString().slice(0,10);
+  return allDays.filter(d=>d.date>=cutoffStr).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function renderWellbeingChart(days){
+  const el = document.getElementById('wellbeingChart');
+  if(days.length < 2){ el.innerHTML='<div class="empty" style="padding:1.5rem"><span class="empty-icon">∿</span><div class="empty-text">Mehr Tage braucht es für einen Verlauf.</div></div>'; return; }
+  const W=el.clientWidth||300, H=100;
+  const vals = days.map(d=>d.wellbeing||5);
+  const min=Math.max(1,Math.min(...vals)-1), max=Math.min(10,Math.max(...vals)+1);
+  const xStep = (W-20)/(days.length-1);
+  const yScale = (H-20)/(max-min);
+  const pts = vals.map((v,i)=>[(10+i*xStep).toFixed(1), (H-10-(v-min)*yScale).toFixed(1)]);
+  const path = 'M'+pts.map(p=>p.join(',')).join(' L');
+  const area = path+` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
+  el.innerHTML = `
+    <svg class="chart-svg" height="${H}" viewBox="0 0 ${W} ${H}">
+      <defs>
+        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#d4a843" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#d4a843" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${area}" fill="url(#wg)"/>
+      <path d="${path}" fill="none" stroke="#d4a843" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#d4a843"/>`).join('')}
+      ${pts.map((p,i)=>i%Math.ceil(pts.length/5)===0?`<text x="${p[0]}" y="${H}" font-size="8" fill="#4a5268" text-anchor="middle" font-family="Syne Mono">${days[i].date.slice(5)}</text>`:'').join('')}
+    </svg>`;
+}
+
+function renderAvgStats(days){
+  if(!days.length){ document.getElementById('avgStats').innerHTML='<div class="empty" style="padding:1rem 0"><div class="empty-text">Noch keine Daten.</div></div>'; return; }
+  const avg = k => (days.reduce((s,d)=>s+(d[k]||0),0)/days.length).toFixed(1);
+  const stats = [
+    {icon:'🌙',name:'Schlaf',val:avg('sleep')+' h',bar:parseFloat(avg('sleep'))/10},
+    {icon:'❤️',name:'HRV',val:avg('hrv')+' ms',bar:parseFloat(avg('hrv'))/100},
+    {icon:'⚡',name:'Energie',val:avg('energy')+'/10',bar:parseFloat(avg('energy'))/10},
+    {icon:'😌',name:'Lebensgefühl',val:avg('wellbeing')+'/10',bar:parseFloat(avg('wellbeing'))/10},
+    {icon:'💢',name:'Schmerz Ø',val:avg('pain')+'/10',bar:parseFloat(avg('pain'))/10},
+  ];
+  document.getElementById('avgStats').innerHTML = stats.map(s=>`
+    <div class="stat-row">
+      <div class="stat-icon">${s.icon}</div>
+      <div class="stat-info">
+        <div class="stat-name">${s.name}</div>
+        <div class="stat-val">${s.val}</div>
+      </div>
+      <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,s.bar*100).toFixed(0)}%;background:${s.name==='Schmerz Ø'&&s.bar>0.3?'var(--red)':'var(--gold)'}"></div></div>
+    </div>`).join('');
+}
+
+function renderTagStats(days){
+  const el = document.getElementById('tagStats');
+  if(!days.length){ el.innerHTML=''; return; }
+  const counts = {};
+  days.forEach(d=>{
+    [...(d.ern||[]),...(d.neg||[]),...(d.akt||[])].forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+  });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!sorted.length){ el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Tags gesetzt.</div>'; return; }
+  el.innerHTML = sorted.map(([tag,n])=>`
+    <div class="stat-row">
+      <div class="stat-icon" style="font-size:0.8rem;width:auto;min-width:30px">×${n}</div>
+      <div class="stat-info"><div class="stat-name">${esc(tag)}</div></div>
+      <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,n/days.length*100).toFixed(0)}%"></div></div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INSIGHTS / KORRELATIONEN
+// ══════════════════════════════════════════════════════════════════
+function renderInsights(){
+  const el = document.getElementById('corrList');
+  const days = getRecentDays(30);
+  if(days.length < 5){
+    el.innerHTML='<div class="empty"><span class="empty-icon">◈</span><div class="empty-text">Mindestens 5 Tage Daten für Korrelationen.<br>Weiter so!</div></div>';
+    return;
+  }
+
+  const wbVals = days.map(d=>d.wellbeing||5);
+  const correlate = (vals) => {
+    if(vals.length<5) return null;
+    const n=vals.length;
+    const mx=wbVals.reduce((s,v)=>s+v,0)/n, my=vals.reduce((s,v)=>s+v,0)/n;
+    let num=0,dx=0,dy=0;
+    for(let i=0;i<n;i++){
+      num+=(wbVals[i]-mx)*(vals[i]-my);
+      dx+=(wbVals[i]-mx)**2;
+      dy+=(vals[i]-my)**2;
+    }
+    if(!dx||!dy) return null;
+    return num/Math.sqrt(dx*dy);
+  };
+
+  const results = [];
+
+  // Numerical correlations
+  [
+    {key:'sleep',label:'Schlaf',icon:'🌙'},
+    {key:'hrv',label:'HRV',icon:'❤️'},
+    {key:'energy',label:'Energie',icon:'⚡'},
+  ].forEach(({key,label,icon})=>{
+    const vals = days.map(d=>d[key]||0);
+    const r = correlate(vals);
+    if(r!==null) results.push({label:icon+' '+label,r,desc:r>0.3?'Positiver Einfluss':r<-0.3?'Negativer Einfluss':'Schwacher Zusammenhang'});
+  });
+
+  // Tag correlations: did this tag appear → higher wellbeing?
+  const allTags = [...new Set(days.flatMap(d=>[...(d.akt||[]),...(d.ern||[])]))];
+  allTags.forEach(tag=>{
+    const vals = days.map(d=>(d.akt||[]).includes(tag)||(d.ern||[]).includes(tag)?1:0);
+    if(vals.filter(v=>v>0).length < 3) return;
+    const r = correlate(vals);
+    if(r!==null && Math.abs(r)>0.2) results.push({label:'✦ '+tag,r,desc:r>0?'Positiver Einfluss auf dein Wohlbefinden':'Negativer Einfluss auf dein Wohlbefinden'});
+  });
+
+  results.sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
+
+  if(!results.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◈</span><div class="empty-text">Noch keine aussagekräftigen Muster erkennbar.</div></div>'; return; }
+
+  el.innerHTML = '<div class="section-title" style="padding-top:0">KORRELATION MIT LEBENSGEFÜHL</div>'
+    + results.slice(0,10).map(c=>`
+    <div class="corr-item ${c.r>0.1?'pos':c.r<-0.1?'neg':''}">
+      <div class="corr-label">${esc(c.label)}</div>
+      <div class="corr-val">${c.desc} · r = ${c.r.toFixed(2)}</div>
+    </div>`).join('')
+    + '<div style="font-size:0.7rem;color:var(--text3);margin-top:0.75rem;line-height:1.6">r > 0.3 = relevanter positiver Zusammenhang · r < −0.3 = relevanter negativer Zusammenhang</div>';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function showView(name, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(name==='stats') renderStats();
+  if(name==='insights') renderInsights();
+  document.getElementById('appContent').scrollTop=0;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════
+function updateHeader(){
+  const d = new Date();
+  const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  document.getElementById('headerDate').textContent = days[d.getDay()]+', '+d.getDate()+'. '+months[d.getMonth()]+' '+d.getFullYear();
+}
+function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.remove('hidden');
+  setTimeout(()=>t.classList.add('hidden'),2200);
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+// ══════════════════════════════════════════════════════════════════
+// SERVICE WORKER
+// ══════════════════════════════════════════════════════════════════
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+
+// ══════════════════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════════════════
+init().catch(console.error);
 </script>
 </body>
 </html>
