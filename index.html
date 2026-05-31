@@ -1299,7 +1299,7 @@ function buildTagGrid(id, opts, key){
   if(!state[stateKey]) state[stateKey] = []; // guard for legacy entries
   const wrap = document.getElementById(id);
   wrap.innerHTML = '';
-  const editing = tagEditMode[key];
+  const editing = tagEditMode[key] === true;
   storedOpts.forEach(opt=>{
     const t = document.createElement('div');
     t.className = 'tag'+(state[stateKey].includes(opt)?' active':'')+(editing?' deletable':'');
