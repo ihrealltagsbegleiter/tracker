@@ -4,309 +4,93 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#0a0a0f"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Sprachnotiz"/>
   <link rel="manifest" href="/manifest.json"/>
-  <link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="/icon-192.png"/>
   <title>Sprachnotiz</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;overflow:hidden}
-    body{
-      background:#0a0a0f;
-      color:#e8e4df;
-      font-family:'DM Sans',sans-serif;
-      overscroll-behavior:none;
-    }
-    .app{
-      height:100vh;
-      height:100dvh;
-      display:flex;
-      flex-direction:column;
-      padding:env(safe-area-inset-top,16px) env(safe-area-inset-right,0) env(safe-area-inset-bottom,16px) env(safe-area-inset-left,0);
-      overflow:hidden;
-    }
-    /* ── HEADER ── */
-    .header{
-      text-align:center;
-      padding:1.2rem 1rem 0.8rem;
-      flex-shrink:0;
-    }
-    .header h1{
-      font-family:'DM Serif Display',serif;
-      font-size:1.7rem;
-      color:#e8e4df;
-      letter-spacing:-0.02em;
-      line-height:1.1;
-    }
+    body{background:#0a0a0f;color:#e8e4df;font-family:'DM Sans',sans-serif;overscroll-behavior:none}
+    .app{height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top,16px) 0 env(safe-area-inset-bottom,16px);overflow:hidden}
+    .header{text-align:center;padding:1rem 1rem 0.6rem;flex-shrink:0}
+    .header h1{font-family:'DM Serif Display',serif;font-size:1.7rem;color:#e8e4df;letter-spacing:-0.02em;line-height:1.1}
     .header h1 span{color:#c8a97e;font-style:italic}
-    .header p{font-size:0.72rem;color:#444;margin-top:0.25rem;letter-spacing:0.07em;text-transform:uppercase}
-    /* ── SCROLL AREA ── */
-    .scroll-area{
-      flex:1;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-      padding:0 1rem 1rem;
-    }
-    /* ── CARD ── */
-    .card{
-      background:#13131a;
-      border:1px solid #1e1e2a;
-      border-radius:16px;
-      padding:1.2rem;
-      margin-bottom:1rem;
-    }
-    /* ── TABS ── */
-    .mode-tabs{
-      display:flex;
-      gap:0.3rem;
-      margin-bottom:1.2rem;
-      background:#0a0a0f;
-      padding:3px;
-      border-radius:10px;
-      border:1px solid #1e1e2a;
-    }
-    .tab-btn{
-      flex:1;
-      padding:0.55rem 0.2rem;
-      background:transparent;
-      border:none;
-      border-radius:7px;
-      color:#444;
-      font-family:'DM Sans',sans-serif;
-      font-size:0.75rem;
-      font-weight:500;
-      cursor:pointer;
-      transition:all 0.2s;
-    }
+    .header p{font-size:0.7rem;color:#444;margin-top:0.2rem;letter-spacing:0.07em;text-transform:uppercase}
+    .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 1rem 2rem}
+    .card{background:#13131a;border:1px solid #1e1e2a;border-radius:16px;padding:1.2rem;margin-bottom:1rem}
+    .mode-tabs{display:flex;gap:0.3rem;margin-bottom:1.2rem;background:#0a0a0f;padding:3px;border-radius:10px;border:1px solid #1e1e2a}
+    .tab-btn{flex:1;padding:0.55rem 0.2rem;background:transparent;border:none;border-radius:7px;color:#444;font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:500;cursor:pointer;transition:all 0.2s}
     .tab-btn.active{background:#1e1e2a;color:#c8a97e}
-    /* ── RECORD ── */
-    .record-center{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:1.2rem;
-      padding:0.8rem 0 0.4rem;
-    }
-    .timer{
-      font-family:'DM Serif Display',serif;
-      font-size:2.2rem;
-      color:#e05555;
-      letter-spacing:0.08em;
-    }
+    .record-center{display:flex;flex-direction:column;align-items:center;gap:1.2rem;padding:0.8rem 0 0.4rem}
+    .timer{font-family:'DM Serif Display',serif;font-size:2.2rem;color:#e05555;letter-spacing:0.08em;transition:color 0.3s}
     .timer.idle{color:#2a2a38}
-    .record-btn{
-      width:80px;height:80px;
-      border-radius:50%;
-      border:none;
-      cursor:pointer;
-      font-size:1.8rem;
-      transition:all 0.25s;
-      display:flex;align-items:center;justify-content:center;
-      -webkit-user-select:none;user-select:none;
-    }
+    .record-btn{width:80px;height:80px;border-radius:50%;border:none;cursor:pointer;font-size:1.8rem;transition:all 0.25s;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}
     .record-btn.idle{background:#c8a97e;box-shadow:0 4px 20px rgba(200,169,126,0.25)}
     .record-btn.recording{background:#e05555;animation:pulse 1.4s infinite}
-    @keyframes pulse{
-      0%,100%{box-shadow:0 0 0 0 rgba(224,85,85,0.4)}
-      50%{box-shadow:0 0 0 16px rgba(224,85,85,0)}
-    }
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(224,85,85,0.4)}50%{box-shadow:0 0 0 16px rgba(224,85,85,0)}}
     .rec-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:#444}
     .rec-label.active{color:#e05555}
-    /* ── UPLOAD ── */
-    .upload-area{
-      border:2px dashed #1e1e2a;
-      border-radius:12px;
-      padding:1.8rem 1rem;
-      text-align:center;
-      cursor:pointer;
-      transition:all 0.2s;
-    }
+    .upload-area{border:2px dashed #1e1e2a;border-radius:12px;padding:1.8rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;-webkit-user-select:none;user-select:none}
     .upload-area.done{border-color:#3a5e42;background:rgba(90,158,106,0.04)}
+    .upload-area.loading{border-color:#c8a97e44;pointer-events:none}
     .upload-icon{font-size:2rem;margin-bottom:0.6rem}
     .upload-area p{color:#555;font-size:0.82rem;margin-top:0.2rem}
     .upload-area strong{color:#c8a97e}
-    .key-badge{
-      display:inline-flex;align-items:center;gap:0.35rem;
-      font-size:0.7rem;color:#555;
-      margin-top:0.7rem;
-      cursor:pointer;
-      padding:0.3rem 0.75rem;
-      border:1px solid #1e1e2a;border-radius:20px;
-      background:transparent;font-family:'DM Sans',sans-serif;
-      transition:all 0.15s;
-    }
+    .key-badge{display:inline-flex;align-items:center;gap:0.35rem;font-size:0.7rem;color:#555;margin-top:0.7rem;cursor:pointer;padding:0.3rem 0.75rem;border:1px solid #1e1e2a;border-radius:20px;background:transparent;font-family:'DM Sans',sans-serif;transition:all 0.15s}
     .key-badge.set{color:#5a9e6a;border-color:#1e3a24}
-    /* ── TRANSCRIPT ── */
     .section-label{font-size:0.66rem;text-transform:uppercase;letter-spacing:0.1em;color:#3a3a4a;margin-bottom:0.5rem;font-weight:600}
-    .transcript-box{
-      width:100%;
-      background:#0a0a0f;
-      border:1px solid #1e1e2a;
-      border-radius:10px;
-      padding:0.85rem 1rem;
-      color:#888;
-      font-size:0.84rem;
-      line-height:1.65;
-      min-height:70px;
-      max-height:160px;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-      font-family:'DM Sans',sans-serif;
-      white-space:pre-wrap;
-    }
-    textarea.transcript-box{resize:none;outline:none;border-color:#1e1e2a}
+    .transcript-box{width:100%;background:#0a0a0f;border:1px solid #1e1e2a;border-radius:10px;padding:0.85rem 1rem;color:#888;font-size:0.84rem;line-height:1.65;min-height:70px;max-height:150px;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:'DM Sans',sans-serif;white-space:pre-wrap}
+    textarea.transcript-box{resize:none;outline:none}
     textarea.transcript-box:focus{border-color:#c8a97e33}
-    /* ── BUTTONS ── */
-    .analyze-btn{
-      width:100%;
-      padding:0.9rem;
-      background:#c8a97e;
-      color:#0a0a0f;
-      border:none;
-      border-radius:12px;
-      font-family:'DM Sans',sans-serif;
-      font-size:0.88rem;
-      font-weight:600;
-      cursor:pointer;
-      transition:all 0.2s;
-      letter-spacing:0.04em;
-      margin-top:0.9rem;
-      -webkit-user-select:none;user-select:none;
-    }
+    .action-area{margin-top:0.9rem}
+    .analyze-btn{width:100%;padding:0.9rem;background:#c8a97e;color:#0a0a0f;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;-webkit-user-select:none;user-select:none}
     .analyze-btn:active{transform:scale(0.98)}
     .analyze-btn:disabled{opacity:0.3;cursor:not-allowed}
-    /* ── PROCESSING ── */
-    .processing-bar{
-      display:flex;align-items:center;gap:0.7rem;
-      color:#c8a97e;font-size:0.8rem;
-      padding:0.9rem 0 0;
-    }
-    .dot-loader span{
-      display:inline-block;width:5px;height:5px;
-      border-radius:50%;background:#c8a97e;
-      margin:0 2px;animation:blink 1.2s infinite;
-    }
+    .processing-bar{display:flex;align-items:center;gap:0.7rem;color:#c8a97e;font-size:0.8rem;padding:0.7rem 0}
+    .dot-loader span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#c8a97e;margin:0 2px;animation:blink 1.2s infinite}
     .dot-loader span:nth-child(2){animation-delay:0.2s}
     .dot-loader span:nth-child(3){animation-delay:0.4s}
-    @keyframes blink{
-      0%,100%{opacity:0.2;transform:scale(0.8)}
-      50%{opacity:1;transform:scale(1.2)}
-    }
-    /* ── SUMMARY ── */
-    .summary-card{
-      background:#13131a;
-      border:1px solid #c8a97e22;
-      border-radius:16px;
-      padding:1.2rem;
-      margin-bottom:1rem;
-      animation:fadeUp 0.35s ease;
-    }
+    @keyframes blink{0%,100%{opacity:0.2;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+    .summary-card{background:#13131a;border:1px solid #c8a97e22;border-radius:16px;padding:1.2rem;margin-bottom:1rem;animation:fadeUp 0.35s ease}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    .summary-header{
-      display:flex;align-items:center;justify-content:space-between;
-      margin-bottom:1rem;padding-bottom:0.8rem;
-      border-bottom:1px solid #1e1e2a;
-    }
+    .summary-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid #1e1e2a}
     .summary-title{font-family:'DM Serif Display',serif;font-size:1.15rem;color:#c8a97e}
-    .copy-btn{
-      padding:0.4rem 0.8rem;
-      background:transparent;border:1px solid #2a2a38;
-      border-radius:6px;color:#555;font-size:0.72rem;
-      cursor:pointer;font-family:'DM Sans',sans-serif;
-    }
-    .copy-btn:active{border-color:#c8a97e;color:#c8a97e}
+    .copy-btn{padding:0.4rem 0.8rem;background:transparent;border:1px solid #2a2a38;border-radius:6px;color:#555;font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;min-width:80px;text-align:center}
+    .copy-btn.copied{border-color:#5a9e6a;color:#5a9e6a}
     .summary-content{color:#bbb8b2;font-size:0.84rem;line-height:1.8}
-    .summary-content h2{
-      font-family:'DM Serif Display',serif;font-size:0.98rem;
-      color:#e8e4df;margin:1.1rem 0 0.4rem;font-weight:400;
-    }
-    .summary-content h3{
-      font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;
-      color:#c8a97e;margin:0.9rem 0 0.3rem;font-weight:600;
-    }
-    .summary-content ul,.summary-content ol{padding-left:1.1rem;margin:0.2rem 0}
-    .summary-content li{margin:0.2rem 0;list-style:none;position:relative;padding-left:0.2rem}
-    .summary-content ul li::before{content:'›';position:absolute;left:-0.9rem;color:#c8a97e}
-    .summary-content ol{counter-reset:li}
-    .summary-content ol li{counter-increment:li}
-    .summary-content ol li::before{content:counter(li)'.';position:absolute;left:-1rem;color:#c8a97e;font-size:0.78rem}
+    .summary-content h2{font-family:'DM Serif Display',serif;font-size:0.98rem;color:#e8e4df;margin:1.1rem 0 0.4rem;font-weight:400}
+    .summary-content h2:first-child{margin-top:0}
+    .summary-content h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:#c8a97e;margin:0.9rem 0 0.3rem;font-weight:600}
+    .summary-content ul{list-style:none;margin:0.3rem 0 0.8rem;padding:0}
+    .summary-content ul li{padding:0.15rem 0 0.15rem 1rem;position:relative}
+    .summary-content ul li::before{content:'›';position:absolute;left:0;color:#c8a97e}
+    .summary-content ol{list-style:none;counter-reset:item;margin:0.3rem 0 0.8rem;padding:0}
+    .summary-content ol li{padding:0.15rem 0 0.15rem 1.4rem;position:relative;counter-increment:item}
+    .summary-content ol li::before{content:counter(item)'.';position:absolute;left:0;color:#c8a97e;font-size:0.78rem}
     .summary-content strong{color:#e8e4df}
-    /* ── ERROR ── */
-    .error-box{
-      background:#1a0f0f;border:1px solid #5a2020;
-      border-radius:10px;padding:0.75rem 1rem;
-      color:#e05555;font-size:0.8rem;margin-bottom:0.8rem;
-    }
-    /* ── RESET ── */
-    .reset-btn{
-      display:block;width:100%;
-      padding:0.75rem;
-      background:transparent;border:1px solid #1e1e2a;
-      border-radius:12px;color:#444;font-size:0.82rem;
-      cursor:pointer;font-family:'DM Sans',sans-serif;
-      margin-bottom:0.5rem;
-    }
-    /* ── KEY MODAL ── */
-    .modal-overlay{
-      position:fixed;inset:0;
-      background:rgba(0,0,0,0.8);
-      display:flex;align-items:flex-end;
-      z-index:200;
-      padding:0;
-    }
-    .modal{
-      background:#13131a;
-      border:1px solid #2a2a38;
-      border-radius:20px 20px 0 0;
-      padding:1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom,0));
-      width:100%;
-    }
+    .summary-content p{margin:0.3rem 0}
+    .error-box{background:#1a0f0f;border:1px solid #5a2020;border-radius:10px;padding:0.75rem 1rem;color:#e05555;font-size:0.8rem;margin-bottom:0.8rem;line-height:1.5}
+    .reset-btn{display:block;width:100%;padding:0.75rem;background:transparent;border:1px solid #1e1e2a;border-radius:12px;color:#555;font-size:0.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:0.5rem;transition:all 0.2s}
+    .reset-btn:active{border-color:#c8a97e44;color:#c8a97e}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;z-index:200}
+    .modal{background:#13131a;border:1px solid #2a2a38;border-radius:20px 20px 0 0;padding:1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom,0));width:100%}
     .modal h3{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#e8e4df;margin-bottom:0.4rem}
     .modal p{font-size:0.78rem;color:#555;margin-bottom:1.2rem;line-height:1.6}
     .modal a{color:#c8a97e;text-decoration:none}
-    .key-input{
-      width:100%;background:#0a0a0f;
-      border:1px solid #2a2a38;border-radius:10px;
-      padding:0.85rem 1rem;color:#e8e4df;
-      font-family:'DM Sans',sans-serif;font-size:0.88rem;
-      outline:none;margin-bottom:0.85rem;
-      -webkit-appearance:none;
-    }
+    .key-input{width:100%;background:#0a0a0f;border:1px solid #2a2a38;border-radius:10px;padding:0.85rem 1rem;color:#e8e4df;font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;margin-bottom:0.85rem;-webkit-appearance:none}
     .key-input:focus{border-color:#c8a97e44}
     .modal-actions{display:flex;gap:0.6rem}
-    .key-save{
-      flex:1;padding:0.8rem;background:#c8a97e;
-      color:#0a0a0f;border:none;border-radius:10px;
-      font-family:'DM Sans',sans-serif;font-size:0.86rem;font-weight:600;
-      cursor:pointer;
-    }
-    .key-cancel{
-      padding:0.8rem 1rem;background:transparent;
-      border:1px solid #1e1e2a;border-radius:10px;
-      color:#444;font-family:'DM Sans',sans-serif;font-size:0.86rem;
-      cursor:pointer;
-    }
-    /* ── INSTALL BANNER ── */
-    .install-banner{
-      display:none;
-      background:#13131a;border:1px solid #c8a97e33;
-      border-radius:12px;padding:0.75rem 1rem;
-      margin-bottom:0.8rem;
-      font-size:0.78rem;color:#888;
-      align-items:center;gap:0.6rem;
-    }
+    .key-save{flex:1;padding:0.8rem;background:#c8a97e;color:#0a0a0f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer}
+    .key-cancel{padding:0.8rem 1rem;background:transparent;border:1px solid #1e1e2a;border-radius:10px;color:#444;font-family:'DM Sans',sans-serif;font-size:0.86rem;cursor:pointer}
+    .install-banner{display:none;background:#13131a;border:1px solid #c8a97e33;border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.8rem;font-size:0.78rem;color:#888;align-items:center;gap:0.6rem}
     .install-banner.visible{display:flex}
-    .install-btn{
-      margin-left:auto;padding:0.35rem 0.8rem;
-      background:#c8a97e;color:#0a0a0f;
-      border:none;border-radius:6px;
-      font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;
-      cursor:pointer;white-space:nowrap;
-    }
+    .install-btn{margin-left:auto;padding:0.35rem 0.8rem;background:#c8a97e;color:#0a0a0f;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap}
     ::-webkit-scrollbar{width:3px}
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:#2a2a38;border-radius:2px}
@@ -318,19 +102,23 @@
     <h1>Sprach<span>notiz</span></h1>
     <p>Ihre Alltagsbegleiter</p>
   </div>
-
   <div class="scroll-area" id="scrollArea">
 
-    <!-- Install Banner (shown on iOS) -->
     <div class="install-banner" id="installBanner">
-      <span>📲 Zum Homescreen hinzufügen</span>
+      <span id="installText">📲 Zum Homescreen hinzufügen</span>
       <button class="install-btn" id="installBtn">Installieren</button>
     </div>
 
-    <!-- Error -->
     <div class="error-box" id="errorBox" style="display:none"></div>
 
-    <!-- Main Card -->
+    <!-- Analyse-Ladebalken (außerhalb mainCard!) -->
+    <div class="card" id="loadingCard" style="display:none">
+      <div class="processing-bar">
+        <div class="dot-loader"><span></span><span></span><span></span></div>
+        <span id="loadingLabel">Claude analysiert…</span>
+      </div>
+    </div>
+
     <div class="card" id="mainCard">
       <div class="mode-tabs">
         <button class="tab-btn active" onclick="switchTab('record')">🎙 Aufnehmen</button>
@@ -338,7 +126,6 @@
         <button class="tab-btn" onclick="switchTab('text')">✏️ Text</button>
       </div>
 
-      <!-- Record Tab -->
       <div id="tab-record">
         <div class="record-center">
           <div class="timer idle" id="timer">00:00</div>
@@ -347,47 +134,43 @@
         </div>
       </div>
 
-      <!-- Upload Tab -->
       <div id="tab-upload" style="display:none">
         <div class="upload-area" id="uploadArea" onclick="handleUploadClick()">
           <div class="upload-icon" id="uploadIcon">🎵</div>
           <p id="uploadText"><strong>Audio-Datei auswählen</strong></p>
-          <p id="uploadSub">MP3 · WAV · M4A · WebM · OGG</p>
+          <p id="uploadSub" style="color:#444;font-size:0.75rem;margin-top:0.3rem">MP3 · WAV · M4A · WebM · OGG · FLAC</p>
         </div>
         <div style="text-align:center">
           <button class="key-badge" id="keyBadge" onclick="openKeyModal()">⚙ OpenAI API-Key eingeben</button>
         </div>
-        <input type="file" id="fileInput" accept="audio/*" style="display:none" onchange="handleFileChange(event)"/>
+        <input type="file" id="fileInput" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,audio/flac,audio/m4a,.mp3,.mp4,.wav,.ogg,.webm,.flac,.m4a,.mpeg,.mpga,.oga" style="display:none" onchange="handleFileChange(event)"/>
       </div>
 
-      <!-- Text Tab -->
       <div id="tab-text" style="display:none">
         <div class="section-label">Text eingeben oder einfügen</div>
-        <textarea class="transcript-box" id="textInput" rows="6"
-          placeholder="Notiz oder Transkript hier einfügen..."></textarea>
+        <textarea class="transcript-box" id="textInput" rows="6" placeholder="Notiz oder Transkript hier einfügen..."></textarea>
       </div>
 
-      <!-- Transcript Display (record/upload) -->
       <div id="transcriptSection" style="display:none;margin-top:1rem">
         <div class="section-label">Transkript</div>
         <div class="transcript-box" id="transcriptBox"></div>
       </div>
 
-      <!-- Processing / Action -->
-      <div id="processingBar" class="processing-bar" style="display:none">
-        <div class="dot-loader"><span></span><span></span><span></span></div>
-        <span id="processingLabel">Verarbeite…</span>
+      <div class="action-area">
+        <div id="uploadProcessing" class="processing-bar" style="display:none">
+          <div class="dot-loader"><span></span><span></span><span></span></div>
+          <span>Whisper transkribiert Audio…</span>
+        </div>
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeWithClaude()" disabled>
+          Zusammenfassung erstellen →
+        </button>
       </div>
-      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeWithClaude()" disabled>
-        Zusammenfassung erstellen →
-      </button>
     </div>
 
-    <!-- Summary Card -->
     <div class="summary-card" id="summaryCard" style="display:none">
       <div class="summary-header">
         <span class="summary-title">Zusammenfassung</span>
-        <button class="copy-btn" onclick="copyResult()">Kopieren</button>
+        <button class="copy-btn" id="copyBtn" onclick="copyResult()">Kopieren</button>
       </div>
       <div class="summary-content" id="summaryContent"></div>
     </div>
@@ -395,21 +178,18 @@
     <button class="reset-btn" id="resetBtn" style="display:none" onclick="resetAll()">
       ＋ Neue Notiz
     </button>
-
   </div>
 </div>
 
-<!-- Key Modal -->
 <div class="modal-overlay" id="keyModal" style="display:none" onclick="closeKeyModalOutside(event)">
   <div class="modal">
     <h3>OpenAI API-Key</h3>
     <p>
-      Für Whisper-Transkription wird ein OpenAI-Key benötigt.<br/>
-      Wird nur in diesem Browser gespeichert (kein Server-Upload).<br/>
+      Für Whisper-Transkription erforderlich.<br/>
+      Wird lokal im Browser gespeichert – kein Server-Upload.<br/>
       <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>
     </p>
-    <input class="key-input" id="keyInput" type="password" placeholder="sk-proj-..."
-      onkeydown="if(event.key==='Enter')saveKey()"/>
+    <input class="key-input" id="keyInput" type="password" placeholder="sk-proj-..." onkeydown="if(event.key==='Enter')saveKey()"/>
     <div class="modal-actions">
       <button class="key-save" onclick="saveKey()">Speichern & fortfahren</button>
       <button class="key-cancel" onclick="closeKeyModal()">Abbrechen</button>
@@ -446,6 +226,7 @@ let liveTranscript = '';
 let openaiKey = localStorage.getItem('oai_key') || '';
 let summaryText = '';
 let deferredPrompt = null;
+let pendingFileAfterKey = null;
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
@@ -455,30 +236,35 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  // Show install banner on Android
-  const banner = document.getElementById('installBanner');
-  banner.classList.add('visible');
-  document.getElementById('installBtn').onclick = async () => {
-    deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    if (result.outcome === 'accepted') banner.classList.remove('visible');
-  };
+  showInstallBanner('android');
 });
 
-// iOS install hint
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isStandalone = window.navigator.standalone;
-if (isIos && !isStandalone) {
-  const banner = document.getElementById('installBanner');
-  banner.classList.add('visible');
-  banner.querySelector('span').textContent = '📲 Auf iOS: Teilen → "Zum Home-Bildschirm"';
-  document.getElementById('installBtn').style.display = 'none';
-}
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (isIos && !isStandalone) showInstallBanner('ios');
 
 if (openaiKey) updateKeyBadge();
 
+function showInstallBanner(type) {
+  const banner = document.getElementById('installBanner');
+  const btn = document.getElementById('installBtn');
+  banner.classList.add('visible');
+  if (type === 'ios') {
+    document.getElementById('installText').textContent = '📲 Teilen → "Zum Home-Bildschirm"';
+    btn.style.display = 'none';
+  } else {
+    btn.onclick = async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const r = await deferredPrompt.userChoice;
+      if (r.outcome === 'accepted') banner.classList.remove('visible');
+    };
+  }
+}
+
 // ── TABS ───────────────────────────────────────────────────────────────────
 function switchTab(tab) {
+  if (isRecording) stopRecording();
   currentTab = tab;
   ['record','upload','text'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
@@ -499,51 +285,67 @@ function startRecording() {
   liveTranscript = '';
   setTranscript('');
 
-  if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
-    showError('Spracherkennung nicht unterstützt. Bitte Chrome/Edge verwenden.');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    showError('Spracherkennung nicht verfügbar. Bitte Chrome oder Samsung Internet verwenden, oder den Text-Tab nutzen.');
     return;
   }
 
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'de-DE';
-  recognition.continuous = true;
-  recognition.interimResults = true;
+  try {
+    recognition = new SR();
+    recognition.lang = 'de-DE';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 
-  recognition.onresult = (ev) => {
-    let interim = '', final = liveTranscript;
-    for (let i = ev.resultIndex; i < ev.results.length; i++) {
-      if (ev.results[i].isFinal) { final += ev.results[i][0].transcript + ' '; liveTranscript = final; }
-      else interim += ev.results[i][0].transcript;
-    }
-    setTranscript(final + interim);
-  };
-  recognition.onerror = (e) => { if (e.error !== 'no-speech') showError('Spracherkennung: ' + e.error); };
-  recognition.onend = () => { if (isRecording) recognition.start(); };
-  recognition.start();
+    recognition.onresult = (ev) => {
+      let interim = '', final = liveTranscript;
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        if (ev.results[i].isFinal) { final += ev.results[i][0].transcript + ' '; liveTranscript = final; }
+        else interim += ev.results[i][0].transcript;
+      }
+      setTranscript((final + interim).trim());
+    };
 
-  isRecording = true;
-  timerSeconds = 0;
-  timerInterval = setInterval(() => {
-    timerSeconds++;
-    const m = String(Math.floor(timerSeconds/60)).padStart(2,'0');
-    const s = String(timerSeconds%60).padStart(2,'0');
-    document.getElementById('timer').textContent = m+':'+s;
-  }, 1000);
+    recognition.onerror = (e) => {
+      if (e.error === 'not-allowed') {
+        showError('Mikrofon-Zugriff verweigert. Bitte in den Browser-Einstellungen erlauben.');
+        stopRecordingUI();
+      } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        showError('Spracherkennung: ' + e.error);
+      }
+    };
 
-  const btn = document.getElementById('recordBtn');
-  btn.className = 'record-btn recording';
-  btn.textContent = '⏹';
-  document.getElementById('timer').className = 'timer';
-  document.getElementById('recLabel').className = 'rec-label active';
-  document.getElementById('recLabel').textContent = '● Aufnahme läuft';
+    recognition.onend = () => {
+      if (isRecording) {
+        try { recognition.start(); } catch(e) {}
+      }
+    };
+
+    recognition.start();
+    isRecording = true;
+    timerSeconds = 0;
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const m = String(Math.floor(timerSeconds/60)).padStart(2,'0');
+      const s = String(timerSeconds%60).padStart(2,'0');
+      document.getElementById('timer').textContent = m+':'+s;
+    }, 1000);
+
+    const btn = document.getElementById('recordBtn');
+    btn.className = 'record-btn recording';
+    btn.textContent = '⏹';
+    document.getElementById('timer').className = 'timer';
+    document.getElementById('recLabel').className = 'rec-label active';
+    document.getElementById('recLabel').textContent = '● Aufnahme läuft – erneut tippen zum Stoppen';
+  } catch(e) {
+    showError('Aufnahme konnte nicht gestartet werden: ' + e.message);
+  }
 }
 
-function stopRecording() {
+function stopRecordingUI() {
   isRecording = false;
   clearInterval(timerInterval);
-  if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
-
   const btn = document.getElementById('recordBtn');
   btn.className = 'record-btn idle';
   btn.textContent = '🎙';
@@ -552,30 +354,64 @@ function stopRecording() {
   document.getElementById('recLabel').textContent = 'Tippen zum Starten';
 }
 
+function stopRecording() {
+  isRecording = false;
+  clearInterval(timerInterval);
+  if (recognition) {
+    recognition.onend = null;
+    try { recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
+  stopRecordingUI();
+}
+
 // ── UPLOAD / WHISPER ───────────────────────────────────────────────────────
 function handleUploadClick() {
-  if (!openaiKey) { openKeyModal(); return; }
+  if (!openaiKey) { pendingFileAfterKey = true; openKeyModal(); return; }
   document.getElementById('fileInput').click();
+}
+
+function getAudioMimeType(file) {
+  // Samsung Internet sometimes sends empty type — detect from extension
+  if (file.type && file.type.startsWith('audio/')) return file.type;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const map = {mp3:'audio/mpeg',mp4:'audio/mp4',m4a:'audio/mp4',wav:'audio/wav',
+                ogg:'audio/ogg',oga:'audio/ogg',webm:'audio/webm',flac:'audio/flac',
+                mpeg:'audio/mpeg',mpga:'audio/mpeg'};
+  return map[ext] || 'audio/mpeg';
 }
 
 async function handleFileChange(e) {
   const file = e.target.files[0];
+  e.target.value = '';
   if (!file) return;
-  if (!openaiKey) { openKeyModal(); return; }
+  if (!openaiKey) { pendingFileAfterKey = false; openKeyModal(); return; }
+
+  // Validate size (Whisper limit: 25MB)
+  if (file.size > 25 * 1024 * 1024) {
+    showError('Datei zu groß (max. 25 MB). Bitte kürze die Aufnahme oder nutze den Aufnehmen-Tab.');
+    return;
+  }
 
   clearError();
   setTranscript('');
-  setProcessing(true, 'Whisper transkribiert Audio…');
 
   const uploadArea = document.getElementById('uploadArea');
+  uploadArea.classList.add('loading');
   uploadArea.classList.remove('done');
   document.getElementById('uploadIcon').textContent = '⏳';
   document.getElementById('uploadText').innerHTML = '<strong>Whisper transkribiert…</strong>';
   document.getElementById('uploadSub').textContent = 'Bitte warten';
+  document.getElementById('uploadProcessing').style.display = 'flex';
+  document.getElementById('analyzeBtn').style.display = 'none';
 
   try {
+    const mimeType = getAudioMimeType(file);
+    const ext = file.name.includes('.') ? file.name : file.name + '.' + (mimeType.split('/')[1] || 'mp3');
+    const blob = file.type ? file : new File([file], ext, {type: mimeType});
+
     const formData = new FormData();
-    formData.append('file', file, file.name);
+    formData.append('file', blob, ext);
     formData.append('model', 'whisper-1');
     formData.append('language', 'de');
     formData.append('response_format', 'text');
@@ -587,30 +423,38 @@ async function handleFileChange(e) {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err?.error?.message || 'HTTP ' + res.status);
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(errData?.error?.message || 'HTTP ' + res.status);
     }
 
     const text = await res.text();
+    if (!text || !text.trim()) throw new Error('Whisper hat keinen Text erkannt. Ist die Datei eine Sprachaufnahme?');
     setTranscript(text.trim());
 
+    uploadArea.classList.remove('loading');
     uploadArea.classList.add('done');
     document.getElementById('uploadIcon').textContent = '✅';
     document.getElementById('uploadText').innerHTML = '<strong>' + file.name + '</strong>';
-    document.getElementById('uploadSub').textContent = 'Transkription abgeschlossen · Neue Datei auswählen';
+    document.getElementById('uploadSub').textContent = 'Transkription fertig · Neue Datei auswählen';
   } catch(err) {
-    if (err.message.includes('401') || err.message.toLowerCase().includes('incorrect')) {
-      showError('OpenAI API-Key ungültig. Bitte neu eingeben.');
-      localStorage.removeItem('oai_key'); openaiKey = '';
-      updateKeyBadge(); openKeyModal();
-    } else { showError('Whisper-Fehler: ' + err.message); }
+    uploadArea.classList.remove('loading','done');
     document.getElementById('uploadIcon').textContent = '🎵';
     document.getElementById('uploadText').innerHTML = '<strong>Audio-Datei auswählen</strong>';
-    document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG';
-  } finally { setProcessing(false); }
+    document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG · FLAC';
 
-  // Reset file input
-  e.target.value = '';
+    if (err.message.includes('401') || err.message.toLowerCase().includes('incorrect api key')) {
+      localStorage.removeItem('oai_key'); openaiKey = '';
+      updateKeyBadge();
+      showError('API-Key ungültig. Bitte neu eingeben.');
+      openKeyModal();
+    } else {
+      showError('Fehler: ' + err.message);
+    }
+  } finally {
+    document.getElementById('uploadProcessing').style.display = 'none';
+    document.getElementById('analyzeBtn').style.display = '';
+    checkAnalyzeBtn();
+  }
 }
 
 // ── CLAUDE ANALYSE ─────────────────────────────────────────────────────────
@@ -619,8 +463,11 @@ async function analyzeWithClaude() {
   if (!text.trim()) { showError('Kein Text zum Analysieren.'); return; }
 
   clearError();
-  setProcessing(true, 'Claude analysiert Inhalt…');
   document.getElementById('mainCard').style.display = 'none';
+  document.getElementById('loadingCard').style.display = '';
+  document.getElementById('loadingLabel').textContent = 'Claude analysiert Inhalt…';
+  document.getElementById('summaryCard').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'none';
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -633,38 +480,99 @@ async function analyzeWithClaude() {
         messages: [{ role: 'user', content: 'Transkript:\n\n' + text }],
       }),
     });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(errData?.error?.message || 'HTTP ' + res.status);
+    }
+
     const data = await res.json();
-    summaryText = data.content?.map(b => b.text || '').join('') || '';
+    summaryText = (data.content || []).map(b => b.text || '').join('');
+    if (!summaryText) throw new Error('Keine Antwort von Claude erhalten.');
     showSummary(summaryText);
   } catch(err) {
-    showError('Claude API-Fehler: ' + err.message);
+    showError('Analyse-Fehler: ' + err.message);
     document.getElementById('mainCard').style.display = '';
-  } finally { setProcessing(false); }
+  } finally {
+    document.getElementById('loadingCard').style.display = 'none';
+  }
 }
 
 // ── SUMMARY DISPLAY ────────────────────────────────────────────────────────
+function mdToHtml(md) {
+  const lines = md.split('\n');
+  let html = '';
+  let inUl = false, inOl = false;
+
+  lines.forEach(line => {
+    if (/^## (.+)/.test(line)) {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+      html += '<h2>' + line.replace(/^## /, '').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>') + '</h2>';
+    } else if (/^### (.+)/.test(line)) {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+      html += '<h3>' + line.replace(/^### /, '') + '</h3>';
+    } else if (/^- (.+)/.test(line)) {
+      if (inOl) { html += '</ol>'; inOl = false; }
+      if (!inUl) { html += '<ul>'; inUl = true; }
+      html += '<li>' + line.replace(/^- /, '').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>') + '</li>';
+    } else if (/^\d+\. (.+)/.test(line)) {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (!inOl) { html += '<ol>'; inOl = true; }
+      html += '<li>' + line.replace(/^\d+\. /, '').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>') + '</li>';
+    } else if (line.trim()) {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+      html += '<p>' + line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>') + '</p>';
+    } else {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+    }
+  });
+
+  if (inUl) html += '</ul>';
+  if (inOl) html += '</ol>';
+  return html;
+}
+
 function showSummary(md) {
-  const html = md
-    .replace(/^## (.+)/gm, '<h2>$1</h2>')
-    .replace(/^### (.+)/gm, '<h3>$1</h3>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^- (.+)/gm, '<ul><li>$1</li></ul>')
-    .replace(/^(\d+)\. (.+)/gm, '<ol><li>$1</li></ol>')
-    .replace(/<\/ul>\n<ul>/g, '\n')
-    .replace(/<\/ol>\n<ol>/g, '\n')
-    .replace(/\n/g, '<br>');
-  document.getElementById('summaryContent').innerHTML = html;
+  document.getElementById('summaryContent').innerHTML = mdToHtml(md);
   document.getElementById('summaryCard').style.display = '';
   document.getElementById('resetBtn').style.display = '';
   document.getElementById('scrollArea').scrollTop = 0;
 }
 
 function copyResult() {
-  navigator.clipboard.writeText(summaryText).then(() => {
-    const btn = document.querySelector('.copy-btn');
+  const btn = document.getElementById('copyBtn');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(summaryText).then(() => {
+      btn.textContent = '✓ Kopiert';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+    }).catch(() => fallbackCopy(btn));
+  } else {
+    fallbackCopy(btn);
+  }
+}
+
+function fallbackCopy(btn) {
+  // Fallback für Samsung Internet
+  const ta = document.createElement('textarea');
+  ta.value = summaryText;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
     btn.textContent = '✓ Kopiert';
-    setTimeout(() => btn.textContent = 'Kopieren', 1500);
-  });
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+  } catch(e) {
+    btn.textContent = 'Fehler';
+    setTimeout(() => btn.textContent = 'Kopieren', 2000);
+  }
+  document.body.removeChild(ta);
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -672,13 +580,10 @@ function setTranscript(text) {
   if (currentTab === 'text') return;
   const section = document.getElementById('transcriptSection');
   const box = document.getElementById('transcriptBox');
-  if (text) {
-    box.textContent = text;
-    section.style.display = '';
-  } else {
-    section.style.display = 'none';
-    box.textContent = '';
-  }
+  box.textContent = text || '';
+  section.style.display = text ? '' : 'none';
+  // Auto-scroll transcript to bottom
+  if (text) box.scrollTop = box.scrollHeight;
   checkAnalyzeBtn();
 }
 
@@ -696,22 +601,16 @@ function clearTranscript() {
 }
 
 function checkAnalyzeBtn() {
-  const text = getTranscriptText();
-  document.getElementById('analyzeBtn').disabled = !text.trim();
+  document.getElementById('analyzeBtn').disabled = !getTranscriptText().trim();
 }
 
 document.getElementById('textInput').addEventListener('input', checkAnalyzeBtn);
-
-function setProcessing(on, label) {
-  document.getElementById('processingBar').style.display = on ? 'flex' : 'none';
-  if (label) document.getElementById('processingLabel').textContent = label;
-  document.getElementById('analyzeBtn').style.display = on ? 'none' : '';
-}
 
 function showError(msg) {
   const el = document.getElementById('errorBox');
   el.textContent = '⚠ ' + msg;
   el.style.display = '';
+  document.getElementById('scrollArea').scrollTop = 0;
 }
 
 function clearError() {
@@ -724,44 +623,53 @@ function resetAll() {
   clearTranscript();
   timerSeconds = 0;
   document.getElementById('timer').textContent = '00:00';
-  document.getElementById('timer').className = 'timer idle';
   summaryText = '';
   document.getElementById('summaryCard').style.display = 'none';
   document.getElementById('resetBtn').style.display = 'none';
   document.getElementById('mainCard').style.display = '';
-  setProcessing(false);
-  switchTab('record');
-  // reset upload area
+  document.getElementById('loadingCard').style.display = 'none';
+  document.getElementById('uploadProcessing').style.display = 'none';
+  document.getElementById('analyzeBtn').style.display = '';
   document.getElementById('uploadIcon').textContent = '🎵';
   document.getElementById('uploadText').innerHTML = '<strong>Audio-Datei auswählen</strong>';
-  document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG';
-  document.getElementById('uploadArea').classList.remove('done');
+  document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG · FLAC';
+  document.getElementById('uploadArea').classList.remove('done','loading');
+  document.getElementById('copyBtn').textContent = 'Kopieren';
+  document.getElementById('copyBtn').classList.remove('copied');
+  switchTab('record');
 }
 
 // ── KEY MODAL ──────────────────────────────────────────────────────────────
 function openKeyModal() {
   document.getElementById('keyInput').value = openaiKey || '';
   document.getElementById('keyModal').style.display = 'flex';
-  setTimeout(() => document.getElementById('keyInput').focus(), 300);
+  setTimeout(() => document.getElementById('keyInput').focus(), 350);
 }
 
 function closeKeyModal() {
   document.getElementById('keyModal').style.display = 'none';
+  pendingFileAfterKey = false;
 }
 
 function closeKeyModalOutside(e) {
-  if (e.target === document.getElementById('keyModal')) closeKeyModal();
+  if (e.target.id === 'keyModal') closeKeyModal();
 }
 
 function saveKey() {
   const v = document.getElementById('keyInput').value.trim();
-  if (!v) return;
+  if (!v || !v.startsWith('sk-')) {
+    document.getElementById('keyInput').style.borderColor = '#e05555';
+    setTimeout(() => document.getElementById('keyInput').style.borderColor = '', 1500);
+    return;
+  }
   openaiKey = v;
   localStorage.setItem('oai_key', v);
   updateKeyBadge();
   closeKeyModal();
-  // Trigger file picker after key saved
-  document.getElementById('fileInput').click();
+  if (pendingFileAfterKey) {
+    pendingFileAfterKey = false;
+    setTimeout(() => document.getElementById('fileInput').click(), 200);
+  }
 }
 
 function updateKeyBadge() {
