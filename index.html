@@ -3584,10 +3584,8 @@ function showWinSugg(){
   if(!matches.length){ el.innerHTML=''; return; }
 
   el.innerHTML = matches.map(m=>{
-    const hi = m.text.replace(
-      new RegExp('('+q.replace(/[.*+?^${}()|[\]\]/g,'\$&')+')','gi'),
-      '<mark>$1</mark>'
-    );
+    const safeQ1 = q.replace(/[-.*+?^${}()|[\]\\]/g,'\\$&');
+    const hi = m.text.replace(new RegExp('('+safeQ1+')','gi'),'<mark>$1</mark>');
     return `<div class="win-sugg-item"
       onclick="selectWin('${m.text.replace(/'/g,"\'")}')">
       🏆 ${hi}
