@@ -935,27 +935,60 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   display:flex;align-items:center;justify-content:space-between;
   padding:0.75rem 1rem;background:var(--bg2);
   border:1px solid var(--border);border-radius:var(--r);
-  cursor:pointer;transition:border-color 0.15s;
+  cursor:pointer;
   user-select:none;-webkit-user-select:none;
 }
 .section-toggle:active{background:var(--bg3)}
-.section-toggle.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
-.section-toggle-left{display:flex;align-items:center;gap:0.6rem}
+.section-toggle.open{
+  border-bottom-left-radius:0;border-bottom-right-radius:0;
+  border-bottom-color:transparent;
+}
+.section-toggle-left{display:flex;align-items:center;gap:0.6rem;pointer-events:none}
 .section-toggle-icon{font-size:1rem}
 .section-toggle-title{font-size:0.82rem;font-weight:800;letter-spacing:0.02em;color:var(--text)}
 .section-toggle-meta{font-size:0.65rem;color:var(--text3);margin-top:1px}
-.section-toggle-arrow{font-size:0.75rem;color:var(--text3);transition:transform 0.2s;display:inline-block}
+.section-toggle-arrow{font-size:0.75rem;color:var(--text3);transition:transform 0.25s;display:inline-block;pointer-events:none}
 .section-toggle.open .section-toggle-arrow{transform:rotate(180deg)}
+
 .section-body{
-  background:var(--bg2);border:1px solid var(--border);border-top:none;
+  background:var(--bg2);
+  border:1px solid var(--border);border-top:none;
   border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);
   padding:0.6rem 0.75rem 0.25rem;
   overflow:hidden;
-  transition:max-height 0.3s ease,opacity 0.2s ease;
+  max-height:4000px;
+  opacity:1;
+  transition:max-height 0.32s ease, opacity 0.22s ease, padding 0.22s ease;
 }
-.section-body.collapsed{max-height:0!important;padding:0;border:none;opacity:0}
-.section-body .card{background:var(--bg3);border-color:var(--border);margin-bottom:0.5rem}
+.section-body.collapsed{
+  max-height:0 !important;
+  opacity:0;
+  padding-top:0;
+  padding-bottom:0;
+  border-color:transparent;
+  pointer-events:none;
+  visibility:hidden;
+}
+.section-body .card{
+  background:var(--bg3);border-color:var(--border);margin-bottom:0.5rem;
+}
 .section-body>.card:last-child{margin-bottom:0.25rem}
+
+/* Inline frog list */
+.frog-inline-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.5rem 0;border-bottom:1px solid var(--border);
+}
+.frog-inline-item:last-child{border-bottom:none}
+.frog-inline-check{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--border2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;cursor:pointer;color:#fff;transition:all 0.15s;
+}
+.frog-inline-check.done{background:var(--green);border-color:var(--green)}
+.frog-inline-text{flex:1;font-size:0.82rem;font-weight:600}
+.frog-inline-text.done{text-decoration:line-through;color:var(--text3)}
 
 </style>
 </head>
@@ -991,7 +1024,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body" id="sbody-gedanken" style="max-height:4000px">
+      <div class="section-body" id="sbody-gedanken"
+           style="max-height:4000px;opacity:1;visibility:visible">
         <!-- Gedanken / Brain Dump -->
       <div class="card" id="thoughtsCard">
         <div class="card-title">🧠 GEDANKEN-DUMP</div>
@@ -1059,7 +1093,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body" id="sbody-produktiv" style="max-height:4000px">
+      <div class="section-body" id="sbody-produktiv"
+           style="max-height:4000px;opacity:1;visibility:visible">
         <!-- Deep Work -->
       <div class="card">
         <div class="card-title">DEEP WORK</div>
@@ -1079,12 +1114,11 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
 
-      <!-- Frösche Heute Inline -->
       <div class="card">
         <div class="card-title">🐸 FRÖSCHE HEUTE</div>
         <div id="frogListInline"></div>
-        <div style="text-align:right;margin-top:0.4rem">
-          <button class="tag-edit-btn" onclick="showView('froesche',document.querySelector('.nav-btn:nth-child(4)'))">Alle Frösche →</button>
+        <div style="text-align:right;margin-top:0.5rem">
+          <button class="tag-edit-btn" onclick="showView('froesche',document.querySelector('[onclick*=froesche]'))">Alle Frösche →</button>
         </div>
       </div>
       </div>
@@ -1094,13 +1128,14 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div class="section-toggle-left">
           <span class="section-toggle-icon">💚</span>
           <div>
-            <div class="section-toggle-title">Wie geht's mir?</div>
+            <div class="section-toggle-title">Wie geht&#39;s mir?</div>
             <div class="section-toggle-meta">Wellbeing · Stimmung · Energie · Schmerzen</div>
           </div>
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-wiegehts" style="max-height:0">
+      <div class="section-body collapsed" id="sbody-wiegehts"
+           style="max-height:0;opacity:0;visibility:hidden">
         <!-- Wellbeing -->
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
@@ -1173,7 +1208,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-koerper" style="max-height:0">
+      <div class="section-body collapsed" id="sbody-koerper"
+           style="max-height:0;opacity:0;visibility:hidden">
         <!-- Schlaf -->
       <div class="card">
         <div class="card-title">SCHLAF</div>
@@ -1295,7 +1331,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-notiz" style="max-height:0">
+      <div class="section-body collapsed" id="sbody-notiz"
+           style="max-height:0;opacity:0;visibility:hidden">
         <!-- Was lief nicht gut -->
       <div class="card">
         <div class="tag-group-header">
@@ -2789,6 +2826,7 @@ function toggleFrog(id){
   saveFrogs(TODAY, frogs);
   renderFrogs();
   if(f.done) showToast('🎉 Frosch gegessen!');
+  renderFrogListInline();
 }
 
 function deleteFrog(id){
@@ -2845,7 +2883,6 @@ function renderFrogs(){
   document.getElementById('frogAddCard').style.opacity = activeFrogs>=3?'0.4':'1';
   renderTomorrowFrogs();
   updatePlanStreak();
-  renderFrogListInline();
 }
 
 function getFrogStreak(){
@@ -3754,73 +3791,83 @@ function thoughtToTomorrowFrog(id){
 // ══════════════════════════════════════════════════════════════════
 // KOLLABIERBARE SEKTIONEN
 // ══════════════════════════════════════════════════════════════════
-// Persist open/closed state
 function getSectionState(){
   try{ return JSON.parse(localStorage.getItem('section_state')||'{}'); }
   catch(e){ return {}; }
 }
+
 function toggleSection(sid){
   const toggle = document.getElementById('stoggle-'+sid);
   const body   = document.getElementById('sbody-'+sid);
   if(!toggle||!body) return;
-  const isOpen = toggle.classList.contains('open');
-  if(isOpen){
-    body.style.maxHeight = body.scrollHeight+'px';
-    requestAnimationFrame(()=>{ body.style.maxHeight='0'; body.style.opacity='0'; });
-    toggle.classList.remove('open');
-    body.classList.add('collapsed');
-  } else {
+  const opening = !toggle.classList.contains('open');
+  if(opening){
+    body.style.visibility = 'visible';
+    body.style.pointerEvents = 'auto';
     body.classList.remove('collapsed');
-    body.style.maxHeight='0'; body.style.opacity='0';
-    requestAnimationFrame(()=>{ body.style.maxHeight='4000px'; body.style.opacity='1'; });
+    // Force reflow then animate
+    body.getBoundingClientRect();
+    body.style.maxHeight = '4000px';
+    body.style.opacity   = '1';
     toggle.classList.add('open');
+  } else {
+    body.style.maxHeight = '0';
+    body.style.opacity   = '0';
+    toggle.classList.remove('open');
+    setTimeout(()=>{
+      body.classList.add('collapsed');
+      body.style.visibility    = 'hidden';
+      body.style.pointerEvents = 'none';
+    }, 320);
   }
-  // Persist
   const state = getSectionState();
-  state[sid] = !isOpen;
+  state[sid] = opening;
   localStorage.setItem('section_state', JSON.stringify(state));
 }
 
 function restoreSectionStates(){
-  const state = getSectionState();
-  // Defaults: gedanken=open, produktiv=open, rest=closed
-  const defaults = {gedanken:true, produktiv:true, wiegehts:false, koerper:false, notiz:false};
-  Object.entries({...defaults,...state}).forEach(([sid,open])=>{
+  const defaults = {gedanken:true,produktiv:true,wiegehts:false,koerper:false,notiz:false};
+  const saved    = getSectionState();
+  const state    = {...defaults,...saved};
+  Object.entries(state).forEach(([sid,open])=>{
     const toggle = document.getElementById('stoggle-'+sid);
     const body   = document.getElementById('sbody-'+sid);
     if(!toggle||!body) return;
     if(open){
       toggle.classList.add('open');
       body.classList.remove('collapsed');
-      body.style.maxHeight='4000px';
-      body.style.opacity='1';
+      body.style.maxHeight  = '4000px';
+      body.style.opacity    = '1';
+      body.style.visibility = 'visible';
+      body.style.pointerEvents = 'auto';
     } else {
       toggle.classList.remove('open');
       body.classList.add('collapsed');
-      body.style.maxHeight='0';
-      body.style.opacity='0';
+      body.style.maxHeight  = '0';
+      body.style.opacity    = '0';
+      body.style.visibility = 'hidden';
+      body.style.pointerEvents = 'none';
     }
   });
 }
 
-// Inline frog list in Produktivität section
 function renderFrogListInline(){
   const el = document.getElementById('frogListInline');
   if(!el) return;
   const frogs = getFrogs(TODAY);
   if(!frogs.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche für heute.</div>';
+    el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche. Im Frösche-Tab hinzufügen.</div>';
     return;
   }
-  const sorted = [...frogs].sort((a,b)=>{
-    if(a.done!==b.done) return a.done?1:-1;
-    return a.priority-b.priority;
-  });
+  const sorted = [...frogs].sort((a,b)=>a.done===b.done?a.priority-b.priority:a.done?1:-1);
   el.innerHTML = sorted.map(f=>`
-    <div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border)">
-      <div onclick="toggleFrog('${f.id}');renderFrogListInline()" style="width:22px;height:22px;border-radius:50%;border:2px solid ${f.done?'var(--green)':'var(--border2)'};background:${f.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;cursor:pointer;flex-shrink:0;color:#fff">${f.done?'✓':''}</div>
-      <div style="flex:1;font-size:0.82rem;font-weight:600;${f.done?'text-decoration:line-through;color:var(--text3)':''}">${esc(f.text)}</div>
-      <span style="font-size:0.65rem;color:${['','var(--red)','var(--gold)','var(--blue)'][f.priority]}">${['','●','●','●'][f.priority]}</span>
+    <div class="frog-inline-item">
+      <div class="frog-inline-check${f.done?' done':''}"
+           onclick="toggleFrog('${f.id}');renderFrogListInline()">
+        ${f.done?'✓':''}
+      </div>
+      <div class="frog-inline-text${f.done?' done':''}">${esc(f.text)}</div>
+      <span style="font-size:0.75rem;color:${{1:'var(--red)',2:'var(--gold)',3:'var(--blue)'}[f.priority]||''}">●</span>
     </div>`).join('');
 }
 
