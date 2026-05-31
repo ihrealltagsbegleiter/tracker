@@ -730,6 +730,34 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .review-past-week{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-bottom:0.3rem}
 .review-past-preview{font-size:0.78rem;color:var(--text2);font-family:'Lora',serif;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+
+/* ─── ROUTINE WOCHENTAGE ────────────────────────────────────── */
+.wd-row{display:flex;gap:0.3rem;justify-content:space-between;margin:0.4rem 0 0.6rem}
+.wd-btn{
+  flex:1;height:36px;border-radius:6px;border:1.5px solid var(--border2);
+  background:var(--bg3);color:var(--text3);font-size:0.72rem;font-weight:700;
+  cursor:pointer;transition:all 0.12s;font-family:'Syne',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+}
+.wd-btn.active{background:var(--gold);border-color:var(--gold);color:#000}
+.wd-btn:active{transform:scale(0.93)}
+
+.freq-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem}
+.freq-label{font-size:0.72rem;color:var(--text3);white-space:nowrap}
+.freq-select{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.5rem 0.7rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;cursor:pointer;
+}
+
+/* Routine item: grey out if not scheduled today */
+.routine-item.not-today{opacity:0.38;border-style:dashed}
+.routine-item.not-today .routine-check{border-color:var(--border)}
+.routine-freq-badge{
+  font-size:0.62rem;color:var(--text3);font-family:'Syne Mono',monospace;
+  margin-top:2px;
+}
+
 </style>
 </head>
 <body>
@@ -1530,8 +1558,10 @@ function renderRoutines(){
     document.getElementById('routineProgress').style.width='0%';
     return;
   }
-  const done = allRoutines.filter(r=>isRoutineDone(r.id, TODAY)).length;
-  const pct = Math.round(done/allRoutines.length*100);
+  const todayDow2 = new Date(TODAY).getDay()||7;
+  const todayRoutines = allRoutines.filter(r=>!r.days||r.days.includes(todayDow2));
+  const done = todayRoutines.filter(r=>isRoutineDone(r.id, TODAY)).length;
+  const pct = todayRoutines.length ? Math.round(done/todayRoutines.length*100) : 0;
   document.getElementById('routineProgress').style.width = pct+'%';
 
   list.innerHTML = '';
@@ -1540,16 +1570,36 @@ function renderRoutines(){
   sorted.forEach(r=>{
     const isDone = isRoutineDone(r.id, TODAY);
     const streak = getRoutineStreak(r.id);
+    const todayDow = new Date(TODAY).getDay()||7; // 1=Mo…7=So
+    const scheduledToday = !r.days || r.days.includes(todayDow);
+    // Weekly completion count
+    const weekDone = getWeekCompletionCount(r.id);
+    const freqGoal = r.freq||7;
+    const freqMet = freqGoal<=7 && weekDone>=freqGoal;
     const el = document.createElement('div');
-    el.className = 'routine-item'+(isDone?' done':'');
+    el.className = 'routine-item'+(isDone?' done':'')+(scheduledToday?'':' not-today');
     el.dataset.id = r.id;
+    // Day badges
+    const DAY_NAMES=['Mo','Di','Mi','Do','Fr','Sa','So'];
+    const dayBadges = r.days && r.days.length<7
+      ? r.days.map(d=>`<span style="font-size:0.6rem;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:0 3px;color:var(--text3)">${DAY_NAMES[d-1]}</span>`).join(' ')
+      : '';
+    const freqBadge = freqGoal<7
+      ? `<span class="routine-freq-badge">${weekDone}/${freqGoal}× diese Woche${freqMet?' ✓':''}</span>`
+      : '';
     el.innerHTML = `
       <div class="drag-handle" title="Verschieben">⠿</div>
       <div class="routine-check" onclick="toggleRoutine('${r.id}');event.stopPropagation()">${isDone?'✓':''}</div>
       <div class="routine-info" onclick="toggleRoutine('${r.id}')">
         <div class="routine-name">${esc(r.name)}</div>
-        <div class="routine-time">${r.time||''}${r.time&&streak?' · ':''}<span class="routine-streak">${streak>1?'🔥'+streak+'d Streak':''}</span></div>
+        <div class="routine-time" style="display:flex;flex-wrap:wrap;gap:0.3rem;align-items:center">
+          ${r.time?`<span>${r.time}</span>`:''}
+          ${dayBadges}
+          ${streak>1?`<span class="routine-streak">🔥${streak}d</span>`:''}
+          ${freqBadge}
+        </div>
       </div>
+      <button onclick="openAddRoutine('${r.id}');event.stopPropagation()" style="background:none;border:none;color:var(--text3);font-size:0.85rem;cursor:pointer;padding:0.3rem" title="Bearbeiten">✎</button>
       <button onclick="deleteRoutineConfirm('${r.id}',event)" style="background:none;border:none;color:var(--text3);font-size:0.9rem;cursor:pointer;padding:0.3rem">⋯</button>
     `;
     list.appendChild(el);
@@ -1582,34 +1632,81 @@ function getRoutineStreak(rid){
   return streak;
 }
 
-function openAddRoutine(){
+function openAddRoutine(editId){
+  const existing = editId ? allRoutines.find(r=>r.id===editId) : null;
+  const days = existing ? existing.days : [1,2,3,4,5,6,7]; // default: all
+  const freq = existing ? (existing.freq||7) : 7;
+
   document.getElementById('modalContent').innerHTML = `
-    <div class="modal-title">Neue Routine</div>
-    <div class="modal-sub">Was möchtest du täglich tun?</div>
-    <input class="input" id="rName" placeholder="Routine-Name (z.B. Meditation)" type="text"/>
-    <input class="input" id="rTime" placeholder="Uhrzeit (z.B. 07:00)" type="time"/>
+    <div class="modal-title">${existing?'Routine bearbeiten':'Neue Routine'}</div>
+    <div class="modal-sub">An welchen Tagen und wie oft?</div>
+    <input class="input" id="rName" placeholder="Routine-Name (z.B. Meditation)" type="text" value="${existing?esc(existing.name):''}"/>
+    <input class="input" id="rTime" type="time" value="${existing&&existing.time?existing.time:''}"/>
     <select class="input" id="rCat">
       <option value="">Kategorie wählen…</option>
-      <option>Morgenroutine</option><option>Sport</option><option>Gesundheit</option>
-      <option>Lernen</option><option>Entspannung</option><option>Sonstiges</option>
+      <option${existing&&existing.cat==='Morgenroutine'?' selected':''}>Morgenroutine</option>
+      <option${existing&&existing.cat==='Sport'?' selected':''}>Sport</option>
+      <option${existing&&existing.cat==='Gesundheit'?' selected':''}>Gesundheit</option>
+      <option${existing&&existing.cat==='Lernen'?' selected':''}>Lernen</option>
+      <option${existing&&existing.cat==='Entspannung'?' selected':''}>Entspannung</option>
+      <option${existing&&existing.cat==='Sonstiges'?' selected':''}>Sonstiges</option>
     </select>
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.35rem">Wochentage</div>
+    <div class="wd-row" id="wdRow">
+      ${['Mo','Di','Mi','Do','Fr','Sa','So'].map((d,i)=>`
+        <div class="wd-btn${days.includes(i+1)?' active':''}" data-day="${i+1}" onclick="toggleWD(this)">${d}</div>
+      `).join('')}
+    </div>
+    <div class="freq-row">
+      <span class="freq-label">Ziel:</span>
+      <select class="freq-select" id="rFreq">
+        <option value="7"${freq===7?' selected':''}>Jeden gewählten Tag</option>
+        <option value="5"${freq===5?' selected':''}>5× pro Woche</option>
+        <option value="4"${freq===4?' selected':''}>4× pro Woche</option>
+        <option value="3"${freq===3?' selected':''}>3× pro Woche</option>
+        <option value="2"${freq===2?' selected':''}>2× pro Woche</option>
+        <option value="1"${freq===1?' selected':''}>1× pro Woche</option>
+      </select>
+    </div>
     <div class="modal-actions">
-      <button class="btn-primary" onclick="saveRoutine()">Hinzufügen</button>
+      <button class="btn-primary" onclick="saveRoutine('${editId||''}')">
+        ${existing?'Speichern':'Hinzufügen'}
+      </button>
       <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
     </div>
   `;
   document.getElementById('modal').style.display='flex';
   setTimeout(()=>document.getElementById('rName').focus(),350);
 }
-async function saveRoutine(){
+
+function toggleWD(btn){
+  btn.classList.toggle('active');
+}
+async function saveRoutine(editId){
   const name = document.getElementById('rName').value.trim();
   if(!name){ document.getElementById('rName').style.borderColor='var(--red)'; return; }
-  const r = { id: Date.now().toString(), name, time: document.getElementById('rTime').value, cat: document.getElementById('rCat').value };
-  await dbPut('routines',r);
-  allRoutines.push(r);
+  // Collect selected days
+  const days = [...document.querySelectorAll('.wd-btn.active')].map(b=>parseInt(b.dataset.day));
+  if(!days.length){ showToast('Bitte mind. 1 Tag wählen'); return; }
+  const r = {
+    id: editId || Date.now().toString(),
+    name,
+    time: document.getElementById('rTime').value,
+    cat: document.getElementById('rCat').value,
+    days,
+    freq: parseInt(document.getElementById('rFreq').value),
+    order: editId ? (allRoutines.find(x=>x.id===editId)?.order??999) : allRoutines.length,
+  };
+  await dbPut('routines', r);
+  if(editId){
+    const idx = allRoutines.findIndex(x=>x.id===editId);
+    if(idx>=0) allRoutines[idx]=r; else allRoutines.push(r);
+  } else {
+    allRoutines.push(r);
+  }
   closeModal();
   renderRoutines();
-  showToast('Routine hinzugefügt!');
+  showToast(editId ? 'Routine aktualisiert!' : 'Routine hinzugefügt!');
 }
 function deleteRoutineConfirm(rid, e){
   e.stopPropagation();
@@ -2968,6 +3065,18 @@ function showPastReview(key){
     </div>
     <div class="modal-actions"><button class="btn-secondary" onclick="closeModal()">Schließen</button></div>`;
   document.getElementById('modal').style.display='flex';
+}
+
+
+function getWeekCompletionCount(rid){
+  const d = new Date(TODAY);
+  const dow = d.getDay()||7; // 1=Mo
+  let count=0;
+  for(let i=0;i<dow;i++){
+    const ds = new Date(d); ds.setDate(d.getDate()-i);
+    if(routineCompletions.some(c=>c.rid===rid&&c.date===ds.toISOString().slice(0,10))) count++;
+  }
+  return count;
 }
 
 </script>
