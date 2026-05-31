@@ -961,13 +961,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   transition:max-height 0.32s ease, opacity 0.22s ease, padding 0.22s ease;
 }
 .section-body.collapsed{
-  max-height:0 !important;
-  opacity:0;
-  padding-top:0;
-  padding-bottom:0;
-  border-color:transparent;
+  display:none;
   pointer-events:none;
-  visibility:hidden;
 }
 .section-body .card{
   background:var(--bg3);border-color:var(--border);margin-bottom:0.5rem;
@@ -1024,8 +1019,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body" id="sbody-gedanken"
-           style="max-height:4000px;opacity:1;visibility:visible">
+      <div class="section-body" id="sbody-gedanken" style="display:block;max-height:4000px;opacity:1">
         <!-- Gedanken / Brain Dump -->
       <div class="card" id="thoughtsCard">
         <div class="card-title">🧠 GEDANKEN-DUMP</div>
@@ -1093,8 +1087,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body" id="sbody-produktiv"
-           style="max-height:4000px;opacity:1;visibility:visible">
+      <div class="section-body" id="sbody-produktiv" style="display:block;max-height:4000px;opacity:1">
         <!-- Deep Work -->
       <div class="card">
         <div class="card-title">DEEP WORK</div>
@@ -1134,8 +1127,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-wiegehts"
-           style="max-height:0;opacity:0;visibility:hidden">
+      <div class="section-body collapsed" id="sbody-wiegehts">
         <!-- Wellbeing -->
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
@@ -1208,8 +1200,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-koerper"
-           style="max-height:0;opacity:0;visibility:hidden">
+      <div class="section-body collapsed" id="sbody-koerper">
         <!-- Schlaf -->
       <div class="card">
         <div class="card-title">SCHLAF</div>
@@ -1331,8 +1322,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <span class="section-toggle-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-notiz"
-           style="max-height:0;opacity:0;visibility:hidden">
+      <div class="section-body collapsed" id="sbody-notiz">
         <!-- Was lief nicht gut -->
       <div class="card">
         <div class="tag-group-header">
@@ -3802,10 +3792,8 @@ function toggleSection(sid){
   if(!toggle||!body) return;
   const opening = !toggle.classList.contains('open');
   if(opening){
-    body.style.visibility = 'visible';
-    body.style.pointerEvents = 'auto';
+    body.style.display = 'block';
     body.classList.remove('collapsed');
-    // Force reflow then animate
     body.getBoundingClientRect();
     body.style.maxHeight = '4000px';
     body.style.opacity   = '1';
@@ -3814,21 +3802,15 @@ function toggleSection(sid){
     body.style.maxHeight = '0';
     body.style.opacity   = '0';
     toggle.classList.remove('open');
-    setTimeout(()=>{
-      body.classList.add('collapsed');
-      body.style.visibility    = 'hidden';
-      body.style.pointerEvents = 'none';
-    }, 320);
+    setTimeout(()=>{ body.classList.add('collapsed'); body.style.display=''; }, 340);
   }
-  const state = getSectionState();
-  state[sid] = opening;
-  localStorage.setItem('section_state', JSON.stringify(state));
+  const s = getSectionState(); s[sid]=opening;
+  localStorage.setItem('section_state', JSON.stringify(s));
 }
 
 function restoreSectionStates(){
   const defaults = {gedanken:true,produktiv:true,wiegehts:false,koerper:false,notiz:false};
-  const saved    = getSectionState();
-  const state    = {...defaults,...saved};
+  const state = {...defaults,...getSectionState()};
   Object.entries(state).forEach(([sid,open])=>{
     const toggle = document.getElementById('stoggle-'+sid);
     const body   = document.getElementById('sbody-'+sid);
@@ -3836,17 +3818,13 @@ function restoreSectionStates(){
     if(open){
       toggle.classList.add('open');
       body.classList.remove('collapsed');
-      body.style.maxHeight  = '4000px';
-      body.style.opacity    = '1';
-      body.style.visibility = 'visible';
-      body.style.pointerEvents = 'auto';
+      body.style.display   = 'block';
+      body.style.maxHeight = '4000px';
+      body.style.opacity   = '1';
     } else {
       toggle.classList.remove('open');
       body.classList.add('collapsed');
-      body.style.maxHeight  = '0';
-      body.style.opacity    = '0';
-      body.style.visibility = 'hidden';
-      body.style.pointerEvents = 'none';
+      body.style.display = '';
     }
   });
 }
