@@ -299,6 +299,42 @@ select.input{cursor:pointer}
   height:4px;background:var(--bg3);border-radius:2px;margin-bottom:0.75rem;overflow:hidden;
 }
 .routine-progress-fill{height:100%;border-radius:2px;background:var(--gold);transition:width 0.4s ease}
+
+/* ─── SETTINGS / EXPORT ─────────────────────────────────────── */
+.settings-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);margin-bottom:0.5rem;cursor:pointer;
+  transition:border-color 0.15s;
+}
+.settings-row:active{border-color:var(--border2)}
+.settings-left{display:flex;align-items:center;gap:0.7rem}
+.settings-icon{font-size:1.1rem;width:28px;text-align:center}
+.settings-label{font-size:0.86rem;font-weight:600}
+.settings-sub{font-size:0.68rem;color:var(--text3);margin-top:1px}
+.settings-arrow{color:var(--text3);font-size:0.9rem}
+
+/* Toggle switch */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:12px;cursor:pointer;transition:all 0.2s;
+}
+.toggle-slider:before{
+  content:'';position:absolute;height:18px;width:18px;left:2px;top:2px;
+  background:var(--text3);border-radius:50%;transition:all 0.2s;
+}
+input:checked + .toggle-slider{background:var(--green);border-color:var(--green)}
+input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff}
+
+/* Routine notification time */
+.notif-time-badge{
+  font-family:'Syne Mono',monospace;font-size:0.7rem;color:var(--gold);
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;
+}
+
 </style>
 </head>
 <body>
@@ -433,6 +469,70 @@ select.input{cursor:pointer}
       <div id="corrList"></div>
     </div>
 
+
+    <!-- VIEW: EINSTELLUNGEN & EXPORT -->
+    <div class="view" id="view-einstellungen">
+
+      <div class="section-title">EXPORT</div>
+
+      <div class="settings-row" onclick="exportCSV()">
+        <div class="settings-left">
+          <div class="settings-icon">📊</div>
+          <div><div class="settings-label">CSV exportieren</div><div class="settings-sub">Alle Tage als Tabelle (Excel-kompatibel)</div></div>
+        </div>
+        <div class="settings-arrow">→</div>
+      </div>
+
+      <div class="settings-row" onclick="exportJSON()">
+        <div class="settings-left">
+          <div class="settings-icon">📦</div>
+          <div><div class="settings-label">JSON exportieren</div><div class="settings-sub">Vollständiges Backup inkl. Routinen</div></div>
+        </div>
+        <div class="settings-arrow">→</div>
+      </div>
+
+      <div class="settings-row" onclick="triggerImport()">
+        <div class="settings-left">
+          <div class="settings-icon">📥</div>
+          <div><div class="settings-label">JSON importieren</div><div class="settings-sub">Backup wiederherstellen</div></div>
+        </div>
+        <div class="settings-arrow">→</div>
+      </div>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)"/>
+
+      <div class="section-title">PUSH-BENACHRICHTIGUNGEN</div>
+
+      <div class="settings-row" style="cursor:default">
+        <div class="settings-left">
+          <div class="settings-icon">🔔</div>
+          <div>
+            <div class="settings-label">Benachrichtigungen</div>
+            <div class="settings-sub" id="notifStatus">Lade Status…</div>
+          </div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="notifToggle" onchange="toggleNotifications(this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div id="routineNotifList"></div>
+
+      <div class="section-title">DATEN</div>
+
+      <div class="settings-row" onclick="confirmClearData()">
+        <div class="settings-left">
+          <div class="settings-icon">🗑</div>
+          <div><div class="settings-label" style="color:var(--red)">Alle Daten löschen</div><div class="settings-sub">Nicht rückgängig machbar</div></div>
+        </div>
+        <div class="settings-arrow">→</div>
+      </div>
+
+      <div style="font-size:0.7rem;color:var(--text3);text-align:center;margin-top:1.5rem;line-height:1.6">
+        Daily Tracker · Daten lokal gespeichert (IndexedDB)<br>Kein Server · Kein Account
+      </div>
+    </div>
+
   </div><!-- /content -->
 
   <!-- BOTTOM NAV -->
@@ -452,6 +552,10 @@ select.input{cursor:pointer}
     <button class="nav-btn" onclick="showView('insights',this)">
       <span class="nav-icon">◈</span>
       <span class="nav-label">Insights</span>
+    </button>
+    <button class="nav-btn" onclick="showView('einstellungen',this)">
+      <span class="nav-icon">⚙</span>
+      <span class="nav-label">Export</span>
     </button>
   </nav>
 </div><!-- /app -->
@@ -928,6 +1032,7 @@ function showView(name, btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   if(name==='stats') renderStats();
+  if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
 }
@@ -957,7 +1062,270 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catc
 // ══════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════
-init().catch(console.error);
+init().then(()=>{ if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications(); }).catch(console.error);
+
+// ══════════════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ══════════════════════════════════════════════════════════════════
+function exportCSV(){
+  if(!allDays.length){ showToast('Keine Daten zum Exportieren'); return; }
+  const cols = ['date','wellbeing','sleep','hrv','energy','pain','ern','neg','akt','note'];
+  const header = cols.join(';');
+  const rows = allDays.sort((a,b)=>a.date.localeCompare(b.date)).map(d =>
+    cols.map(c => {
+      const v = d[c];
+      if(Array.isArray(v)) return '"'+v.join(', ')+'"';
+      if(typeof v === 'string' && (v.includes(';')||v.includes('"')||v.includes('\n')))
+        return '"'+v.replace(/"/g,'""')+'"';
+      return v ?? '';
+    }).join(';')
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  downloadBlob(blob, 'tracker_export_'+TODAY+'.csv');
+  showToast('CSV exportiert!');
+}
+
+function exportJSON(){
+  const data = { version:1, exported: new Date().toISOString(), days: allDays, routines: allRoutines, completions: routineCompletions };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
+  showToast('Backup erstellt!');
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1000);
+}
+
+function triggerImport(){ document.getElementById('importInput').click(); }
+
+async function importJSON(e){
+  const file = e.target.files[0];
+  e.target.value='';
+  if(!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(!data.days || !Array.isArray(data.days)) throw new Error('Ungültiges Format');
+    
+    // Confirm
+    document.getElementById('modalContent').innerHTML = `
+      <div class="modal-title">Backup importieren?</div>
+      <div class="modal-sub">${data.days.length} Tage · ${(data.routines||[]).length} Routinen<br>
+      Exportiert: ${data.exported ? new Date(data.exported).toLocaleDateString('de') : 'Unbekannt'}<br><br>
+      <strong style="color:var(--gold)">Vorhandene Daten werden zusammengeführt (nicht überschrieben).</strong></div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="performImport(${encodeURIComponent(JSON.stringify(data))})">Importieren</button>
+        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+      </div>`;
+    document.getElementById('modal').style.display='flex';
+  } catch(err){
+    showToast('Fehler: ' + err.message);
+  }
+}
+
+async function performImport(encodedData){
+  try {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    let imported = 0;
+    for(const day of (data.days||[])){
+      if(day.date){ await dbPut('days',day); imported++; }
+    }
+    for(const r of (data.routines||[])){ await dbPut('routines',r); }
+    for(const c of (data.completions||[])){ await dbPut('routine_completions',c); }
+    allDays = await dbGetAll('days');
+    allRoutines = await dbGetAll('routines');
+    routineCompletions = await dbGetAll('routine_completions');
+    closeModal();
+    showToast(imported + ' Tage importiert!');
+    updateStreak();
+  } catch(err){ showToast('Import fehlgeschlagen: '+err.message); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PUSH NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════════
+let notifSchedules = JSON.parse(localStorage.getItem('notif_schedules')||'{}');
+
+async function initNotifications(){
+  if(!('Notification' in window)){ 
+    document.getElementById('notifStatus').textContent='Nicht unterstützt auf diesem Gerät';
+    document.getElementById('notifToggle').disabled=true;
+    return; 
+  }
+  const perm = Notification.permission;
+  const enabled = perm==='granted' && localStorage.getItem('notif_enabled')==='1';
+  document.getElementById('notifToggle').checked = enabled;
+  document.getElementById('notifStatus').textContent = 
+    perm==='denied' ? 'Geblockt – in Browser-Einstellungen erlauben' :
+    enabled ? 'Aktiv' : 'Deaktiviert';
+  renderRoutineNotifList();
+}
+
+async function toggleNotifications(on){
+  if(on){
+    const perm = await Notification.requestPermission();
+    if(perm!=='granted'){
+      document.getElementById('notifToggle').checked=false;
+      document.getElementById('notifStatus').textContent='Zugriff verweigert';
+      showToast('Benachrichtigungen verweigert');
+      return;
+    }
+    localStorage.setItem('notif_enabled','1');
+    document.getElementById('notifStatus').textContent='Aktiv';
+    scheduleAllNotifications();
+    showToast('Benachrichtigungen aktiviert!');
+  } else {
+    localStorage.setItem('notif_enabled','0');
+    cancelAllNotifications();
+    document.getElementById('notifStatus').textContent='Deaktiviert';
+    showToast('Benachrichtigungen deaktiviert');
+  }
+  renderRoutineNotifList();
+}
+
+// Schedules: store timerId per routine in localStorage + use setTimeout
+const _timers = {};
+function scheduleAllNotifications(){
+  if(Notification.permission!=='granted') return;
+  allRoutines.forEach(r => scheduleRoutineNotif(r));
+  // Daily check-in reminder (default 20:00 if no entry today)
+  scheduleDailyReminder();
+}
+
+function scheduleRoutineNotif(r){
+  if(!r.time) return;
+  const key = 'r_'+r.id;
+  if(_timers[key]) clearTimeout(_timers[key]);
+  const ms = msUntilTime(r.time);
+  if(ms < 0) return;
+  _timers[key] = setTimeout(()=>{
+    if(Notification.permission==='granted' && localStorage.getItem('notif_enabled')==='1'){
+      if(!isRoutineDone(r.id, TODAY)){
+        new Notification('⏰ '+r.name, { body:'Deine Routine wartet auf dich!', icon:'/icon-192.png', tag:'routine_'+r.id });
+      }
+    }
+    scheduleRoutineNotif(r); // re-schedule for next day
+  }, ms);
+}
+
+function scheduleDailyReminder(){
+  const time = localStorage.getItem('daily_reminder_time')||'20:00';
+  const key = 'daily';
+  if(_timers[key]) clearTimeout(_timers[key]);
+  const ms = msUntilTime(time);
+  if(ms < 0) return;
+  _timers[key] = setTimeout(()=>{
+    if(Notification.permission==='granted' && localStorage.getItem('notif_enabled')==='1'){
+      const todayEntry = allDays.find(d=>d.date===TODAY);
+      if(!todayEntry){
+        new Notification('📓 Tages-Check-in', { body:'Wie war dein Tag? Jetzt eintragen.', icon:'/icon-192.png', tag:'daily' });
+      }
+    }
+    scheduleDailyReminder();
+  }, ms);
+}
+
+function cancelAllNotifications(){
+  Object.keys(_timers).forEach(k=>{ clearTimeout(_timers[k]); delete _timers[k]; });
+}
+
+function msUntilTime(hhmm){
+  const [h,m] = hhmm.split(':').map(Number);
+  const now = new Date();
+  const target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+  let ms = target-now;
+  if(ms<=0) ms += 86400000; // next day
+  return ms;
+}
+
+function renderRoutineNotifList(){
+  const el = document.getElementById('routineNotifList');
+  const enabled = localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted';
+  if(!enabled || !allRoutines.length){ el.innerHTML=''; return; }
+
+  const withTime = allRoutines.filter(r=>r.time);
+  if(!withTime.length){
+    el.innerHTML=`<div style="font-size:0.75rem;color:var(--text3);padding:0.5rem 0.75rem;background:var(--bg3);border-radius:var(--r2);margin-bottom:0.5rem">
+      Füge einer Routine eine Uhrzeit hinzu, um Erinnerungen zu erhalten.</div>`;
+    return;
+  }
+
+  el.innerHTML = '<div class="section-title" style="padding-top:0.5rem">ERINNERUNGEN</div>'
+    + withTime.map(r=>`
+    <div class="settings-row" style="cursor:default">
+      <div class="settings-left">
+        <div class="settings-icon">⏰</div>
+        <div>
+          <div class="settings-label">${esc(r.name)}</div>
+          <div class="settings-sub">Täglich um ${r.time}</div>
+        </div>
+      </div>
+      <div class="notif-time-badge">${r.time}</div>
+    </div>`).join('');
+
+  // Daily reminder row
+  const dailyTime = localStorage.getItem('daily_reminder_time')||'20:00';
+  el.innerHTML += `
+    <div class="settings-row" onclick="setDailyReminderTime()">
+      <div class="settings-left">
+        <div class="settings-icon">📓</div>
+        <div>
+          <div class="settings-label">Tages-Check-in Erinnerung</div>
+          <div class="settings-sub">Wenn heute noch kein Eintrag</div>
+        </div>
+      </div>
+      <div class="notif-time-badge" id="dailyTimeBadge">${dailyTime}</div>
+    </div>`;
+}
+
+function setDailyReminderTime(){
+  const cur = localStorage.getItem('daily_reminder_time')||'20:00';
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">Check-in Erinnerung</div>
+    <div class="modal-sub">Täglich – nur wenn noch kein Eintrag für heute vorhanden ist.</div>
+    <input class="input" type="time" id="dailyTimeInput" value="${cur}"/>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveDailyTime()">Speichern</button>
+      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+function saveDailyTime(){
+  const t = document.getElementById('dailyTimeInput').value;
+  if(!t){ closeModal(); return; }
+  localStorage.setItem('daily_reminder_time',t);
+  document.getElementById('dailyTimeBadge') && (document.getElementById('dailyTimeBadge').textContent=t);
+  scheduleDailyReminder();
+  closeModal();
+  showToast('Erinnerungszeit gespeichert!');
+}
+
+// ── Clear data ──────────────────────────────────────────────────
+function confirmClearData(){
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-title">Alle Daten löschen?</div>
+    <div class="modal-sub" style="color:var(--red)">Diese Aktion löscht alle Tageseinträge, Routinen und Einstellungen. Nicht rückgängig machbar.<br><br>Vorher exportieren!</div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="clearAllData()">Endgültig löschen</button>
+      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+async function clearAllData(){
+  for(const store of ['days','routines','routine_completions']){
+    const all = await dbGetAll(store);
+    for(const item of all) await dbDelete(store, item.date||item.id||item.key);
+  }
+  localStorage.clear();
+  closeModal();
+  location.reload();
+}
+
 </script>
 </body>
 </html>
