@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Tracker"/>
-<link rel="manifest" href="/manifest.json"/>
+<link rel="manifest" href="/tracker/manifest.json"/>
 <title>Daily Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
@@ -1613,57 +1613,102 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 // ══════════════════════════════════════════════════════════════════
 // DB (IndexedDB)
 // ══════════════════════════════════════════════════════════════════
-let db;
+// ── Storage layer: IndexedDB with localStorage fallback ──────────
+let db = null;
+let _memStore = {days:{}, routines:{}, routine_completions:{}};
+let _useIDB = false;
 const DB_NAME = 'tracker_v1', DB_VERSION = 1;
+
 function openDB(){
-  return new Promise((res,rej)=>{
-    const idb = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB;
-    if(!idb){ rej(new Error("IndexedDB not available")); return; }
-    const req = idb.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = e=>{
-      const d = e.target.result;
-      if(!d.objectStoreNames.contains('days'))
-        d.createObjectStore('days',{keyPath:'date'});
-      if(!d.objectStoreNames.contains('routines'))
-        d.createObjectStore('routines',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('routine_completions'))
-        d.createObjectStore('routine_completions',{keyPath:'key'});
-    };
-    req.onsuccess = e=>{ db=e.target.result; res(db); };
-    req.onerror = e=>rej(e);
+  return new Promise((res)=>{
+    try {
+      const idb = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB;
+      if(!idb){ _useIDB=false; _loadFromLS(); res(null); return; }
+      const req = idb.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = e=>{
+        const d = e.target.result;
+        if(!d.objectStoreNames.contains('days'))
+          d.createObjectStore('days',{keyPath:'date'});
+        if(!d.objectStoreNames.contains('routines'))
+          d.createObjectStore('routines',{keyPath:'id'});
+        if(!d.objectStoreNames.contains('routine_completions'))
+          d.createObjectStore('routine_completions',{keyPath:'key'});
+      };
+      req.onsuccess = e=>{ db=e.target.result; _useIDB=true; res(db); };
+      req.onerror = ()=>{ _useIDB=false; _loadFromLS(); res(null); };
+    } catch(e){ _useIDB=false; _loadFromLS(); res(null); }
   });
 }
-function dbPut(store,obj){
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(store,'readwrite');
-    const r = tx.objectStore(store).put(obj);
-    r.onsuccess=()=>res(r.result);
-    r.onerror=rej;
+
+// localStorage fallback
+function _lsKey(store){ return 'tracker_'+store; }
+function _loadFromLS(){
+  ['days','routines','routine_completions'].forEach(s=>{
+    try{ _memStore[s] = JSON.parse(localStorage.getItem(_lsKey(s))||'{}'); }
+    catch(e){ _memStore[s]={}; }
   });
+}
+function _saveToLS(store){
+  try{ localStorage.setItem(_lsKey(store), JSON.stringify(_memStore[store])); }
+  catch(e){}
+}
+
+function dbPut(store,obj){
+  if(_useIDB && db){
+    return new Promise((res,rej)=>{
+      try{
+        const tx = db.transaction(store,'readwrite');
+        const r = tx.objectStore(store).put(obj);
+        r.onsuccess=()=>res(r.result);
+        r.onerror=rej;
+      }catch(e){rej(e);}
+    });
+  }
+  const key = obj.date||obj.id||obj.key;
+  _memStore[store][key] = obj;
+  _saveToLS(store);
+  return Promise.resolve(key);
 }
 function dbGet(store,key){
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(store,'readonly');
-    const r = tx.objectStore(store).get(key);
-    r.onsuccess=()=>res(r.result);
-    r.onerror=rej;
-  });
+  if(_useIDB && db){
+    return new Promise((res,rej)=>{
+      try{
+        const tx = db.transaction(store,'readonly');
+        const r = tx.objectStore(store).get(key);
+        r.onsuccess=()=>res(r.result);
+        r.onerror=rej;
+      }catch(e){rej(e);}
+    });
+  }
+  return Promise.resolve(_memStore[store][key]);
 }
 function dbGetAll(store){
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(store,'readonly');
-    const r = tx.objectStore(store).getAll();
-    r.onsuccess=()=>res(r.result);
-    r.onerror=rej;
-  });
+  if(_useIDB && db){
+    return new Promise((res,rej)=>{
+      try{
+        const tx = db.transaction(store,'readonly');
+        const r = tx.objectStore(store).getAll();
+        r.onsuccess=()=>res(r.result);
+        r.onerror=rej;
+      }catch(e){rej(e);}
+    });
+  }
+  return Promise.resolve(Object.values(_memStore[store]||{}));
 }
 function dbDelete(store,key){
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(store,'readwrite');
-    const r = tx.objectStore(store).delete(key);
-    r.onsuccess=()=>res();
-    r.onerror=rej;
-  });
+  if(_useIDB && db){
+    return new Promise((res,rej)=>{
+      try{
+        const tx = db.transaction(store,'readwrite');
+        const r = tx.objectStore(store).delete(key);
+        r.onsuccess=()=>res();
+        r.onerror=rej;
+      }catch(e){rej(e);}
+    });
+  }
+  delete _memStore[store][key];
+  _saveToLS(store);
+  return Promise.resolve();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2267,7 +2312,7 @@ function closeModal(){ document.getElementById('modal').style.display='none'; }
 // ══════════════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ══════════════════════════════════════════════════════════════════
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/tracker/sw.js').catch(()=>{});
 
 // ══════════════════════════════════════════════════════════════════
 // START
@@ -2275,25 +2320,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catc
 init().then(()=>{ 
   if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') 
     scheduleAllNotifications(); 
-}).catch(err=>{
-  console.error('Init error:', err);
-  // Render UI anyway so app is not blank
-  try { buildMoodGrid(); } catch(e){}
-  try { renderMedList(); } catch(e){}
-  try { renderDeepWork(); } catch(e){}
-  try { populateProjectSelects(); } catch(e){}
-  try { restoreSecs(); } catch(e){}
-  try { renderFrogListInline(); } catch(e){}
-  try { updateHeader(); } catch(e){}
-  // Show error notice
-  const content = document.getElementById('appContent');
-  if(content){
-    const notice = document.createElement('div');
-    notice.style.cssText='padding:1rem;color:#e05555;font-size:0.8rem;text-align:center';
-    notice.textContent='Datenbankfehler – App läuft ohne Speicherung. Bitte neu laden.';
-    content.prepend(notice);
-  }
-});
+}).catch(err=>console.error('Init error:',err));
 
 // ══════════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
