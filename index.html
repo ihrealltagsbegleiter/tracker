@@ -840,7 +840,7 @@ async function init(){
   allRoutines = await dbGetAll('routines');
   routineCompletions = await dbGetAll('routine_completions');
 
-  // Load today if exists
+  // Load today if exists, else prefill sleep+hrv from yesterday
   const todayData = await dbGet('days', TODAY);
   if(todayData){
     state = {...state, ...todayData};
@@ -856,6 +856,16 @@ async function init(){
     document.getElementById('saveBtn').textContent = 'Aktualisieren';
   }
 
+  // Prefill from yesterday if no entry today
+  if(!todayData){
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yKey = yesterday.toISOString().slice(0,10);
+    const yData = await dbGet('days', yKey);
+    if(yData){
+      if(yData.sleep !== undefined){ state.sleep = yData.sleep; document.getElementById('sleepVal').textContent = state.sleep.toFixed(1); }
+      if(yData.hrv !== undefined){ state.hrv = yData.hrv; document.getElementById('hrvVal').textContent = state.hrv; }
+    }
+  }
   buildPainDots();
   buildTagGrid('ernTag', ERN_OPTS, 'ern');
   buildTagGrid('negTag', NEG_OPTS, 'neg');
