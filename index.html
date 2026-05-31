@@ -918,6 +918,16 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
 .thought-empty{color:var(--text3);font-size:0.8rem;padding:0.75rem 0;text-align:center}
 
+
+/* ─── THOUGHT → FROG BUTTON ─────────────────────────────────── */
+.thought-to-frog{
+  background:none;border:1px solid rgba(212,168,67,0.35);
+  border-radius:20px;color:var(--gold);font-size:0.68rem;font-weight:700;
+  padding:0.18rem 0.55rem;cursor:pointer;font-family:'Syne',sans-serif;
+  letter-spacing:0.04em;transition:all 0.15s;white-space:nowrap;
+}
+.thought-to-frog:active{background:var(--gold);color:#000}
+
 </style>
 </head>
 <body>
@@ -3568,6 +3578,7 @@ function renderThoughts(){
             value="${esc(t.next||'')}"
             oninput="updateThoughtNext('${t.id}',this.value)"
           />`:''}
+        ${t.asFrog?'<span style="font-size:0.65rem;color:var(--green)">🐸 Bereits als Frosch</span>':`<button class="thought-to-frog" onclick="thoughtToFrog('${t.id}')" title="Als Frosch übernehmen">🐸 → Frosch</button>`}
       </div>
     </div>`;
   }).join('');
@@ -3580,6 +3591,67 @@ document.addEventListener('input', e=>{
     e.target.style.height=Math.min(e.target.scrollHeight,200)+'px';
   }
 });
+
+
+function thoughtToFrog(id){
+  const t = (state.thoughts||[]).find(t=>t.id===id);
+  if(!t) return;
+  const frogs = getFrogs(TODAY);
+  if(frogs.filter(f=>!f.done).length >= 3){
+    // Offer to plan for tomorrow instead
+    document.getElementById('modalContent').innerHTML = `
+      <div class="modal-title">Heute schon 3 Frösche</div>
+      <div class="modal-sub">Soll der Gedanke als Frosch für <strong>morgen</strong> eingeplant werden?<br><br>
+        <em style="color:var(--text2)">${esc(t.text)}</em></div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="thoughtToTomorrowFrog('${id}')">Für morgen</button>
+        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+      </div>`;
+    document.getElementById('modal').style.display='flex';
+    return;
+  }
+  // Add as frog for today
+  frogs.push({
+    id: Date.now().toString(),
+    text: t.text,
+    priority: 2,
+    dread: 3,
+    project: '',
+    done: false,
+    fromThought: true,
+    created: new Date().toISOString()
+  });
+  saveFrogs(TODAY, frogs);
+  // Mark thought as sent to frog
+  t.asFrog = true;
+  renderThoughts();
+  renderFrogs();
+  showToast('🐸 Als Frosch übernommen!');
+}
+
+function thoughtToTomorrowFrog(id){
+  const t = (state.thoughts||[]).find(t=>t.id===id);
+  if(!t){ closeModal(); return; }
+  const key = getTomorrowKey();
+  const frogs = getFrogs(key);
+  if(frogs.filter(f=>!f.done).length >= 3){ closeModal(); showToast('Morgen auch schon 3 Frösche!'); return; }
+  frogs.push({
+    id: Date.now().toString(),
+    text: t.text,
+    priority: 2,
+    dread: 3,
+    project: '',
+    done: false,
+    planned: true,
+    fromThought: true,
+    created: new Date().toISOString()
+  });
+  saveFrogs(key, frogs);
+  t.asFrog = true;
+  closeModal();
+  renderThoughts();
+  showToast('🌙 Für morgen eingeplant!');
+}
 
 </script>
 </body>
