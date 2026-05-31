@@ -826,7 +826,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
       <div class="frog-add-card" id="frogAddCard">
         <div class="frog-add-title">🐸 Frosch für heute definieren</div>
-        <input class="frog-input" id="frogInput" placeholder="Was ist dein schwierigster Task heute?" maxlength="200"/>
+        <input class="frog-input" id="frogInput" placeholder="Was ist dein schwierigster Task heute?" maxlength="200" onkeydown="if(event.key==='Enter')addFrog()"/>
         <div class="frog-options-row">
           <div style="flex:1;min-width:120px">
             <div class="frog-opt-label">Priorität</div>
@@ -860,7 +860,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <div id="tomorrowList"></div>
         <div id="tomorrowAddWrap">
-          <input class="frog-input" id="tomorrowInput" placeholder="Morgens schwierigster Task…" maxlength="200" style="margin-bottom:0.5rem"/>
+          <input class="frog-input" id="tomorrowInput" placeholder="Morgens schwierigster Task…" maxlength="200" style="margin-bottom:0.5rem" onkeydown="if(event.key==='Enter')addTomorrowFrog()"/>
           <div class="frog-options-row">
             <div style="flex:1;min-width:120px">
               <div class="frog-opt-label">Priorität</div>
@@ -1183,6 +1183,7 @@ function buildTagGrid(id, opts, key){
   // Map tag key → state property (pain uses pain_tags)
   const STATE_KEY_MAP = {pain:'pain_tags'};
   const stateKey = STATE_KEY_MAP[key] || key;
+  if(!state[stateKey]) state[stateKey] = []; // guard for legacy entries
   const wrap = document.getElementById(id);
   wrap.innerHTML = '';
   const editing = tagEditMode[key];
@@ -1233,6 +1234,7 @@ function deleteCustomTag(key, opt, e){
   saveTagOpts(key, opts);
   const STATE_KEY_MAP = {pain:'pain_tags'};
   const stateKey = STATE_KEY_MAP[key] || key;
+  if(!state[stateKey]) state[stateKey] = []; // guard for legacy entries
   state[stateKey] = state[stateKey].filter(o=>o!==opt);
   buildTagGrid(key+'Tag', [], key);
 }
@@ -1575,11 +1577,13 @@ init().then(()=>{ if(localStorage.getItem('notif_enabled')==='1' && Notification
 // ══════════════════════════════════════════════════════════════════
 function exportCSV(){
   if(!allDays.length){ showToast('Keine Daten zum Exportieren'); return; }
-  const cols = ['date','wellbeing','sleep','hrv','energy','pain','ern','neg','akt','note'];
+  const cols = ['date','wellbeing','sleep','hrv','energy','pain','pain_tags','ern','neg','akt','note','painNote','meals_fruehstueck','meals_mittagessen','meals_abendessen','meals_snacks'];
   const header = cols.join(';');
   const rows = allDays.sort((a,b)=>a.date.localeCompare(b.date)).map(d =>
     cols.map(c => {
-      const v = d[c];
+      let v = d[c];
+      // Handle nested meals object
+      if(c.startsWith('meals_')){ const slot=c.replace('meals_',''); v=(d.meals||{})[slot]||[]; }
       if(Array.isArray(v)) return '"'+v.join(', ')+'"';
       if(typeof v === 'string' && (v.includes(';')||v.includes('"')||v.includes('\n')))
         return '"'+v.replace(/"/g,'""')+'"';
@@ -1593,10 +1597,43 @@ function exportCSV(){
 }
 
 function exportJSON(){
-  const data = { version:1, exported: new Date().toISOString(), days: allDays, routines: allRoutines, completions: routineCompletions };
+  // Collect all frog entries (last 365 days)
+  const frogData = {};
+  const cur = new Date(TODAY);
+  for(let i=0;i<365;i++){
+    const ds = cur.toISOString().slice(0,10);
+    const f = getFrogs(ds);
+    if(f.length) frogData[ds] = f;
+    cur.setDate(cur.getDate()-1);
+  }
+  // Collect custom tag opts
+  const customTags = {
+    ern: getTagOpts('ern'),
+    neg: getTagOpts('neg'),
+    akt: getTagOpts('akt'),
+    pain: getTagOpts('pain'),
+  };
+  // Meal memory
+  const mealMemory = getMealMemory();
+  // Notification prefs
+  const notifPrefs = {
+    enabled: localStorage.getItem('notif_enabled'),
+    dailyTime: localStorage.getItem('daily_reminder_time'),
+  };
+  const data = {
+    version: 2,
+    exported: new Date().toISOString(),
+    days: allDays,
+    routines: allRoutines,
+    completions: routineCompletions,
+    frogs: frogData,
+    customTags,
+    mealMemory,
+    notifPrefs,
+  };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
-  showToast('Backup erstellt!');
+  showToast('Vollständiges Backup erstellt!');
 }
 
 function downloadBlob(blob, filename){
@@ -1646,6 +1683,16 @@ async function performImport(encodedData){
     allDays = await dbGetAll('days');
     allRoutines = await dbGetAll('routines');
     routineCompletions = await dbGetAll('routine_completions');
+    // Restore frogs
+    for(const [date, frogs] of Object.entries(data.frogs||{})){
+      saveFrogs(date, frogs);
+    }
+    // Restore custom tags
+    for(const [key, opts] of Object.entries(data.customTags||{})){
+      if(Array.isArray(opts)) saveTagOpts(key, opts);
+    }
+    // Restore meal memory
+    if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
