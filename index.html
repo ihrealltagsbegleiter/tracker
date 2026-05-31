@@ -1617,7 +1617,9 @@ let db;
 const DB_NAME = 'tracker_v1', DB_VERSION = 1;
 function openDB(){
   return new Promise((res,rej)=>{
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    const idb = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB;
+    if(!idb){ rej(new Error("IndexedDB not available")); return; }
+    const req = idb.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = e=>{
       const d = e.target.result;
       if(!d.objectStoreNames.contains('days'))
@@ -2270,7 +2272,28 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catc
 // ══════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════
-init().then(()=>{ if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications(); }).catch(console.error);
+init().then(()=>{ 
+  if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') 
+    scheduleAllNotifications(); 
+}).catch(err=>{
+  console.error('Init error:', err);
+  // Render UI anyway so app is not blank
+  try { buildMoodGrid(); } catch(e){}
+  try { renderMedList(); } catch(e){}
+  try { renderDeepWork(); } catch(e){}
+  try { populateProjectSelects(); } catch(e){}
+  try { restoreSecs(); } catch(e){}
+  try { renderFrogListInline(); } catch(e){}
+  try { updateHeader(); } catch(e){}
+  // Show error notice
+  const content = document.getElementById('appContent');
+  if(content){
+    const notice = document.createElement('div');
+    notice.style.cssText='padding:1rem;color:#e05555;font-size:0.8rem;text-align:center';
+    notice.textContent='Datenbankfehler – App läuft ohne Speicherung. Bitte neu laden.';
+    content.prepend(notice);
+  }
+});
 
 // ══════════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
