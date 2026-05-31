@@ -3,16 +3,777 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="theme-color" content="#0e0e0e"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#0a0a0f"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-title" content="Alltag"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Sprachnotiz"/>
   <link rel="manifest" href="/manifest.json"/>
-  <link rel="apple-touch-icon" href="/icon-192.png"/>
-  <title>Alltagsbegleiter</title>
+  <link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+  <title>Sprachnotiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow:hidden}
+    body{
+      background:#0a0a0f;
+      color:#e8e4df;
+      font-family:'DM Sans',sans-serif;
+      overscroll-behavior:none;
+    }
+    .app{
+      height:100vh;
+      height:100dvh;
+      display:flex;
+      flex-direction:column;
+      padding:env(safe-area-inset-top,16px) env(safe-area-inset-right,0) env(safe-area-inset-bottom,16px) env(safe-area-inset-left,0);
+      overflow:hidden;
+    }
+    /* ── HEADER ── */
+    .header{
+      text-align:center;
+      padding:1.2rem 1rem 0.8rem;
+      flex-shrink:0;
+    }
+    .header h1{
+      font-family:'DM Serif Display',serif;
+      font-size:1.7rem;
+      color:#e8e4df;
+      letter-spacing:-0.02em;
+      line-height:1.1;
+    }
+    .header h1 span{color:#c8a97e;font-style:italic}
+    .header p{font-size:0.72rem;color:#444;margin-top:0.25rem;letter-spacing:0.07em;text-transform:uppercase}
+    /* ── SCROLL AREA ── */
+    .scroll-area{
+      flex:1;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding:0 1rem 1rem;
+    }
+    /* ── CARD ── */
+    .card{
+      background:#13131a;
+      border:1px solid #1e1e2a;
+      border-radius:16px;
+      padding:1.2rem;
+      margin-bottom:1rem;
+    }
+    /* ── TABS ── */
+    .mode-tabs{
+      display:flex;
+      gap:0.3rem;
+      margin-bottom:1.2rem;
+      background:#0a0a0f;
+      padding:3px;
+      border-radius:10px;
+      border:1px solid #1e1e2a;
+    }
+    .tab-btn{
+      flex:1;
+      padding:0.55rem 0.2rem;
+      background:transparent;
+      border:none;
+      border-radius:7px;
+      color:#444;
+      font-family:'DM Sans',sans-serif;
+      font-size:0.75rem;
+      font-weight:500;
+      cursor:pointer;
+      transition:all 0.2s;
+    }
+    .tab-btn.active{background:#1e1e2a;color:#c8a97e}
+    /* ── RECORD ── */
+    .record-center{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:1.2rem;
+      padding:0.8rem 0 0.4rem;
+    }
+    .timer{
+      font-family:'DM Serif Display',serif;
+      font-size:2.2rem;
+      color:#e05555;
+      letter-spacing:0.08em;
+    }
+    .timer.idle{color:#2a2a38}
+    .record-btn{
+      width:80px;height:80px;
+      border-radius:50%;
+      border:none;
+      cursor:pointer;
+      font-size:1.8rem;
+      transition:all 0.25s;
+      display:flex;align-items:center;justify-content:center;
+      -webkit-user-select:none;user-select:none;
+    }
+    .record-btn.idle{background:#c8a97e;box-shadow:0 4px 20px rgba(200,169,126,0.25)}
+    .record-btn.recording{background:#e05555;animation:pulse 1.4s infinite}
+    @keyframes pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(224,85,85,0.4)}
+      50%{box-shadow:0 0 0 16px rgba(224,85,85,0)}
+    }
+    .rec-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:#444}
+    .rec-label.active{color:#e05555}
+    /* ── UPLOAD ── */
+    .upload-area{
+      border:2px dashed #1e1e2a;
+      border-radius:12px;
+      padding:1.8rem 1rem;
+      text-align:center;
+      cursor:pointer;
+      transition:all 0.2s;
+    }
+    .upload-area.done{border-color:#3a5e42;background:rgba(90,158,106,0.04)}
+    .upload-icon{font-size:2rem;margin-bottom:0.6rem}
+    .upload-area p{color:#555;font-size:0.82rem;margin-top:0.2rem}
+    .upload-area strong{color:#c8a97e}
+    .key-badge{
+      display:inline-flex;align-items:center;gap:0.35rem;
+      font-size:0.7rem;color:#555;
+      margin-top:0.7rem;
+      cursor:pointer;
+      padding:0.3rem 0.75rem;
+      border:1px solid #1e1e2a;border-radius:20px;
+      background:transparent;font-family:'DM Sans',sans-serif;
+      transition:all 0.15s;
+    }
+    .key-badge.set{color:#5a9e6a;border-color:#1e3a24}
+    /* ── TRANSCRIPT ── */
+    .section-label{font-size:0.66rem;text-transform:uppercase;letter-spacing:0.1em;color:#3a3a4a;margin-bottom:0.5rem;font-weight:600}
+    .transcript-box{
+      width:100%;
+      background:#0a0a0f;
+      border:1px solid #1e1e2a;
+      border-radius:10px;
+      padding:0.85rem 1rem;
+      color:#888;
+      font-size:0.84rem;
+      line-height:1.65;
+      min-height:70px;
+      max-height:160px;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      font-family:'DM Sans',sans-serif;
+      white-space:pre-wrap;
+    }
+    textarea.transcript-box{resize:none;outline:none;border-color:#1e1e2a}
+    textarea.transcript-box:focus{border-color:#c8a97e33}
+    /* ── BUTTONS ── */
+    .analyze-btn{
+      width:100%;
+      padding:0.9rem;
+      background:#c8a97e;
+      color:#0a0a0f;
+      border:none;
+      border-radius:12px;
+      font-family:'DM Sans',sans-serif;
+      font-size:0.88rem;
+      font-weight:600;
+      cursor:pointer;
+      transition:all 0.2s;
+      letter-spacing:0.04em;
+      margin-top:0.9rem;
+      -webkit-user-select:none;user-select:none;
+    }
+    .analyze-btn:active{transform:scale(0.98)}
+    .analyze-btn:disabled{opacity:0.3;cursor:not-allowed}
+    /* ── PROCESSING ── */
+    .processing-bar{
+      display:flex;align-items:center;gap:0.7rem;
+      color:#c8a97e;font-size:0.8rem;
+      padding:0.9rem 0 0;
+    }
+    .dot-loader span{
+      display:inline-block;width:5px;height:5px;
+      border-radius:50%;background:#c8a97e;
+      margin:0 2px;animation:blink 1.2s infinite;
+    }
+    .dot-loader span:nth-child(2){animation-delay:0.2s}
+    .dot-loader span:nth-child(3){animation-delay:0.4s}
+    @keyframes blink{
+      0%,100%{opacity:0.2;transform:scale(0.8)}
+      50%{opacity:1;transform:scale(1.2)}
+    }
+    /* ── SUMMARY ── */
+    .summary-card{
+      background:#13131a;
+      border:1px solid #c8a97e22;
+      border-radius:16px;
+      padding:1.2rem;
+      margin-bottom:1rem;
+      animation:fadeUp 0.35s ease;
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .summary-header{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:1rem;padding-bottom:0.8rem;
+      border-bottom:1px solid #1e1e2a;
+    }
+    .summary-title{font-family:'DM Serif Display',serif;font-size:1.15rem;color:#c8a97e}
+    .copy-btn{
+      padding:0.4rem 0.8rem;
+      background:transparent;border:1px solid #2a2a38;
+      border-radius:6px;color:#555;font-size:0.72rem;
+      cursor:pointer;font-family:'DM Sans',sans-serif;
+    }
+    .copy-btn:active{border-color:#c8a97e;color:#c8a97e}
+    .summary-content{color:#bbb8b2;font-size:0.84rem;line-height:1.8}
+    .summary-content h2{
+      font-family:'DM Serif Display',serif;font-size:0.98rem;
+      color:#e8e4df;margin:1.1rem 0 0.4rem;font-weight:400;
+    }
+    .summary-content h3{
+      font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;
+      color:#c8a97e;margin:0.9rem 0 0.3rem;font-weight:600;
+    }
+    .summary-content ul,.summary-content ol{padding-left:1.1rem;margin:0.2rem 0}
+    .summary-content li{margin:0.2rem 0;list-style:none;position:relative;padding-left:0.2rem}
+    .summary-content ul li::before{content:'›';position:absolute;left:-0.9rem;color:#c8a97e}
+    .summary-content ol{counter-reset:li}
+    .summary-content ol li{counter-increment:li}
+    .summary-content ol li::before{content:counter(li)'.';position:absolute;left:-1rem;color:#c8a97e;font-size:0.78rem}
+    .summary-content strong{color:#e8e4df}
+    /* ── ERROR ── */
+    .error-box{
+      background:#1a0f0f;border:1px solid #5a2020;
+      border-radius:10px;padding:0.75rem 1rem;
+      color:#e05555;font-size:0.8rem;margin-bottom:0.8rem;
+    }
+    /* ── RESET ── */
+    .reset-btn{
+      display:block;width:100%;
+      padding:0.75rem;
+      background:transparent;border:1px solid #1e1e2a;
+      border-radius:12px;color:#444;font-size:0.82rem;
+      cursor:pointer;font-family:'DM Sans',sans-serif;
+      margin-bottom:0.5rem;
+    }
+    /* ── KEY MODAL ── */
+    .modal-overlay{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,0.8);
+      display:flex;align-items:flex-end;
+      z-index:200;
+      padding:0;
+    }
+    .modal{
+      background:#13131a;
+      border:1px solid #2a2a38;
+      border-radius:20px 20px 0 0;
+      padding:1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom,0));
+      width:100%;
+    }
+    .modal h3{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#e8e4df;margin-bottom:0.4rem}
+    .modal p{font-size:0.78rem;color:#555;margin-bottom:1.2rem;line-height:1.6}
+    .modal a{color:#c8a97e;text-decoration:none}
+    .key-input{
+      width:100%;background:#0a0a0f;
+      border:1px solid #2a2a38;border-radius:10px;
+      padding:0.85rem 1rem;color:#e8e4df;
+      font-family:'DM Sans',sans-serif;font-size:0.88rem;
+      outline:none;margin-bottom:0.85rem;
+      -webkit-appearance:none;
+    }
+    .key-input:focus{border-color:#c8a97e44}
+    .modal-actions{display:flex;gap:0.6rem}
+    .key-save{
+      flex:1;padding:0.8rem;background:#c8a97e;
+      color:#0a0a0f;border:none;border-radius:10px;
+      font-family:'DM Sans',sans-serif;font-size:0.86rem;font-weight:600;
+      cursor:pointer;
+    }
+    .key-cancel{
+      padding:0.8rem 1rem;background:transparent;
+      border:1px solid #1e1e2a;border-radius:10px;
+      color:#444;font-family:'DM Sans',sans-serif;font-size:0.86rem;
+      cursor:pointer;
+    }
+    /* ── INSTALL BANNER ── */
+    .install-banner{
+      display:none;
+      background:#13131a;border:1px solid #c8a97e33;
+      border-radius:12px;padding:0.75rem 1rem;
+      margin-bottom:0.8rem;
+      font-size:0.78rem;color:#888;
+      align-items:center;gap:0.6rem;
+    }
+    .install-banner.visible{display:flex}
+    .install-btn{
+      margin-left:auto;padding:0.35rem 0.8rem;
+      background:#c8a97e;color:#0a0a0f;
+      border:none;border-radius:6px;
+      font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;
+      cursor:pointer;white-space:nowrap;
+    }
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#2a2a38;border-radius:2px}
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+<div class="app">
+  <div class="header">
+    <h1>Sprach<span>notiz</span></h1>
+    <p>Ihre Alltagsbegleiter</p>
+  </div>
+
+  <div class="scroll-area" id="scrollArea">
+
+    <!-- Install Banner (shown on iOS) -->
+    <div class="install-banner" id="installBanner">
+      <span>📲 Zum Homescreen hinzufügen</span>
+      <button class="install-btn" id="installBtn">Installieren</button>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="errorBox" style="display:none"></div>
+
+    <!-- Main Card -->
+    <div class="card" id="mainCard">
+      <div class="mode-tabs">
+        <button class="tab-btn active" onclick="switchTab('record')">🎙 Aufnehmen</button>
+        <button class="tab-btn" onclick="switchTab('upload')">📁 Datei</button>
+        <button class="tab-btn" onclick="switchTab('text')">✏️ Text</button>
+      </div>
+
+      <!-- Record Tab -->
+      <div id="tab-record">
+        <div class="record-center">
+          <div class="timer idle" id="timer">00:00</div>
+          <button class="record-btn idle" id="recordBtn" onclick="toggleRecording()">🎙</button>
+          <span class="rec-label" id="recLabel">Tippen zum Starten</span>
+        </div>
+      </div>
+
+      <!-- Upload Tab -->
+      <div id="tab-upload" style="display:none">
+        <div class="upload-area" id="uploadArea" onclick="handleUploadClick()">
+          <div class="upload-icon" id="uploadIcon">🎵</div>
+          <p id="uploadText"><strong>Audio-Datei auswählen</strong></p>
+          <p id="uploadSub">MP3 · WAV · M4A · WebM · OGG</p>
+        </div>
+        <div style="text-align:center">
+          <button class="key-badge" id="keyBadge" onclick="openKeyModal()">⚙ OpenAI API-Key eingeben</button>
+        </div>
+        <input type="file" id="fileInput" accept="audio/*" style="display:none" onchange="handleFileChange(event)"/>
+      </div>
+
+      <!-- Text Tab -->
+      <div id="tab-text" style="display:none">
+        <div class="section-label">Text eingeben oder einfügen</div>
+        <textarea class="transcript-box" id="textInput" rows="6"
+          placeholder="Notiz oder Transkript hier einfügen..."></textarea>
+      </div>
+
+      <!-- Transcript Display (record/upload) -->
+      <div id="transcriptSection" style="display:none;margin-top:1rem">
+        <div class="section-label">Transkript</div>
+        <div class="transcript-box" id="transcriptBox"></div>
+      </div>
+
+      <!-- Processing / Action -->
+      <div id="processingBar" class="processing-bar" style="display:none">
+        <div class="dot-loader"><span></span><span></span><span></span></div>
+        <span id="processingLabel">Verarbeite…</span>
+      </div>
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeWithClaude()" disabled>
+        Zusammenfassung erstellen →
+      </button>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="summary-card" id="summaryCard" style="display:none">
+      <div class="summary-header">
+        <span class="summary-title">Zusammenfassung</span>
+        <button class="copy-btn" onclick="copyResult()">Kopieren</button>
+      </div>
+      <div class="summary-content" id="summaryContent"></div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn" style="display:none" onclick="resetAll()">
+      ＋ Neue Notiz
+    </button>
+
+  </div>
+</div>
+
+<!-- Key Modal -->
+<div class="modal-overlay" id="keyModal" style="display:none" onclick="closeKeyModalOutside(event)">
+  <div class="modal">
+    <h3>OpenAI API-Key</h3>
+    <p>
+      Für Whisper-Transkription wird ein OpenAI-Key benötigt.<br/>
+      Wird nur in diesem Browser gespeichert (kein Server-Upload).<br/>
+      <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>
+    </p>
+    <input class="key-input" id="keyInput" type="password" placeholder="sk-proj-..."
+      onkeydown="if(event.key==='Enter')saveKey()"/>
+    <div class="modal-actions">
+      <button class="key-save" onclick="saveKey()">Speichern & fortfahren</button>
+      <button class="key-cancel" onclick="closeKeyModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `Du bist ein präziser Assistent für Anja, Geschäftsführerin von "Ihre Alltagsbegleiter" (ambulanter Pflegedienst).
+
+Analysiere die transkribierte Sprachnotiz und liefere:
+
+## Themen
+(bullet points, max. 5 – nur Kernthemen)
+
+## Zusammenfassung
+(2-4 Sätze, sachlich, keine Floskeln)
+
+## Aufgaben & nächste Schritte
+(nummerierte Liste – nur wenn explizit im Text vorhanden, sonst komplett weglassen)
+
+## Kategorie
+(genau eine: Mitarbeiter | Abrechnung | Kunden/Patienten | Organisation | Strategie | Sonstiges)
+
+Stil: Direkt, faktenbasiert. Keine einleitenden Sätze.`;
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let currentTab = 'record';
+let isRecording = false;
+let timerInterval = null;
+let timerSeconds = 0;
+let recognition = null;
+let liveTranscript = '';
+let openaiKey = localStorage.getItem('oai_key') || '';
+let summaryText = '';
+let deferredPrompt = null;
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner on Android
+  const banner = document.getElementById('installBanner');
+  banner.classList.add('visible');
+  document.getElementById('installBtn').onclick = async () => {
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') banner.classList.remove('visible');
+  };
+});
+
+// iOS install hint
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.navigator.standalone;
+if (isIos && !isStandalone) {
+  const banner = document.getElementById('installBanner');
+  banner.classList.add('visible');
+  banner.querySelector('span').textContent = '📲 Auf iOS: Teilen → "Zum Home-Bildschirm"';
+  document.getElementById('installBtn').style.display = 'none';
+}
+
+if (openaiKey) updateKeyBadge();
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  ['record','upload','text'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['record','upload','text'][i]===tab);
+  });
+  clearTranscript();
+}
+
+// ── RECORDING ──────────────────────────────────────────────────────────────
+function toggleRecording() {
+  if (isRecording) stopRecording(); else startRecording();
+}
+
+function startRecording() {
+  clearError();
+  liveTranscript = '';
+  setTranscript('');
+
+  if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+    showError('Spracherkennung nicht unterstützt. Bitte Chrome/Edge verwenden.');
+    return;
+  }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'de-DE';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (ev) => {
+    let interim = '', final = liveTranscript;
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) { final += ev.results[i][0].transcript + ' '; liveTranscript = final; }
+      else interim += ev.results[i][0].transcript;
+    }
+    setTranscript(final + interim);
+  };
+  recognition.onerror = (e) => { if (e.error !== 'no-speech') showError('Spracherkennung: ' + e.error); };
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+  recognition.start();
+
+  isRecording = true;
+  timerSeconds = 0;
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    const m = String(Math.floor(timerSeconds/60)).padStart(2,'0');
+    const s = String(timerSeconds%60).padStart(2,'0');
+    document.getElementById('timer').textContent = m+':'+s;
+  }, 1000);
+
+  const btn = document.getElementById('recordBtn');
+  btn.className = 'record-btn recording';
+  btn.textContent = '⏹';
+  document.getElementById('timer').className = 'timer';
+  document.getElementById('recLabel').className = 'rec-label active';
+  document.getElementById('recLabel').textContent = '● Aufnahme läuft';
+}
+
+function stopRecording() {
+  isRecording = false;
+  clearInterval(timerInterval);
+  if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
+
+  const btn = document.getElementById('recordBtn');
+  btn.className = 'record-btn idle';
+  btn.textContent = '🎙';
+  document.getElementById('timer').className = 'timer idle';
+  document.getElementById('recLabel').className = 'rec-label';
+  document.getElementById('recLabel').textContent = 'Tippen zum Starten';
+}
+
+// ── UPLOAD / WHISPER ───────────────────────────────────────────────────────
+function handleUploadClick() {
+  if (!openaiKey) { openKeyModal(); return; }
+  document.getElementById('fileInput').click();
+}
+
+async function handleFileChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!openaiKey) { openKeyModal(); return; }
+
+  clearError();
+  setTranscript('');
+  setProcessing(true, 'Whisper transkribiert Audio…');
+
+  const uploadArea = document.getElementById('uploadArea');
+  uploadArea.classList.remove('done');
+  document.getElementById('uploadIcon').textContent = '⏳';
+  document.getElementById('uploadText').innerHTML = '<strong>Whisper transkribiert…</strong>';
+  document.getElementById('uploadSub').textContent = 'Bitte warten';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'de');
+    formData.append('response_format', 'text');
+
+    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + openaiKey },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err?.error?.message || 'HTTP ' + res.status);
+    }
+
+    const text = await res.text();
+    setTranscript(text.trim());
+
+    uploadArea.classList.add('done');
+    document.getElementById('uploadIcon').textContent = '✅';
+    document.getElementById('uploadText').innerHTML = '<strong>' + file.name + '</strong>';
+    document.getElementById('uploadSub').textContent = 'Transkription abgeschlossen · Neue Datei auswählen';
+  } catch(err) {
+    if (err.message.includes('401') || err.message.toLowerCase().includes('incorrect')) {
+      showError('OpenAI API-Key ungültig. Bitte neu eingeben.');
+      localStorage.removeItem('oai_key'); openaiKey = '';
+      updateKeyBadge(); openKeyModal();
+    } else { showError('Whisper-Fehler: ' + err.message); }
+    document.getElementById('uploadIcon').textContent = '🎵';
+    document.getElementById('uploadText').innerHTML = '<strong>Audio-Datei auswählen</strong>';
+    document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG';
+  } finally { setProcessing(false); }
+
+  // Reset file input
+  e.target.value = '';
+}
+
+// ── CLAUDE ANALYSE ─────────────────────────────────────────────────────────
+async function analyzeWithClaude() {
+  const text = getTranscriptText();
+  if (!text.trim()) { showError('Kein Text zum Analysieren.'); return; }
+
+  clearError();
+  setProcessing(true, 'Claude analysiert Inhalt…');
+  document.getElementById('mainCard').style.display = 'none';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: 'Transkript:\n\n' + text }],
+      }),
+    });
+    const data = await res.json();
+    summaryText = data.content?.map(b => b.text || '').join('') || '';
+    showSummary(summaryText);
+  } catch(err) {
+    showError('Claude API-Fehler: ' + err.message);
+    document.getElementById('mainCard').style.display = '';
+  } finally { setProcessing(false); }
+}
+
+// ── SUMMARY DISPLAY ────────────────────────────────────────────────────────
+function showSummary(md) {
+  const html = md
+    .replace(/^## (.+)/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)/gm, '<ul><li>$1</li></ul>')
+    .replace(/^(\d+)\. (.+)/gm, '<ol><li>$1</li></ol>')
+    .replace(/<\/ul>\n<ul>/g, '\n')
+    .replace(/<\/ol>\n<ol>/g, '\n')
+    .replace(/\n/g, '<br>');
+  document.getElementById('summaryContent').innerHTML = html;
+  document.getElementById('summaryCard').style.display = '';
+  document.getElementById('resetBtn').style.display = '';
+  document.getElementById('scrollArea').scrollTop = 0;
+}
+
+function copyResult() {
+  navigator.clipboard.writeText(summaryText).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Kopiert';
+    setTimeout(() => btn.textContent = 'Kopieren', 1500);
+  });
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function setTranscript(text) {
+  if (currentTab === 'text') return;
+  const section = document.getElementById('transcriptSection');
+  const box = document.getElementById('transcriptBox');
+  if (text) {
+    box.textContent = text;
+    section.style.display = '';
+  } else {
+    section.style.display = 'none';
+    box.textContent = '';
+  }
+  checkAnalyzeBtn();
+}
+
+function getTranscriptText() {
+  if (currentTab === 'text') return document.getElementById('textInput').value;
+  return document.getElementById('transcriptBox').textContent;
+}
+
+function clearTranscript() {
+  document.getElementById('transcriptSection').style.display = 'none';
+  document.getElementById('transcriptBox').textContent = '';
+  document.getElementById('textInput').value = '';
+  liveTranscript = '';
+  checkAnalyzeBtn();
+}
+
+function checkAnalyzeBtn() {
+  const text = getTranscriptText();
+  document.getElementById('analyzeBtn').disabled = !text.trim() || isRecording;
+}
+
+document.getElementById('textInput').addEventListener('input', checkAnalyzeBtn);
+
+function setProcessing(on, label) {
+  document.getElementById('processingBar').style.display = on ? 'flex' : 'none';
+  if (label) document.getElementById('processingLabel').textContent = label;
+  document.getElementById('analyzeBtn').style.display = on ? 'none' : '';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = '';
+}
+
+function clearError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+function resetAll() {
+  if (isRecording) stopRecording();
+  clearError();
+  clearTranscript();
+  timerSeconds = 0;
+  document.getElementById('timer').textContent = '00:00';
+  document.getElementById('timer').className = 'timer idle';
+  summaryText = '';
+  document.getElementById('summaryCard').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('mainCard').style.display = '';
+  setProcessing(false);
+  switchTab('record');
+  // reset upload area
+  document.getElementById('uploadIcon').textContent = '🎵';
+  document.getElementById('uploadText').innerHTML = '<strong>Audio-Datei auswählen</strong>';
+  document.getElementById('uploadSub').textContent = 'MP3 · WAV · M4A · WebM · OGG';
+  document.getElementById('uploadArea').classList.remove('done');
+}
+
+// ── KEY MODAL ──────────────────────────────────────────────────────────────
+function openKeyModal() {
+  document.getElementById('keyInput').value = openaiKey || '';
+  document.getElementById('keyModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('keyInput').focus(), 300);
+}
+
+function closeKeyModal() {
+  document.getElementById('keyModal').style.display = 'none';
+}
+
+function closeKeyModalOutside(e) {
+  if (e.target === document.getElementById('keyModal')) closeKeyModal();
+}
+
+function saveKey() {
+  const v = document.getElementById('keyInput').value.trim();
+  if (!v) return;
+  openaiKey = v;
+  localStorage.setItem('oai_key', v);
+  updateKeyBadge();
+  closeKeyModal();
+  // Trigger file picker after key saved
+  document.getElementById('fileInput').click();
+}
+
+function updateKeyBadge() {
+  const badge = document.getElementById('keyBadge');
+  if (openaiKey) {
+    badge.textContent = '✓ Whisper-Key gesetzt';
+    badge.classList.add('set');
+  } else {
+    badge.textContent = '⚙ OpenAI API-Key eingeben';
+    badge.classList.remove('set');
+  }
+}
+</script>
 </body>
 </html>
