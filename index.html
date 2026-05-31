@@ -582,6 +582,85 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 .header-badges{display:flex;align-items:center;gap:0.3rem}
 
+
+/* ─── DANKBARKEITS-JOURNAL ──────────────────────────────────── */
+.gratitude-item{
+  display:flex;align-items:flex-start;gap:0.6rem;
+  padding:0.6rem 0;border-bottom:1px solid var(--border);
+}
+.gratitude-item:last-child{border-bottom:none}
+.gratitude-num{
+  font-family:'Syne Mono',monospace;font-size:0.75rem;
+  color:var(--gold);font-weight:700;width:18px;flex-shrink:0;margin-top:0.6rem;
+}
+.gratitude-input{
+  flex:1;background:transparent;border:none;
+  color:var(--text);font-family:'Lora',serif;font-size:0.88rem;
+  font-style:italic;line-height:1.5;outline:none;resize:none;
+  padding:0.35rem 0;min-height:36px;-webkit-appearance:none;
+}
+.gratitude-input::placeholder{color:var(--text3);font-style:italic}
+.gratitude-input:focus{color:var(--text)}
+
+/* ─── STIMMUNGS-TAGS ────────────────────────────────────────── */
+.mood-grid{display:flex;flex-wrap:wrap;gap:0.4rem;padding:0.2rem 0}
+.mood-tag{
+  padding:0.35rem 0.75rem;border-radius:20px;
+  border:1px solid var(--border2);background:var(--bg3);
+  font-size:0.78rem;font-weight:600;cursor:pointer;
+  transition:all 0.12s;letter-spacing:0.02em;
+  display:flex;align-items:center;gap:0.3rem;
+}
+.mood-tag.active{border-color:var(--mood-color,var(--gold));background:color-mix(in srgb,var(--mood-color,var(--gold)) 15%,transparent);color:var(--mood-color,var(--gold))}
+.mood-tag:active{transform:scale(0.95)}
+
+/* ─── MEDIKAMENTEN-LOG ──────────────────────────────────────── */
+.med-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.7rem;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r2);margin-bottom:0.45rem;
+  animation:fadeIn 0.15s ease;
+}
+.med-taken{
+  width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;cursor:pointer;transition:all 0.15s;
+}
+.med-item.taken .med-taken{background:var(--green);border-color:var(--green);color:#fff}
+.med-info{flex:1;min-width:0}
+.med-name{font-size:0.84rem;font-weight:600}
+.med-item.taken .med-name{color:var(--text2)}
+.med-dose{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-top:1px}
+.med-time-badge{font-family:'Syne Mono',monospace;font-size:0.68rem;color:var(--text3);flex-shrink:0}
+.med-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem;padding:0.1rem}
+.med-del:active{color:var(--red)}
+
+.med-add-row{display:flex;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
+.med-input{
+  flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.55rem 0.8rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;-webkit-appearance:none;
+}
+.med-input:focus{border-color:var(--purple)}
+.med-input::placeholder{color:var(--text3)}
+.med-add-btn{
+  padding:0.55rem 0.9rem;background:var(--purple);color:#fff;
+  border:none;border-radius:var(--r2);font-family:'Syne',sans-serif;
+  font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.med-add-btn:active{transform:scale(0.97)}
+.med-sugg{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);margin-top:0.3rem;overflow:hidden;
+}
+.med-sugg:empty{display:none}
+.med-sugg-item{
+  padding:0.55rem 0.8rem;font-size:0.82rem;color:var(--text2);
+  cursor:pointer;border-bottom:1px solid var(--border);
+}
+.med-sugg-item:last-child{border-bottom:none}
+.med-sugg-item:active{background:var(--bg3)}
+
 </style>
 </head>
 <body>
@@ -617,6 +696,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
 
+
+      <!-- Stimmung -->
+      <div class="card">
+        <div class="card-title">STIMMUNG</div>
+        <div class="mood-grid" id="moodGrid"></div>
+      </div>
       <!-- Schlaf -->
       <div class="card">
         <div class="card-title">SCHLAF</div>
@@ -776,6 +861,28 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
 
+
+      <!-- Medikamente & Supplements -->
+      <div class="card">
+        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
+        <div id="medList"></div>
+        <div class="med-add-row">
+          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
+          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
+          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
+        </div>
+        <div id="medSugg" class="med-sugg"></div>
+      </div>
+
+      <!-- Dankbarkeit -->
+      <div class="card">
+        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
+        <div id="gratitudeList">
+          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
+        </div>
+      </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
     </div>
 
@@ -1057,7 +1164,8 @@ function dbDelete(store,key){
 const TODAY = new Date().toISOString().slice(0,10);
 let state = {
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
-  ern: [], neg: [], akt: [], pain_tags: [], note: '', painNote: '',
+  ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
+  gratitude: ['','',''],  meds_taken: [],
   meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
 };
 let statsPeriod = 7;
@@ -1089,6 +1197,9 @@ async function init(){
     document.getElementById('noteText').value = state.note||'';
     document.getElementById('painNote').value = state.painNote||'';
     if(todayData.meals) { state.meals = todayData.meals; renderAllMeals(); }
+    if(todayData.gratitude) { state.gratitude = todayData.gratitude; restoreGratitude(); }
+    if(todayData.moods) buildMoodGrid();
+    if(todayData.meds_taken) renderMedList();
     if(todayData.pain_tags) buildTagGrid('painTag', [], 'pain');
     // Mark save button
     document.getElementById('saveBtn').textContent = 'Aktualisieren';
@@ -1107,6 +1218,8 @@ async function init(){
   buildPainDots();
   buildTagGrid('ernTag', ERN_OPTS, 'ern');
   buildTagGrid('painTag', [], 'pain');
+  buildMoodGrid();
+  renderMedList();
   buildTagGrid('negTag', NEG_OPTS, 'neg');
   buildTagGrid('aktTag', AKT_OPTS, 'akt');
   updateHeader();
@@ -1630,6 +1743,8 @@ function exportJSON(){
     customTags,
     mealMemory,
     notifPrefs,
+    medSchedule: getMedSchedule(),
+    medMemory: getMedMemory(),
   };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
@@ -1693,6 +1808,8 @@ async function performImport(encodedData){
     }
     // Restore meal memory
     if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
+    if(Array.isArray(data.medSchedule)) saveMedSchedule(data.medSchedule);
+    if(Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
@@ -2297,6 +2414,158 @@ function updatePlanStreak(){
     else badge.style.display='none';
   }
   if(inline) inline.textContent=streak;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// STIMMUNGS-TAGS
+// ══════════════════════════════════════════════════════════════════
+const MOOD_OPTIONS = [
+  {label:'😌 Ruhig',      color:'#4caf82'},
+  {label:'😊 Fröhlich',   color:'#f0c96a'},
+  {label:'⚡ Fokussiert', color:'#5b8dee'},
+  {label:'😤 Gereizt',    color:'#e05555'},
+  {label:'😰 Ängstlich',  color:'#ff9800'},
+  {label:'😔 Traurig',    color:'#8890a8'},
+  {label:'😴 Erschöpft',  color:'#9b72e8'},
+  {label:'🤩 Motiviert',  color:'#d4a843'},
+  {label:'😶 Leer',       color:'#4a5268'},
+  {label:'🥰 Dankbar',    color:'#e91e8c'},
+];
+
+function buildMoodGrid(){
+  const wrap = document.getElementById('moodGrid');
+  if(!wrap) return;
+  wrap.innerHTML = MOOD_OPTIONS.map(m=>`
+    <div class="mood-tag${(state.moods||[]).includes(m.label)?' active':''}"
+      style="--mood-color:${m.color}"
+      onclick="toggleMood('${m.label.replace(/'/g,"\'")}')">
+      ${esc(m.label)}
+    </div>`).join('');
+}
+
+function toggleMood(label){
+  if(!state.moods) state.moods=[];
+  if(state.moods.includes(label)) state.moods=state.moods.filter(x=>x!==label);
+  else state.moods.push(label);
+  buildMoodGrid();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DANKBARKEITS-JOURNAL
+// ══════════════════════════════════════════════════════════════════
+function saveGratitude(idx, val){
+  if(!state.gratitude) state.gratitude=['','',''];
+  state.gratitude[idx] = val;
+}
+
+function restoreGratitude(){
+  (state.gratitude||[]).forEach((v,i)=>{
+    const el = document.getElementById('grat'+i);
+    if(el){ el.value=v; autoGrow(el); }
+  });
+}
+
+function autoGrow(el){
+  el.style.height='auto';
+  el.style.height=el.scrollHeight+'px';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MEDIKAMENTEN-LOG
+// ══════════════════════════════════════════════════════════════════
+function getMedMemory(){
+  try{ return JSON.parse(localStorage.getItem('med_memory')||'[]'); }
+  catch(e){ return []; }
+}
+function addToMedMemory(name){
+  const mem = getMedMemory();
+  if(!mem.find(m=>m.toLowerCase()===name.toLowerCase())){
+    mem.unshift(name);
+    if(mem.length>200) mem.pop();
+    localStorage.setItem('med_memory', JSON.stringify(mem));
+  }
+}
+
+// Persistent med schedule (what meds to take daily)
+function getMedSchedule(){
+  try{ return JSON.parse(localStorage.getItem('med_schedule')||'[]'); }
+  catch(e){ return []; }
+}
+function saveMedSchedule(list){
+  localStorage.setItem('med_schedule', JSON.stringify(list));
+}
+
+function addMed(){
+  const name = document.getElementById('medNameInput').value.trim();
+  const time = document.getElementById('medTimeInput').value;
+  if(!name) return;
+  // Add to schedule
+  const schedule = getMedSchedule();
+  const id = Date.now().toString();
+  schedule.push({id, name, time});
+  saveMedSchedule(schedule);
+  addToMedMemory(name);
+  document.getElementById('medNameInput').value='';
+  document.getElementById('medTimeInput').value='';
+  hideMedSugg();
+  renderMedList();
+  showToast('Medikament hinzugefügt!');
+}
+
+function toggleMedTaken(id){
+  if(!state.meds_taken) state.meds_taken=[];
+  if(state.meds_taken.includes(id)) state.meds_taken=state.meds_taken.filter(x=>x!==id);
+  else { state.meds_taken.push(id); showToast('✓ Eingenommen!'); }
+  renderMedList();
+}
+
+function deleteMedFromSchedule(id, e){
+  e.stopPropagation();
+  const schedule = getMedSchedule().filter(m=>m.id!==id);
+  saveMedSchedule(schedule);
+  state.meds_taken = (state.meds_taken||[]).filter(x=>x!==id);
+  renderMedList();
+}
+
+function renderMedList(){
+  const el = document.getElementById('medList');
+  if(!el) return;
+  const schedule = getMedSchedule();
+  if(!schedule.length){ el.innerHTML=''; return; }
+  // Sort by time
+  const sorted = [...schedule].sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+  el.innerHTML = sorted.map(m=>{
+    const taken = (state.meds_taken||[]).includes(m.id);
+    return `<div class="med-item${taken?' taken':''}">
+      <div class="med-taken" onclick="toggleMedTaken('${m.id}')">${taken?'✓':''}</div>
+      <div class="med-info">
+        <div class="med-name">${esc(m.name)}</div>
+        ${m.time?`<div class="med-dose">${m.time} Uhr</div>`:''}
+      </div>
+      <button class="med-del" onclick="deleteMedFromSchedule('${m.id}',event)">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function showMedSugg(){
+  const q = document.getElementById('medNameInput').value.trim().toLowerCase();
+  const el = document.getElementById('medSugg');
+  if(!q || !el){ if(el) el.innerHTML=''; return; }
+  const mem = getMedMemory();
+  const matches = mem.filter(m=>m.toLowerCase().includes(q)).slice(0,5);
+  el.innerHTML = matches.map(m=>`
+    <div class="med-sugg-item" onclick="selectMedSugg('${m.replace(/'/g,"\'")}')">
+      💊 ${esc(m)}</div>`).join('');
+}
+function selectMedSugg(name){
+  document.getElementById('medNameInput').value=name;
+  document.getElementById('medSugg').innerHTML='';
+  document.getElementById('medTimeInput').focus();
+}
+function hideMedSugg(){
+  const el=document.getElementById('medSugg');
+  if(el) el.innerHTML='';
 }
 
 </script>
