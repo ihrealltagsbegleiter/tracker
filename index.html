@@ -793,6 +793,58 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .rc-legend{display:flex;gap:0.9rem;margin-top:0.6rem;font-size:0.65rem;color:var(--text3);align-items:center;flex-wrap:wrap}
 .rc-legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
 
+
+/* ─── ERFOLGE ───────────────────────────────────────────────── */
+.win-entry{
+  display:flex;align-items:center;gap:0.5rem;
+  padding:0.45rem 0.65rem;background:var(--bg3);
+  border:1px solid var(--border);border-radius:20px;
+  animation:fadeIn 0.15s ease;
+  flex-shrink:0;
+}
+.win-entry-icon{font-size:0.85rem}
+.win-entry-text{font-size:0.8rem;font-weight:500;color:var(--text)}
+.win-entry-del{
+  background:none;border:none;color:var(--text3);
+  cursor:pointer;font-size:0.75rem;padding:0 0.1rem;line-height:1;
+}
+.win-entry-del:active{color:var(--red)}
+.win-list{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.55rem;min-height:0}
+.win-add-row{display:flex;gap:0.4rem;align-items:center}
+.win-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;padding:0.5rem 0.85rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;-webkit-appearance:none;
+}
+.win-input:focus{border-color:var(--green)}
+.win-input::placeholder{color:var(--text3)}
+.win-add-btn{
+  width:34px;height:34px;border-radius:50%;background:var(--green);
+  border:none;color:#fff;font-size:1.2rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:transform 0.1s;
+}
+.win-add-btn:active{transform:scale(0.9)}
+.win-sugg{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);margin-top:0.3rem;overflow:hidden;
+  max-height:150px;overflow-y:auto;
+}
+.win-sugg:empty{display:none}
+.win-sugg-item{
+  padding:0.55rem 0.85rem;font-size:0.8rem;color:var(--text2);
+  cursor:pointer;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.5rem;
+}
+.win-sugg-item:last-child{border-bottom:none}
+.win-sugg-item:active{background:var(--bg3)}
+.win-sugg-item mark{background:none;color:var(--green);font-weight:700}
+.win-count-badge{
+  font-family:'Syne Mono',monospace;font-size:0.65rem;
+  color:var(--text3);background:var(--bg3);border:1px solid var(--border);
+  padding:0.1rem 0.4rem;border-radius:10px;margin-left:auto;flex-shrink:0;
+}
+
 </style>
 </head>
 <body>
@@ -1033,6 +1085,22 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
             <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
           </div>
         </div>
+      </div>
+
+      <!-- Erfolge -->
+      <div class="card" id="winsCard">
+        <div class="card-title">🏆 KLEINE ERFOLGE</div>
+        <div class="win-list" id="winList"></div>
+        <div class="win-add-row">
+          <input class="win-input" id="winInput"
+            placeholder="Was hast du heute erreicht?…"
+            autocomplete="off"
+            oninput="showWinSugg()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
+          />
+          <button class="win-add-btn" onclick="addWin()">+</button>
+        </div>
+        <div class="win-sugg" id="winSugg"></div>
       </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
     </div>
@@ -1369,6 +1437,7 @@ let state = {
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
   deepWork: 0,
+  wins: [],
   gratitude: ['','',''],  meds_taken: [],
   meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
 };
@@ -1404,6 +1473,7 @@ async function init(){
     if(todayData.gratitude) { state.gratitude = todayData.gratitude; restoreGratitude(); }
     if(todayData.moods) buildMoodGrid();
     if(todayData.deepWork !== undefined) renderDeepWork();
+    if(todayData.wins) renderWins();
     if(todayData.meds_taken) renderMedList();
     if(todayData.pain_tags) buildTagGrid('painTag', [], 'pain');
     // Mark save button
@@ -2023,6 +2093,7 @@ function exportJSON(){
     notifPrefs,
     medSchedule: getMedSchedule(),
     medMemory: getMedMemory(),
+    winMemory: getWinMemory(),
     weekReviews: getWeekReviews(),
     projects: getProjects(),
   };
@@ -2090,6 +2161,7 @@ async function performImport(encodedData){
     if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
     if(Array.isArray(data.medSchedule)) saveMedSchedule(data.medSchedule);
     if(Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
+    if(Array.isArray(data.winMemory)) localStorage.setItem('win_memory', JSON.stringify(data.winMemory));
     if(data.weekReviews) saveWeekReviews(data.weekReviews);
     if(Array.isArray(data.projects)) saveProjects(data.projects);
     closeModal();
@@ -3194,6 +3266,110 @@ function renderRoutineChart(){
   html += '</tbody></table>';
   el.innerHTML = html;
 }
+
+
+// ══════════════════════════════════════════════════════════════════
+// KLEINE ERFOLGE
+// ══════════════════════════════════════════════════════════════════
+function getWinMemory(){
+  try{ return JSON.parse(localStorage.getItem('win_memory')||'[]'); }
+  catch(e){ return []; }
+}
+function addToWinMemory(text){
+  const mem = getWinMemory();
+  const clean = text.trim().toLowerCase();
+  if(!clean) return;
+  // Increment count if exists, else add
+  const ex = mem.find(m=>m.text.toLowerCase()===clean);
+  if(ex){ ex.count=(ex.count||1)+1; ex.last=TODAY; }
+  else mem.unshift({text:text.trim(), count:1, last:TODAY});
+  // Sort by count desc, cap at 300
+  mem.sort((a,b)=>b.count-a.count);
+  if(mem.length>300) mem.pop();
+  localStorage.setItem('win_memory', JSON.stringify(mem));
+}
+
+const WIN_ICONS = ['🏆','⭐','✅','💪','🎯','🌟','🔥','👏','🚀','💡'];
+
+function renderWins(){
+  const wrap = document.getElementById('winList');
+  if(!wrap) return;
+  const wins = state.wins||[];
+  wrap.innerHTML = wins.map((w,i)=>`
+    <div class="win-entry">
+      <span class="win-entry-icon">${WIN_ICONS[i%WIN_ICONS.length]}</span>
+      <span class="win-entry-text">${esc(w)}</span>
+      <button class="win-entry-del" onclick="removeWin(${i})">×</button>
+    </div>`).join('');
+}
+
+function addWin(){
+  const input = document.getElementById('winInput');
+  const val = input.value.trim();
+  if(!val) return;
+  if(!state.wins) state.wins=[];
+  state.wins.push(val);
+  addToWinMemory(val);
+  input.value='';
+  hideWinSugg();
+  renderWins();
+}
+
+function removeWin(idx){
+  state.wins.splice(idx,1);
+  renderWins();
+}
+
+function showWinSugg(){
+  const input = document.getElementById('winInput');
+  const q = input.value.trim().toLowerCase();
+  const el = document.getElementById('winSugg');
+  if(!q||!el){ if(el) el.innerHTML=''; return; }
+
+  const mem = getWinMemory();
+  // Also include wins from past days
+  const pastWins = allDays.flatMap(d=>d.wins||[]).map(w=>({text:w,count:1}));
+  // Merge: prefer mem entries (have counts)
+  const allKnown = [...mem];
+  pastWins.forEach(p=>{
+    if(!allKnown.find(m=>m.text.toLowerCase()===p.text.toLowerCase()))
+      allKnown.push(p);
+  });
+
+  const matches = allKnown
+    .filter(m=>m.text.toLowerCase().includes(q))
+    .filter(m=>!(state.wins||[]).map(x=>x.toLowerCase()).includes(m.text.toLowerCase()))
+    .slice(0,8);
+
+  if(!matches.length){ el.innerHTML=''; return; }
+
+  el.innerHTML = matches.map(m=>{
+    const hi = m.text.replace(
+      new RegExp('('+q.replace(/[.*+?^${}()|[\]\]/g,'\$&')+')','gi'),
+      '<mark>$1</mark>'
+    );
+    return `<div class="win-sugg-item"
+      onclick="selectWin('${m.text.replace(/'/g,"\'")}')">
+      🏆 ${hi}
+      ${m.count>1?`<span class="win-count-badge">×${m.count}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+function selectWin(text){
+  document.getElementById('winInput').value = text;
+  hideWinSugg();
+  addWin();
+}
+
+function hideWinSugg(){
+  const el = document.getElementById('winSugg');
+  if(el) el.innerHTML='';
+}
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#winsCard')) hideWinSugg();
+});
 
 </script>
 </body>
