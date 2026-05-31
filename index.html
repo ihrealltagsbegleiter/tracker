@@ -758,6 +758,41 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   margin-top:2px;
 }
 
+
+/* ─── ROUTINE COMPLETION CHART ──────────────────────────────── */
+.routine-chart-wrap{overflow-x:auto;padding-bottom:0.25rem}
+.routine-chart-wrap::-webkit-scrollbar{height:3px}
+.routine-chart-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.rc-table{border-collapse:collapse;width:100%;min-width:280px}
+.rc-name{
+  font-size:0.72rem;font-weight:600;color:var(--text2);
+  padding:0.2rem 0.5rem 0.2rem 0;white-space:nowrap;
+  max-width:110px;overflow:hidden;text-overflow:ellipsis;
+}
+.rc-cell{
+  width:22px;height:22px;border-radius:4px;cursor:default;
+  transition:transform 0.1s;position:relative;
+}
+.rc-cell.done{background:var(--gold)}
+.rc-cell.missed{background:var(--bg3);border:1px solid var(--border)}
+.rc-cell.not-scheduled{background:transparent}
+.rc-cell.today{border:2px solid var(--gold)!important;box-shadow:0 0 6px rgba(212,168,67,0.3)}
+.rc-day-label{
+  font-size:0.58rem;color:var(--text3);font-family:'Syne Mono',monospace;
+  text-align:center;padding:0.2rem 0;
+}
+.rc-pct{
+  font-family:'Syne Mono',monospace;font-size:0.68rem;
+  text-align:right;padding-left:0.4rem;white-space:nowrap;
+}
+.rc-pct.high{color:var(--green)}
+.rc-pct.mid{color:var(--gold)}
+.rc-pct.low{color:var(--red)}
+
+.rc-legend{display:flex;gap:0.9rem;margin-top:0.6rem;font-size:0.65rem;color:var(--text3);align-items:center;flex-wrap:wrap}
+.rc-legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+
 </style>
 </head>
 <body>
@@ -1028,6 +1063,15 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <div class="card">
         <div class="card-title">HÄUFIGSTE EINTRÄGE</div>
         <div id="tagStats"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ROUTINEN – WOCHENÜBERSICHT</div>
+        <div class="routine-chart-wrap" id="routineChartWrap"></div>
+        <div class="rc-legend">
+          <span><span class="rc-legend-dot" style="background:var(--gold)"></span>Erledigt</span>
+          <span><span class="rc-legend-dot" style="background:var(--bg3);border:1px solid var(--border2)"></span>Verpasst</span>
+          <span><span class="rc-legend-dot" style="background:transparent;border:1px dashed var(--border2)"></span>Nicht geplant</span>
+        </div>
       </div>
     </div>
 
@@ -1742,6 +1786,7 @@ function renderStats(){
   renderWellbeingChart(days);
   renderAvgStats(days);
   renderTagStats(days);
+  renderRoutineChart();
 }
 
 function getRecentDays(n){
@@ -3077,6 +3122,77 @@ function getWeekCompletionCount(rid){
     if(routineCompletions.some(c=>c.rid===rid&&c.date===ds.toISOString().slice(0,10))) count++;
   }
   return count;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// ROUTINE COMPLETION CHART
+// ══════════════════════════════════════════════════════════════════
+function renderRoutineChart(){
+  const el = document.getElementById('routineChartWrap');
+  if(!el) return;
+  if(!allRoutines.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Routinen angelegt.</div>';
+    return;
+  }
+
+  // Build date range based on statsPeriod
+  const days = [];
+  for(let i=statsPeriod-1;i>=0;i--){
+    const d = new Date(TODAY); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  // DOW labels (short, 2-char)
+  const DOW = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  // Build table
+  let html = '<table class="rc-table"><thead><tr><td></td>';
+  days.forEach(ds=>{
+    const d = new Date(ds);
+    html += `<td class="rc-day-label">${DOW[d.getDay()]}<br>${d.getDate()}</td>`;
+  });
+  html += '<td></td></tr></thead><tbody>';
+
+  // Sort routines by order
+  const sorted = [...allRoutines].sort((a,b)=>(a.order??999)-(b.order??999));
+
+  sorted.forEach(r=>{
+    let doneCnt=0, scheduledCnt=0;
+    html += `<tr><td class="rc-name" title="${esc(r.name)}">${esc(r.name)}</td>`;
+    days.forEach(ds=>{
+      const dow = new Date(ds).getDay()||7; // 1=Mo…7=So (Sun=7)
+      // Fix: JS getDay() 0=Sun, but our days array uses 1=Mo…7=So
+      const dowFixed = new Date(ds).getDay()===0 ? 7 : new Date(ds).getDay();
+      const scheduled = !r.days || r.days.includes(dowFixed);
+      const done = routineCompletions.some(c=>c.rid===r.id&&c.date===ds);
+      const isToday = ds===TODAY;
+
+      if(scheduled) scheduledCnt++;
+      if(done && scheduled) doneCnt++;
+
+      let cls, title;
+      if(!scheduled){
+        cls='not-scheduled'; title='Nicht geplant';
+      } else if(done){
+        cls='done'; title='Erledigt ✓';
+        doneCnt; // already counted
+      } else if(ds<TODAY){
+        cls='missed'; title='Verpasst';
+      } else {
+        cls='missed'; title=isToday?'Noch offen':'–';
+      }
+      html += `<td><div class="rc-cell ${cls}${isToday?' today':''}" title="${ds}: ${title}"></div></td>`;
+    });
+
+    // Completion rate
+    const pct = scheduledCnt>0 ? Math.round(doneCnt/scheduledCnt*100) : 0;
+    const pctClass = pct>=80?'high':pct>=50?'mid':'low';
+    html += `<td class="rc-pct ${pctClass}">${pct}%</td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 </script>
