@@ -519,6 +519,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <div class="card">
         <div class="card-title">SCHMERZEN (0 = keine)</div>
         <div class="pain-dots" id="painDots"></div>
+        <textarea id="painNote" rows="2" placeholder="Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
       </div>
 
       <!-- Mahlzeiten -->
@@ -821,7 +822,7 @@ function dbDelete(store,key){
 const TODAY = new Date().toISOString().slice(0,10);
 let state = {
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
-  ern: [], neg: [], akt: [], note: '',
+  ern: [], neg: [], akt: [], note: '', painNote: '',
   meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
 };
 let statsPeriod = 7;
@@ -851,6 +852,7 @@ async function init(){
     document.getElementById('hrvVal').textContent = state.hrv;
     document.getElementById('energyVal').textContent = state.energy;
     document.getElementById('noteText').value = state.note||'';
+    document.getElementById('painNote').value = state.painNote||'';
     if(todayData.meals) { state.meals = todayData.meals; renderAllMeals(); }
     // Mark save button
     document.getElementById('saveBtn').textContent = 'Aktualisieren';
@@ -993,6 +995,7 @@ function deleteCustomTag(key, opt, e){
 
 async function saveToday(){
   state.note = document.getElementById('noteText').value;
+  state.painNote = document.getElementById('painNote').value;
   state.date = TODAY;
   await dbPut('days', state);
   // Refresh allDays
