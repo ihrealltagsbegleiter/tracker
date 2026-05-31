@@ -121,7 +121,8 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
 .slider-labels{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-top:0.3rem}
 
 /* ─── TODAY: METRICS GRID ────────────────────────────────────── */
-.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;width:100%}
+.metrics-grid .card{min-width:0;width:100%}
 .metric-card{
   background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
   padding:0.8rem;cursor:pointer;transition:border-color 0.15s;
@@ -405,6 +406,44 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
 .meal-divider{height:1px;background:var(--border);margin:0.75rem 0}
 
+
+/* ─── EDITIERBARE TAG-GRUPPEN ───────────────────────────────── */
+.tag-group-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:0.5rem;
+}
+.tag-edit-btn{
+  background:none;border:1px solid var(--border2);border-radius:20px;
+  color:var(--text3);font-size:0.65rem;font-weight:700;letter-spacing:0.06em;
+  padding:0.2rem 0.6rem;cursor:pointer;font-family:'Syne',sans-serif;
+  text-transform:uppercase;transition:all 0.15s;
+}
+.tag-edit-btn:active{background:var(--bg3);color:var(--text)}
+.tag-edit-btn.active{background:var(--gold);color:#000;border-color:var(--gold)}
+
+/* Edit mode: tag with delete */
+.tag.deletable{padding-right:0.4rem}
+.tag-del{
+  background:none;border:none;color:inherit;cursor:pointer;
+  font-size:0.8rem;margin-left:0.3rem;opacity:0.7;padding:0;line-height:1;
+}
+.tag-del:active{opacity:1}
+.tag-add-row{display:flex;gap:0.4rem;margin-top:0.5rem;align-items:center}
+.tag-add-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:20px;padding:0.4rem 0.8rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.78rem;outline:none;
+  -webkit-appearance:none;min-width:0;
+}
+.tag-add-input:focus{border-color:var(--gold)}
+.tag-add-input::placeholder{color:var(--text3)}
+.tag-add-submit{
+  width:30px;height:30px;border-radius:50%;background:var(--gold);
+  border:none;color:#000;font-size:1.1rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.tag-add-submit:active{transform:scale(0.9)}
+
 </style>
 </head>
 <body>
@@ -451,7 +490,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
 
       <!-- HRV & Energie -->
-      <div class="metrics-grid">
+      <div class="metrics-grid" style="margin-bottom:0.75rem">
         <div class="card" style="margin-bottom:0">
           <div class="card-title">HRV</div>
           <div class="step-row" style="padding:0.3rem 0">
@@ -477,7 +516,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
 
       <!-- Schmerzen -->
-      <div class="card" style="margin-top:0.75rem">
+      <div class="card">
         <div class="card-title">SCHMERZEN (0 = keine)</div>
         <div class="pain-dots" id="painDots"></div>
       </div>
@@ -546,21 +585,42 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
       <!-- Ernährungsqualität -->
       <div class="card">
-        <div class="card-title">ERNÄHRUNGSQUALITÄT</div>
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">ERNÄHRUNGSQUALITÄT</div>
+          <button class="tag-edit-btn" id="ernEditBtn" onclick="toggleTagEdit('ern')">Bearbeiten</button>
+        </div>
         <div class="tag-grid" id="ernTag"></div>
+        <div class="tag-add-row" id="ernAddRow" style="display:none">
+          <input class="tag-add-input" id="ernAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('ern')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('ern')">+</button>
+        </div>
       </div>
 
       <!-- Was lief nicht gut -->
       <div class="card">
-        <div class="card-title">WAS LIEF NICHT GUT?</div>
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
+          <button class="tag-edit-btn" id="negEditBtn" onclick="toggleTagEdit('neg')">Bearbeiten</button>
+        </div>
         <div class="tag-grid" id="negTag"></div>
+        <div class="tag-add-row" id="negAddRow" style="display:none">
+          <input class="tag-add-input" id="negAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('neg')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
+        </div>
         <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
       </div>
 
       <!-- Aktivität -->
       <div class="card">
-        <div class="card-title">AKTIVITÄT</div>
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
+          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
+        </div>
         <div class="tag-grid" id="aktTag"></div>
+        <div class="tag-add-row" id="aktAddRow" style="display:none">
+          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
+        </div>
       </div>
 
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
@@ -768,9 +828,7 @@ let statsPeriod = 7;
 let allDays = [], allRoutines = [], routineCompletions = [];
 
 // Options
-const ERN_OPTS = ['Ausgewogen','Viel Gemüse','Wenig Zucker','Fast Food','Alkohol','Kaffee++','Viel Wasser','Wenig gegessen'];
-const NEG_OPTS = ['Schlecht geschlafen','Stress Arbeit','Müdigkeit','Migräne','Rücken','Verdauung','Stimmungstief','Soziale Probleme','Überforderung'];
-const AKT_OPTS = ['Spazieren','Yoga','Sport','Radfahren','Schwimmen','Dehnen','Tanzen','Kraft'];
+// Tag defaults moved to TAG_DEFAULTS object in buildTagGrid section
 const PAIN_MAX = 10;
 
 // ══════════════════════════════════════════════════════════════════
@@ -849,20 +907,78 @@ function buildPainDots(){
   }
 }
 
+// Tag option storage key per group
+const TAG_STORE = {ern:'custom_ern_opts', neg:'custom_neg_opts', akt:'custom_akt_opts'};
+const TAG_DEFAULTS = {
+  ern: ['Ausgewogen','Viel Gemüse','Wenig Zucker','Fast Food','Alkohol','Kaffee++','Viel Wasser','Wenig gegessen'],
+  neg: ['Schlecht geschlafen','Stress Arbeit','Müdigkeit','Migräne','Rücken','Verdauung','Stimmungstief','Soziale Probleme','Überforderung'],
+  akt: ['Spazieren','Yoga','Sport','Radfahren','Schwimmen','Dehnen','Tanzen','Kraft']
+};
+let tagEditMode = {};
+
+function getTagOpts(key){
+  try {
+    const stored = localStorage.getItem(TAG_STORE[key]);
+    return stored ? JSON.parse(stored) : [...TAG_DEFAULTS[key]];
+  } catch(e){ return [...TAG_DEFAULTS[key]]; }
+}
+function saveTagOpts(key, opts){
+  localStorage.setItem(TAG_STORE[key], JSON.stringify(opts));
+}
+
 function buildTagGrid(id, opts, key){
+  // opts param kept for compatibility but we use stored opts
+  const storedOpts = getTagOpts(key);
   const wrap = document.getElementById(id);
   wrap.innerHTML = '';
-  opts.forEach(opt=>{
+  const editing = tagEditMode[key];
+  storedOpts.forEach(opt=>{
     const t = document.createElement('div');
-    t.className = 'tag'+(state[key].includes(opt)?' active':'');
-    t.textContent = opt;
-    t.onclick = ()=>{
-      t.classList.toggle('active');
-      if(state[key].includes(opt)) state[key] = state[key].filter(x=>x!==opt);
-      else state[key].push(opt);
-    };
+    t.className = 'tag'+(state[key].includes(opt)?' active':'')+(editing?' deletable':'');
+    if(editing){
+      t.innerHTML = esc(opt) + `<button class="tag-del" onclick="deleteCustomTag('${key}','${opt.replace(/'/g,"\'")}',event)">×</button>`;
+    } else {
+      t.textContent = opt;
+      t.onclick = ()=>{
+        t.classList.toggle('active');
+        if(state[key].includes(opt)) state[key] = state[key].filter(x=>x!==opt);
+        else state[key].push(opt);
+      };
+    }
     wrap.appendChild(t);
   });
+}
+
+function toggleTagEdit(key){
+  tagEditMode[key] = !tagEditMode[key];
+  const btn = document.getElementById(key+'EditBtn');
+  const row = document.getElementById(key+'AddRow');
+  btn.textContent = tagEditMode[key] ? 'Fertig' : 'Bearbeiten';
+  btn.classList.toggle('active', tagEditMode[key]);
+  row.style.display = tagEditMode[key] ? 'flex' : 'none';
+  buildTagGrid(key+'Tag', [], key);
+  if(tagEditMode[key]) setTimeout(()=>document.getElementById(key+'AddInput')?.focus(),200);
+}
+
+function addCustomTag(key){
+  const input = document.getElementById(key+'AddInput');
+  const val = input.value.trim();
+  if(!val) return;
+  const opts = getTagOpts(key);
+  if(opts.includes(val)){ input.value=''; return; }
+  opts.push(val);
+  saveTagOpts(key, opts);
+  input.value='';
+  buildTagGrid(key+'Tag', [], key);
+  showToast('Tag hinzugefügt!');
+}
+
+function deleteCustomTag(key, opt, e){
+  e.stopPropagation();
+  const opts = getTagOpts(key).filter(o=>o!==opt);
+  saveTagOpts(key, opts);
+  state[key] = state[key].filter(o=>o!==opt);
+  buildTagGrid(key+'Tag', [], key);
 }
 
 async function saveToday(){
