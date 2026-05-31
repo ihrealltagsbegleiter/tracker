@@ -661,6 +661,75 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .med-sugg-item:last-child{border-bottom:none}
 .med-sugg-item:active{background:var(--bg3)}
 
+
+/* ─── DEEP WORK ─────────────────────────────────────────────── */
+.deep-work-wrap{padding:0.4rem 0}
+.deep-work-row{display:flex;align-items:center;gap:0.75rem}
+.deep-work-blocks{display:flex;gap:0.3rem;flex-wrap:wrap;flex:1}
+.dw-block{
+  width:32px;height:32px;border-radius:6px;border:1.5px solid var(--border2);
+  background:var(--bg3);cursor:pointer;transition:all 0.12s;
+  display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--text3);
+}
+.dw-block.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.dw-block:active{transform:scale(0.92)}
+.dw-total{font-family:'Syne Mono',monospace;font-size:1.1rem;color:var(--blue);min-width:40px;text-align:right}
+.dw-unit{font-size:0.65rem;color:var(--text3);text-align:right;margin-top:1px}
+.dw-goal-row{display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem}
+.dw-goal-label{font-size:0.68rem;color:var(--text3)}
+.dw-progress{flex:1;height:4px;background:var(--bg3);border-radius:2px;margin:0 0.6rem;overflow:hidden}
+.dw-progress-fill{height:100%;border-radius:2px;background:var(--blue);transition:width 0.4s ease}
+
+/* ─── PROJEKT-TAGS AN FRÖSCHE ────────────────────────────────── */
+.frog-project{
+  font-size:0.65rem;font-weight:700;letter-spacing:0.05em;
+  padding:0.15rem 0.5rem;border-radius:3px;
+  background:rgba(155,114,232,0.15);color:var(--purple);border:1px solid rgba(155,114,232,0.25);
+}
+.project-select{
+  flex:1;min-width:100px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.55rem 0.75rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.8rem;outline:none;cursor:pointer;
+}
+
+/* ─── WOCHENRÜCKBLICK ────────────────────────────────────────── */
+.review-card{
+  background:linear-gradient(135deg,#0e1520 0%,#12192a 100%);
+  border:1px solid #1e3050;border-radius:var(--r);padding:1rem;margin-bottom:0.75rem;
+}
+.review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.review-title{font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--purple)}
+.review-week{font-family:'Syne Mono',monospace;font-size:0.68rem;color:var(--text3)}
+.review-section{margin-bottom:0.9rem}
+.review-section-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--text3);margin-bottom:0.4rem}
+.review-textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.65rem 0.85rem;color:var(--text);
+  font-family:'Lora',serif;font-size:0.84rem;font-style:italic;
+  line-height:1.6;resize:none;outline:none;-webkit-appearance:none;min-height:70px;
+}
+.review-textarea:focus{border-color:var(--purple)}
+.review-textarea::placeholder{color:var(--text3);font-style:italic}
+.review-save-btn{
+  width:100%;padding:0.75rem;background:var(--purple);color:#fff;
+  border:none;border-radius:var(--r2);font-family:'Syne',sans-serif;
+  font-size:0.84rem;font-weight:800;cursor:pointer;letter-spacing:0.04em;
+  text-transform:uppercase;transition:all 0.15s;margin-top:0.25rem;
+}
+.review-save-btn:active{transform:scale(0.98)}
+.review-save-btn.saved{background:var(--green)}
+.review-stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-bottom:0.9rem}
+.review-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:0.55rem;text-align:center}
+.review-stat-num{font-family:'Syne Mono',monospace;font-size:1rem;color:var(--purple)}
+.review-stat-lbl{font-size:0.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px}
+.review-past{margin-top:0.75rem}
+.review-past-item{
+  padding:0.65rem;background:var(--bg3);border-radius:var(--r2);margin-bottom:0.4rem;
+  border-left:3px solid var(--purple);cursor:pointer;
+}
+.review-past-week{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-bottom:0.3rem}
+.review-past-preview{font-size:0.78rem;color:var(--text2);font-family:'Lora',serif;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 </style>
 </head>
 <body>
@@ -883,6 +952,25 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
         </div>
       </div>
+
+      <!-- Deep Work -->
+      <div class="card">
+        <div class="card-title">DEEP WORK</div>
+        <div class="deep-work-wrap">
+          <div class="deep-work-row">
+            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
+            <div>
+              <div class="dw-total" id="dwTotal">0.0</div>
+              <div class="dw-unit">Stunden</div>
+            </div>
+          </div>
+          <div class="dw-goal-row">
+            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
+            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
+            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
+          </div>
+        </div>
+      </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
     </div>
 
@@ -922,9 +1010,36 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     </div>
 
 
+    <!-- VIEW: WOCHENRÜCKBLICK -->
+    <div class="view" id="view-woche">
+      <div class="review-card" id="reviewCard">
+        <div class="review-header">
+          <span class="review-title">📋 Wochenrückblick</span>
+          <span class="review-week" id="reviewWeekLabel"></span>
+        </div>
+        <div class="review-stats-grid" id="reviewStatsGrid"></div>
+        <div class="review-section">
+          <div class="review-section-label">✅ Was lief diese Woche gut?</div>
+          <textarea class="review-textarea" id="reviewGood" placeholder="Was bin ich stolz auf? Was hat geklappt?…"></textarea>
+        </div>
+        <div class="review-section">
+          <div class="review-section-label">🔧 Was möchte ich verbessern?</div>
+          <textarea class="review-textarea" id="reviewImprove" placeholder="Was hat mich gebremst? Was ändern?…"></textarea>
+        </div>
+        <div class="review-section">
+          <div class="review-section-label">🎯 Fokus nächste Woche</div>
+          <textarea class="review-textarea" id="reviewFocus" placeholder="Was ist mein wichtigstes Ziel für nächste Woche?…"></textarea>
+        </div>
+        <button class="review-save-btn" id="reviewSaveBtn" onclick="saveWeekReview()">Rückblick speichern</button>
+      </div>
+      <div class="section-title">FRÜHERE RÜCKBLICKE</div>
+      <div id="reviewHistory"></div>
+    </div>
+
     <!-- VIEW: FRÖSCHE -->
     <div class="view" id="view-froesche">
 
+      <div style="text-align:right;margin-bottom:0.5rem"><button class="tag-edit-btn" onclick="manageProjects()">⊞ Projekte</button></div>
       <div class="frog-quote">
         „Iss den Frosch als erstes am Morgen – dann kann dir den Rest des Tages nichts Schlimmeres passieren." – Mark Twain
       </div>
@@ -953,6 +1068,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
               <option value="1">😊 Kein Problem</option>
             </select>
           </div>
+        </div>
+        <div style="margin-bottom:0.5rem">
+          <div class="frog-opt-label">Projekt (optional)</div>
+          <select class="project-select" id="frogProject">
+            <option value="">– Kein Projekt –</option>
+          </select>
         </div>
         <button class="frog-submit" onclick="addFrog()">Frosch hinzufügen</button>
       </div>
@@ -987,6 +1108,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
                 <option value="1">😊 Kein Problem</option>
               </select>
             </div>
+          </div>
+          <div style="margin-bottom:0.5rem">
+            <div class="frog-opt-label">Projekt (optional)</div>
+            <select class="project-select" id="tomorrowProject">
+              <option value="">– Kein Projekt –</option>
+            </select>
           </div>
           <button class="frog-submit" style="background:#5b8dee" onclick="addTomorrowFrog()">Für morgen einplanen</button>
         </div>
@@ -1088,6 +1215,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <span class="nav-icon">🐸</span>
       <span class="nav-label">Frösche</span>
     </button>
+    <button class="nav-btn" onclick="showView('woche',this)">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Woche</span>
+    </button>
     <button class="nav-btn" onclick="showView('einstellungen',this)">
       <span class="nav-icon">⚙</span>
       <span class="nav-label">Export</span>
@@ -1165,6 +1296,7 @@ const TODAY = new Date().toISOString().slice(0,10);
 let state = {
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
+  deepWork: 0,
   gratitude: ['','',''],  meds_taken: [],
   meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
 };
@@ -1199,6 +1331,7 @@ async function init(){
     if(todayData.meals) { state.meals = todayData.meals; renderAllMeals(); }
     if(todayData.gratitude) { state.gratitude = todayData.gratitude; restoreGratitude(); }
     if(todayData.moods) buildMoodGrid();
+    if(todayData.deepWork !== undefined) renderDeepWork();
     if(todayData.meds_taken) renderMedList();
     if(todayData.pain_tags) buildTagGrid('painTag', [], 'pain');
     // Mark save button
@@ -1220,6 +1353,8 @@ async function init(){
   buildTagGrid('painTag', [], 'pain');
   buildMoodGrid();
   renderMedList();
+  renderDeepWork();
+  populateProjectSelects();
   buildTagGrid('negTag', NEG_OPTS, 'neg');
   buildTagGrid('aktTag', AKT_OPTS, 'akt');
   updateHeader();
@@ -1653,7 +1788,8 @@ function showView(name, btn){
   btn.classList.add('active');
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
-  if(name==='froesche') renderFrogs();
+  if(name==='froesche'){ renderFrogs(); populateProjectSelects(); }
+  if(name==='woche') renderWeekReview();
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
 }
@@ -1745,6 +1881,8 @@ function exportJSON(){
     notifPrefs,
     medSchedule: getMedSchedule(),
     medMemory: getMedMemory(),
+    weekReviews: getWeekReviews(),
+    projects: getProjects(),
   };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
@@ -1810,6 +1948,8 @@ async function performImport(encodedData){
     if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
     if(Array.isArray(data.medSchedule)) saveMedSchedule(data.medSchedule);
     if(Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
+    if(data.weekReviews) saveWeekReviews(data.weekReviews);
+    if(Array.isArray(data.projects)) saveProjects(data.projects);
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
@@ -2566,6 +2706,268 @@ function selectMedSugg(name){
 function hideMedSugg(){
   const el=document.getElementById('medSugg');
   if(el) el.innerHTML='';
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// DEEP WORK TRACKER
+// ══════════════════════════════════════════════════════════════════
+const DW_STEP = 0.5;   // each block = 30 min
+const DW_MAX  = 12;    // max 12 blocks = 6h
+const DW_GOAL = parseInt(localStorage.getItem('dw_goal')||'4'); // hours
+
+function renderDeepWork(){
+  const wrap = document.getElementById('deepWorkBlocks');
+  if(!wrap) return;
+  const blocks = Math.round((state.deepWork||0) / DW_STEP);
+  const goal = parseInt(localStorage.getItem('dw_goal')||'4');
+  wrap.innerHTML = '';
+  for(let i=0;i<DW_MAX;i++){
+    const b = document.createElement('div');
+    b.className = 'dw-block' + (i < blocks ? ' active' : '');
+    b.title = ((i+1)*DW_STEP) + 'h';
+    b.onclick = ()=>setDeepWork(i < blocks ? i : i+1);
+    wrap.appendChild(b);
+  }
+  const h = state.deepWork||0;
+  document.getElementById('dwTotal').textContent = h.toFixed(1);
+  const pct = Math.min(100, Math.round(h/goal*100));
+  document.getElementById('dwProgressFill').style.width = pct+'%';
+  document.getElementById('dwPct').textContent = pct+'%';
+  document.getElementById('dwGoalLabel').textContent = goal+'h';
+}
+
+function setDeepWork(blocks){
+  // Toggle: clicking last active block deactivates it
+  const current = Math.round((state.deepWork||0)/DW_STEP);
+  state.deepWork = (blocks === current ? blocks-1 : blocks) * DW_STEP;
+  if(state.deepWork < 0) state.deepWork = 0;
+  renderDeepWork();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PROJEKT-TAGS
+// ══════════════════════════════════════════════════════════════════
+function getProjects(){
+  try{ return JSON.parse(localStorage.getItem('projects')||'[]'); }
+  catch(e){ return []; }
+}
+function saveProjects(p){ localStorage.setItem('projects', JSON.stringify(p)); }
+
+function populateProjectSelects(){
+  const projects = getProjects();
+  ['frogProject','tomorrowProject'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">– Kein Projekt –</option>'
+      + projects.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    if(cur) el.value = cur;
+  });
+}
+
+function manageProjects(){
+  const projects = getProjects();
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">Projekte verwalten</div>
+    <div class="modal-sub">Projekte können Frösche gruppieren.</div>
+    <div id="projectList" style="margin-bottom:0.75rem">
+      ${projects.map((p,i)=>`
+        <div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+          <span style="flex:1;font-size:0.84rem">${esc(p)}</span>
+          <button onclick="deleteProject(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem">✕</button>
+        </div>`).join('')}
+      ${!projects.length?'<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Projekte.</div>':''}
+    </div>
+    <div style="display:flex;gap:0.5rem">
+      <input class="input" id="newProjectInput" placeholder="Neues Projekt…" onkeydown="if(event.key==='Enter')addProject()"/>
+      <button class="btn-primary" style="flex:0 0 auto;padding:0.75rem 1rem" onclick="addProject()">+</button>
+    </div>
+    <div class="modal-actions" style="margin-top:0.75rem">
+      <button class="btn-secondary" onclick="closeModal();populateProjectSelects()">Fertig</button>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+  setTimeout(()=>document.getElementById('newProjectInput')?.focus(),300);
+}
+
+function addProject(){
+  const val = document.getElementById('newProjectInput').value.trim();
+  if(!val) return;
+  const p = getProjects();
+  if(!p.includes(val)){ p.push(val); saveProjects(p); }
+  document.getElementById('newProjectInput').value='';
+  manageProjects();
+}
+
+function deleteProject(i){
+  const p = getProjects(); p.splice(i,1); saveProjects(p);
+  manageProjects();
+}
+
+// Patch addFrog to include project
+const _origAddFrog = addFrog;
+// ── override addFrog ──
+function addFrog(){
+  const text = document.getElementById('frogInput').value.trim();
+  if(!text) return;
+  const frogs = getFrogs(TODAY);
+  if(frogs.filter(f=>!f.done).length >= 3){ showToast('Max. 3 Frösche pro Tag!'); return; }
+  frogs.push({
+    id: Date.now().toString(), text,
+    priority: parseInt(document.getElementById('frogPriority').value),
+    dread: parseInt(document.getElementById('frogDread').value),
+    project: document.getElementById('frogProject')?.value||'',
+    done: false, created: new Date().toISOString()
+  });
+  saveFrogs(TODAY, frogs);
+  document.getElementById('frogInput').value='';
+  renderFrogs();
+  showToast('🐸 Frosch hinzugefügt!');
+}
+
+// Patch addTomorrowFrog
+function addTomorrowFrog(){
+  const text = document.getElementById('tomorrowInput').value.trim();
+  if(!text) return;
+  const key = getTomorrowKey();
+  const frogs = getFrogs(key);
+  if(frogs.filter(f=>!f.done).length >= 3){ showToast('Max. 3 Frösche für morgen!'); return; }
+  frogs.push({
+    id: Date.now().toString(), text,
+    priority: parseInt(document.getElementById('tomorrowPriority').value),
+    dread: parseInt(document.getElementById('tomorrowDread').value),
+    project: document.getElementById('tomorrowProject')?.value||'',
+    done: false, planned: true, created: new Date().toISOString()
+  });
+  saveFrogs(key, frogs);
+  document.getElementById('tomorrowInput').value='';
+  renderTomorrowFrogs();
+  updatePlanStreak();
+  showToast('🌙 Frosch für morgen geplant!');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// WOCHENRÜCKBLICK
+// ══════════════════════════════════════════════════════════════════
+function getWeekKey(date){
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun
+  const diff = d.getDate() - day + (day===0?-6:1); // Mon
+  const mon = new Date(d.setDate(diff));
+  return 'week_'+mon.toISOString().slice(0,10);
+}
+
+function getWeekReviews(){
+  try{ return JSON.parse(localStorage.getItem('week_reviews')||'{}'); }
+  catch(e){ return {}; }
+}
+function saveWeekReviews(r){ localStorage.setItem('week_reviews', JSON.stringify(r)); }
+
+function getCurrentWeekLabel(){
+  const d = new Date(TODAY);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1);
+  const mon = new Date(new Date(TODAY).setDate(diff));
+  const sun = new Date(mon); sun.setDate(sun.getDate()+6);
+  const fmt = d => d.toLocaleDateString('de',{day:'2-digit',month:'2-digit'});
+  return `KW ${getISOWeek(mon)} · ${fmt(mon)} – ${fmt(sun)}`;
+}
+
+function getISOWeek(d){
+  const date = new Date(d); date.setHours(0,0,0,0);
+  date.setDate(date.getDate()+3-(date.getDay()||7)-1+1);
+  const week1 = new Date(date.getFullYear(),0,4);
+  return 1+Math.round(((date-week1)/86400000-3+(week1.getDay()||7))/7);
+}
+
+function renderWeekReview(){
+  const wk = getWeekKey(TODAY);
+  const reviews = getWeekReviews();
+  const cur = reviews[wk]||{};
+
+  document.getElementById('reviewWeekLabel').textContent = getCurrentWeekLabel();
+
+  // Auto-fill if already saved
+  document.getElementById('reviewGood').value = cur.good||'';
+  document.getElementById('reviewImprove').value = cur.improve||'';
+  document.getElementById('reviewFocus').value = cur.focus||'';
+
+  // Week stats from allDays
+  const d = new Date(TODAY);
+  const day = d.getDay();
+  const diff = d.getDate()-day+(day===0?-6:1);
+  const monStr = new Date(new Date(TODAY).setDate(diff)).toISOString().slice(0,10);
+  const sunStr = new Date(new Date(TODAY).setDate(diff+6)).toISOString().slice(0,10);
+  const weekDays = allDays.filter(x=>x.date>=monStr&&x.date<=sunStr);
+
+  const avgWb = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.wellbeing||5),0)/weekDays.length).toFixed(1) : '–';
+  const avgSleep = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.sleep||0),0)/weekDays.length).toFixed(1) : '–';
+  const totalDW = weekDays.reduce((s,x)=>s+(x.deepWork||0),0).toFixed(1);
+  // Frogs eaten this week
+  let frogsEaten=0;
+  for(let i=0;i<7;i++){
+    const ds = new Date(new Date(monStr)); ds.setDate(ds.getDate()+i);
+    frogsEaten += getFrogs(ds.toISOString().slice(0,10)).filter(f=>f.done).length;
+  }
+
+  document.getElementById('reviewStatsGrid').innerHTML = `
+    <div class="review-stat"><div class="review-stat-num">${avgWb}</div><div class="review-stat-lbl">Ø Wohlbefinden</div></div>
+    <div class="review-stat"><div class="review-stat-num">${avgSleep}h</div><div class="review-stat-lbl">Ø Schlaf</div></div>
+    <div class="review-stat"><div class="review-stat-num">${totalDW}h</div><div class="review-stat-lbl">Deep Work</div></div>
+    <div class="review-stat"><div class="review-stat-num">${frogsEaten}</div><div class="review-stat-lbl">Frösche</div></div>
+    <div class="review-stat"><div class="review-stat-num">${weekDays.length}/7</div><div class="review-stat-lbl">Einträge</div></div>
+    <div class="review-stat"><div class="review-stat-num">${weekDays.filter(x=>x.akt&&x.akt.length).length}</div><div class="review-stat-lbl">Aktiv-Tage</div></div>
+  `;
+
+  // History
+  const history = Object.entries(reviews)
+    .filter(([k])=>k!==wk)
+    .sort((a,b)=>b[0].localeCompare(a[0]))
+    .slice(0,8);
+  const histEl = document.getElementById('reviewHistory');
+  if(!history.length){ histEl.innerHTML='<div class="empty" style="padding:1.5rem"><div class="empty-text">Noch keine früheren Rückblicke.</div></div>'; return; }
+  histEl.innerHTML = history.map(([k,r])=>`
+    <div class="review-past-item" onclick="showPastReview('${k}')">
+      <div class="review-past-week">${k.replace('week_','')}</div>
+      <div class="review-past-preview">${esc(r.good||r.focus||'–')}</div>
+    </div>`).join('');
+}
+
+function saveWeekReview(){
+  const wk = getWeekKey(TODAY);
+  const reviews = getWeekReviews();
+  reviews[wk] = {
+    good: document.getElementById('reviewGood').value,
+    improve: document.getElementById('reviewImprove').value,
+    focus: document.getElementById('reviewFocus').value,
+    saved: new Date().toISOString()
+  };
+  saveWeekReviews(reviews);
+  const btn = document.getElementById('reviewSaveBtn');
+  btn.textContent='✓ Gespeichert'; btn.classList.add('saved');
+  setTimeout(()=>{ btn.textContent='Rückblick speichern'; btn.classList.remove('saved'); },2500);
+  showToast('Rückblick gespeichert!');
+  renderWeekReview();
+}
+
+function showPastReview(key){
+  const r = getWeekReviews()[key]||{};
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">${key.replace('week_','KW – ')}</div>
+    <div style="margin-bottom:0.75rem">
+      <div class="review-section-label" style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">✅ Was lief gut</div>
+      <div style="font-family:'Lora',serif;font-style:italic;font-size:0.84rem;color:var(--text2);line-height:1.6">${esc(r.good||'–')}</div>
+    </div>
+    <div style="margin-bottom:0.75rem">
+      <div class="review-section-label" style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">🔧 Verbesserungen</div>
+      <div style="font-family:'Lora',serif;font-style:italic;font-size:0.84rem;color:var(--text2);line-height:1.6">${esc(r.improve||'–')}</div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <div class="review-section-label" style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">🎯 Fokus nächste Woche</div>
+      <div style="font-family:'Lora',serif;font-style:italic;font-size:0.84rem;color:var(--text2);line-height:1.6">${esc(r.focus||'–')}</div>
+    </div>
+    <div class="modal-actions"><button class="btn-secondary" onclick="closeModal()">Schließen</button></div>`;
+  document.getElementById('modal').style.display='flex';
 }
 
 </script>
