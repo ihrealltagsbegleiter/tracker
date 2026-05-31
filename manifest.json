@@ -1,26 +1,27 @@
 {
-  "name": "Sprachnotiz – Ihre Alltagsbegleiter",
-  "short_name": "Sprachnotiz",
-  "description": "Sprachnotizen transkribieren und zusammenfassen",
-  "start_url": "/",
+  "name": "Daily Tracker – Ihre Alltagsbegleiter",
+  "short_name": "Tracker",
+  "description": "Tägliches Wohlbefinden, Routinen, Ernährung und Frösche tracken",
+  "start_url": "/tracker/",
+  "scope": "/tracker/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#0a0a0f",
+  "background_color": "#0c0f14",
+  "theme_color": "#0c0f14",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/tracker/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/tracker/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": ["health", "productivity", "lifestyle"],
   "lang": "de"
 }
