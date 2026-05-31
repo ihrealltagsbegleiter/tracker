@@ -928,6 +928,35 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 .thought-to-frog:active{background:var(--gold);color:#000}
 
+
+/* ─── KOLLABIERBARE SEKTIONEN ──────────────────────────────── */
+.section-block{margin-bottom:0.5rem}
+.section-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.75rem 1rem;background:var(--bg2);
+  border:1px solid var(--border);border-radius:var(--r);
+  cursor:pointer;transition:border-color 0.15s;
+  user-select:none;-webkit-user-select:none;
+}
+.section-toggle:active{background:var(--bg3)}
+.section-toggle.open{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
+.section-toggle-left{display:flex;align-items:center;gap:0.6rem}
+.section-toggle-icon{font-size:1rem}
+.section-toggle-title{font-size:0.82rem;font-weight:800;letter-spacing:0.02em;color:var(--text)}
+.section-toggle-meta{font-size:0.65rem;color:var(--text3);margin-top:1px}
+.section-toggle-arrow{font-size:0.75rem;color:var(--text3);transition:transform 0.2s;display:inline-block}
+.section-toggle.open .section-toggle-arrow{transform:rotate(180deg)}
+.section-body{
+  background:var(--bg2);border:1px solid var(--border);border-top:none;
+  border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);
+  padding:0.6rem 0.75rem 0.25rem;
+  overflow:hidden;
+  transition:max-height 0.3s ease,opacity 0.2s ease;
+}
+.section-body.collapsed{max-height:0!important;padding:0;border:none;opacity:0}
+.section-body .card{background:var(--bg3);border-color:var(--border);margin-bottom:0.5rem}
+.section-body>.card:last-child{margin-bottom:0.25rem}
+
 </style>
 </head>
 <body>
@@ -951,7 +980,19 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
 
-      <!-- Gedanken / Brain Dump -->
+    <div class="section-block">
+      <div class="section-toggle open" id="stoggle-gedanken" onclick="toggleSection('gedanken')">
+        <div class="section-toggle-left">
+          <span class="section-toggle-icon">🧠</span>
+          <div>
+            <div class="section-toggle-title">Kopf &amp; Gedanken</div>
+            <div class="section-toggle-meta">Dump · Erfolge · Dankbarkeit</div>
+          </div>
+        </div>
+        <span class="section-toggle-arrow">▼</span>
+      </div>
+      <div class="section-body" id="sbody-gedanken" style="max-height:4000px">
+        <!-- Gedanken / Brain Dump -->
       <div class="card" id="thoughtsCard">
         <div class="card-title">🧠 GEDANKEN-DUMP</div>
 
@@ -981,7 +1022,86 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <button class="thought-add-btn" onclick="addThought()">Ablegen →</button>
         </div>
       </div>
-      <!-- Wellbeing -->
+<!-- Erfolge -->
+      <div class="card" id="winsCard">
+        <div class="card-title">🏆 KLEINE ERFOLGE</div>
+        <div class="win-list" id="winList"></div>
+        <div class="win-add-row">
+          <input class="win-input" id="winInput"
+            placeholder="Was hast du heute erreicht?…"
+            autocomplete="off"
+            oninput="showWinSugg()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
+          />
+          <button class="win-add-btn" onclick="addWin()">+</button>
+        </div>
+        <div class="win-sugg" id="winSugg"></div>
+      </div>
+<!-- Dankbarkeit -->
+      <div class="card">
+        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
+        <div id="gratitudeList">
+          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="section-block">
+      <div class="section-toggle open" id="stoggle-produktiv" onclick="toggleSection('produktiv')">
+        <div class="section-toggle-left">
+          <span class="section-toggle-icon">🎯</span>
+          <div>
+            <div class="section-toggle-title">Produktivität</div>
+            <div class="section-toggle-meta">Deep Work · Frösche</div>
+          </div>
+        </div>
+        <span class="section-toggle-arrow">▼</span>
+      </div>
+      <div class="section-body" id="sbody-produktiv" style="max-height:4000px">
+        <!-- Deep Work -->
+      <div class="card">
+        <div class="card-title">DEEP WORK</div>
+        <div class="deep-work-wrap">
+          <div class="deep-work-row">
+            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
+            <div>
+              <div class="dw-total" id="dwTotal">0.0</div>
+              <div class="dw-unit">Stunden</div>
+            </div>
+          </div>
+          <div class="dw-goal-row">
+            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
+            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
+            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frösche Heute Inline -->
+      <div class="card">
+        <div class="card-title">🐸 FRÖSCHE HEUTE</div>
+        <div id="frogListInline"></div>
+        <div style="text-align:right;margin-top:0.4rem">
+          <button class="tag-edit-btn" onclick="showView('froesche',document.querySelector('.nav-btn:nth-child(4)'))">Alle Frösche →</button>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="section-block">
+      <div class="section-toggle " id="stoggle-wiegehts" onclick="toggleSection('wiegehts')">
+        <div class="section-toggle-left">
+          <span class="section-toggle-icon">💚</span>
+          <div>
+            <div class="section-toggle-title">Wie geht's mir?</div>
+            <div class="section-toggle-meta">Wellbeing · Stimmung · Energie · Schmerzen</div>
+          </div>
+        </div>
+        <span class="section-toggle-arrow">▼</span>
+      </div>
+      <div class="section-body collapsed" id="sbody-wiegehts" style="max-height:0">
+        <!-- Wellbeing -->
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
         <div class="wellbeing-display">
@@ -993,27 +1113,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="slider-labels"><span>1 – Sehr schlecht</span><span>10 – Ausgezeichnet</span></div>
         </div>
       </div>
-
-
-      <!-- Stimmung -->
+<!-- Stimmung -->
       <div class="card">
         <div class="card-title">STIMMUNG</div>
         <div class="mood-grid" id="moodGrid"></div>
       </div>
-      <!-- Schlaf -->
-      <div class="card">
-        <div class="card-title">SCHLAF</div>
-        <div class="step-row">
-          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
-          <div>
-            <div class="step-val" id="sleepVal">7.0</div>
-            <div class="step-unit">Stunden</div>
-          </div>
-          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
-        </div>
-      </div>
-
-      <!-- HRV & Energie -->
+<!-- HRV & Energie -->
       <div class="metrics-grid" style="margin-bottom:0.75rem">
         <div class="card" style="margin-bottom:0">
           <div class="card-title">HRV</div>
@@ -1038,8 +1143,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
         </div>
       </div>
-
-      <!-- Schmerzen -->
+<!-- Schmerzen -->
       <div class="card">
         <div class="card-title">SCHMERZEN (0 = keine)</div>
         <div class="pain-dots" id="painDots"></div>
@@ -1056,8 +1160,33 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
       </div>
-
-      <!-- Mahlzeiten -->
+      </div>
+    </div>
+    <div class="section-block">
+      <div class="section-toggle " id="stoggle-koerper" onclick="toggleSection('koerper')">
+        <div class="section-toggle-left">
+          <span class="section-toggle-icon">🌙</span>
+          <div>
+            <div class="section-toggle-title">Körper &amp; Schlaf</div>
+            <div class="section-toggle-meta">Schlaf · Mahlzeiten · Aktivität · Meds</div>
+          </div>
+        </div>
+        <span class="section-toggle-arrow">▼</span>
+      </div>
+      <div class="section-body collapsed" id="sbody-koerper" style="max-height:0">
+        <!-- Schlaf -->
+      <div class="card">
+        <div class="card-title">SCHLAF</div>
+        <div class="step-row">
+          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
+          <div>
+            <div class="step-val" id="sleepVal">7.0</div>
+            <div class="step-unit">Stunden</div>
+          </div>
+          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
+        </div>
+      </div>
+<!-- Mahlzeiten -->
       <div class="card" id="mealCard">
         <div class="card-title">MAHLZEITEN</div>
 
@@ -1118,8 +1247,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="meal-suggestions" id="sugg-snacks"></div>
         </div>
       </div>
-
-      <!-- Ernährungsqualität -->
+<!-- Ernährungsqualität -->
       <div class="card">
         <div class="tag-group-header">
           <div class="card-title" style="margin-bottom:0">ERNÄHRUNGSQUALITÄT</div>
@@ -1131,8 +1259,44 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <button class="tag-add-submit" onclick="addCustomTag('ern')">+</button>
         </div>
       </div>
-
-      <!-- Was lief nicht gut -->
+<!-- Aktivität -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
+          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="aktTag"></div>
+        <div class="tag-add-row" id="aktAddRow" style="display:none">
+          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
+        </div>
+      </div>
+<!-- Medikamente & Supplements -->
+      <div class="card">
+        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
+        <div id="medList"></div>
+        <div class="med-add-row">
+          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
+          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
+          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
+        </div>
+        <div id="medSugg" class="med-sugg"></div>
+      </div>
+      </div>
+    </div>
+    <div class="section-block">
+      <div class="section-toggle " id="stoggle-notiz" onclick="toggleSection('notiz')">
+        <div class="section-toggle-left">
+          <span class="section-toggle-icon">📝</span>
+          <div>
+            <div class="section-toggle-title">Tagesnotiz</div>
+            <div class="section-toggle-meta">Was lief nicht gut · Freie Notiz</div>
+          </div>
+        </div>
+        <span class="section-toggle-arrow">▼</span>
+      </div>
+      <div class="section-body collapsed" id="sbody-notiz" style="max-height:0">
+        <!-- Was lief nicht gut -->
       <div class="card">
         <div class="tag-group-header">
           <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
@@ -1145,81 +1309,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
         <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
       </div>
-
-      <!-- Aktivität -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
-          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="aktTag"></div>
-        <div class="tag-add-row" id="aktAddRow" style="display:none">
-          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
-        </div>
       </div>
-
-
-      <!-- Medikamente & Supplements -->
-      <div class="card">
-        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
-        <div id="medList"></div>
-        <div class="med-add-row">
-          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
-          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
-          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
-        </div>
-        <div id="medSugg" class="med-sugg"></div>
-      </div>
-
-      <!-- Dankbarkeit -->
-      <div class="card">
-        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
-        <div id="gratitudeList">
-          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
-        </div>
-      </div>
-
-      <!-- Deep Work -->
-      <div class="card">
-        <div class="card-title">DEEP WORK</div>
-        <div class="deep-work-wrap">
-          <div class="deep-work-row">
-            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
-            <div>
-              <div class="dw-total" id="dwTotal">0.0</div>
-              <div class="dw-unit">Stunden</div>
-            </div>
-          </div>
-          <div class="dw-goal-row">
-            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
-            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
-            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Erfolge -->
-      <div class="card" id="winsCard">
-        <div class="card-title">🏆 KLEINE ERFOLGE</div>
-        <div class="win-list" id="winList"></div>
-        <div class="win-add-row">
-          <input class="win-input" id="winInput"
-            placeholder="Was hast du heute erreicht?…"
-            autocomplete="off"
-            oninput="showWinSugg()"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
-          />
-          <button class="win-add-btn" onclick="addWin()">+</button>
-        </div>
-        <div class="win-sugg" id="winSugg"></div>
-      </div>
-
-      <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
     </div>
-
+      <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
+    
     <!-- VIEW: ROUTINEN -->
     <div class="view" id="view-routinen">
       <div class="section-title">HEUTE</div>
@@ -1622,6 +1715,8 @@ async function init(){
   renderInsights();
   updateStreak();
   updatePlanStreak();
+  restoreSectionStates();
+  renderFrogListInline();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2750,6 +2845,7 @@ function renderFrogs(){
   document.getElementById('frogAddCard').style.opacity = activeFrogs>=3?'0.4':'1';
   renderTomorrowFrogs();
   updatePlanStreak();
+  renderFrogListInline();
 }
 
 function getFrogStreak(){
@@ -3652,6 +3748,80 @@ function thoughtToTomorrowFrog(id){
   closeModal();
   renderThoughts();
   showToast('🌙 Für morgen eingeplant!');
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// KOLLABIERBARE SEKTIONEN
+// ══════════════════════════════════════════════════════════════════
+// Persist open/closed state
+function getSectionState(){
+  try{ return JSON.parse(localStorage.getItem('section_state')||'{}'); }
+  catch(e){ return {}; }
+}
+function toggleSection(sid){
+  const toggle = document.getElementById('stoggle-'+sid);
+  const body   = document.getElementById('sbody-'+sid);
+  if(!toggle||!body) return;
+  const isOpen = toggle.classList.contains('open');
+  if(isOpen){
+    body.style.maxHeight = body.scrollHeight+'px';
+    requestAnimationFrame(()=>{ body.style.maxHeight='0'; body.style.opacity='0'; });
+    toggle.classList.remove('open');
+    body.classList.add('collapsed');
+  } else {
+    body.classList.remove('collapsed');
+    body.style.maxHeight='0'; body.style.opacity='0';
+    requestAnimationFrame(()=>{ body.style.maxHeight='4000px'; body.style.opacity='1'; });
+    toggle.classList.add('open');
+  }
+  // Persist
+  const state = getSectionState();
+  state[sid] = !isOpen;
+  localStorage.setItem('section_state', JSON.stringify(state));
+}
+
+function restoreSectionStates(){
+  const state = getSectionState();
+  // Defaults: gedanken=open, produktiv=open, rest=closed
+  const defaults = {gedanken:true, produktiv:true, wiegehts:false, koerper:false, notiz:false};
+  Object.entries({...defaults,...state}).forEach(([sid,open])=>{
+    const toggle = document.getElementById('stoggle-'+sid);
+    const body   = document.getElementById('sbody-'+sid);
+    if(!toggle||!body) return;
+    if(open){
+      toggle.classList.add('open');
+      body.classList.remove('collapsed');
+      body.style.maxHeight='4000px';
+      body.style.opacity='1';
+    } else {
+      toggle.classList.remove('open');
+      body.classList.add('collapsed');
+      body.style.maxHeight='0';
+      body.style.opacity='0';
+    }
+  });
+}
+
+// Inline frog list in Produktivität section
+function renderFrogListInline(){
+  const el = document.getElementById('frogListInline');
+  if(!el) return;
+  const frogs = getFrogs(TODAY);
+  if(!frogs.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche für heute.</div>';
+    return;
+  }
+  const sorted = [...frogs].sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return a.priority-b.priority;
+  });
+  el.innerHTML = sorted.map(f=>`
+    <div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+      <div onclick="toggleFrog('${f.id}');renderFrogListInline()" style="width:22px;height:22px;border-radius:50%;border:2px solid ${f.done?'var(--green)':'var(--border2)'};background:${f.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;cursor:pointer;flex-shrink:0;color:#fff">${f.done?'✓':''}</div>
+      <div style="flex:1;font-size:0.82rem;font-weight:600;${f.done?'text-decoration:line-through;color:var(--text3)':''}">${esc(f.text)}</div>
+      <span style="font-size:0.65rem;color:${['','var(--red)','var(--gold)','var(--blue)'][f.priority]}">${['','●','●','●'][f.priority]}</span>
+    </div>`).join('');
 }
 
 </script>
