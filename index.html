@@ -930,60 +930,60 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
 
 /* ─── KOLLABIERBARE SEKTIONEN ──────────────────────────────── */
-.section-block{margin-bottom:0.5rem}
-.section-toggle{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0.75rem 1rem;background:var(--bg2);
-  border:1px solid var(--border);border-radius:var(--r);
-  cursor:pointer;
-  user-select:none;-webkit-user-select:none;
-}
-.section-toggle:active{background:var(--bg3)}
-.section-toggle.open{
-  border-bottom-left-radius:0;border-bottom-right-radius:0;
-  border-bottom-color:transparent;
-}
-.section-toggle-left{display:flex;align-items:center;gap:0.6rem;pointer-events:none}
-.section-toggle-icon{font-size:1rem}
-.section-toggle-title{font-size:0.82rem;font-weight:800;letter-spacing:0.02em;color:var(--text)}
-.section-toggle-meta{font-size:0.65rem;color:var(--text3);margin-top:1px}
-.section-toggle-arrow{font-size:0.75rem;color:var(--text3);transition:transform 0.25s;display:inline-block;pointer-events:none}
-.section-toggle.open .section-toggle-arrow{transform:rotate(180deg)}
+.sec-block { margin-bottom:0.6rem }
 
-.section-body{
+.sec-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.75rem 1rem;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.sec-header.open { border-radius:var(--r) var(--r) 0 0; border-bottom-color:var(--border) }
+.sec-header:active { background:var(--bg3) }
+.sec-hl { display:flex;align-items:center;gap:0.6rem;pointer-events:none }
+.sec-icon { font-size:1rem }
+.sec-title { font-size:0.82rem;font-weight:800;color:var(--text) }
+.sec-meta { font-size:0.64rem;color:var(--text3);margin-top:1px }
+.sec-arrow { font-size:0.7rem;color:var(--text3);pointer-events:none;
+  transition:transform 0.25s;display:inline-block }
+.sec-header.open .sec-arrow { transform:rotate(180deg) }
+
+/* body: hidden by default via display:none set in HTML */
+.sec-body {
+  display:none;
   background:var(--bg2);
   border:1px solid var(--border);border-top:none;
-  border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);
-  padding:0.6rem 0.75rem 0.25rem;
+  border-radius:0 0 var(--r) var(--r);
   overflow:hidden;
-  max-height:4000px;
-  opacity:1;
-  transition:max-height 0.32s ease, opacity 0.22s ease, padding 0.22s ease;
 }
-.section-body.collapsed{
-  display:none;
-  pointer-events:none;
+.sec-body.open { display:block }
+
+/* inner animator */
+.sec-inner {
+  padding:0.6rem 0.75rem 0.3rem;
+  max-height:0;overflow:hidden;
+  transition:max-height 0.35s ease;
 }
-.section-body .card{
+.sec-body.open .sec-inner { max-height:5000px }
+
+.sec-body .card {
   background:var(--bg3);border-color:var(--border);margin-bottom:0.5rem;
 }
-.section-body>.card:last-child{margin-bottom:0.25rem}
+.sec-body .card:last-child { margin-bottom:0.25rem }
 
-/* Inline frog list */
-.frog-inline-item{
-  display:flex;align-items:center;gap:0.6rem;
-  padding:0.5rem 0;border-bottom:1px solid var(--border);
-}
-.frog-inline-item:last-child{border-bottom:none}
-.frog-inline-check{
-  width:22px;height:22px;border-radius:50%;
+/* Inline frog */
+.frog-il { display:flex;align-items:center;gap:0.6rem;
+  padding:0.5rem 0;border-bottom:1px solid var(--border) }
+.frog-il:last-child { border-bottom:none }
+.frog-il-check { width:22px;height:22px;border-radius:50%;
   border:2px solid var(--border2);flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:0.75rem;cursor:pointer;color:#fff;transition:all 0.15s;
-}
-.frog-inline-check.done{background:var(--green);border-color:var(--green)}
-.frog-inline-text{flex:1;font-size:0.82rem;font-weight:600}
-.frog-inline-text.done{text-decoration:line-through;color:var(--text3)}
+  font-size:0.75rem;cursor:pointer;color:#fff;transition:all 0.15s }
+.frog-il-check.done { background:var(--green);border-color:var(--green) }
+.frog-il-txt { flex:1;font-size:0.82rem;font-weight:600 }
+.frog-il-txt.done { text-decoration:line-through;color:var(--text3) }
 
 </style>
 </head>
@@ -1008,19 +1008,19 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
 
-    <div class="section-block">
-      <div class="section-toggle open" id="stoggle-gedanken" onclick="toggleSection('gedanken')">
-        <div class="section-toggle-left">
-          <span class="section-toggle-icon">🧠</span>
+    <div class="sec-block">
+      <div class="sec-header open" id="sh-gedanken" onclick="toggleSec('gedanken')">
+        <div class="sec-hl">
+          <span class="sec-icon">🧠</span>
           <div>
-            <div class="section-toggle-title">Kopf &amp; Gedanken</div>
-            <div class="section-toggle-meta">Dump · Erfolge · Dankbarkeit</div>
+            <div class="sec-title">Kopf &amp; Gedanken</div>
+            <div class="sec-meta">Dump · Erfolge · Dankbarkeit</div>
           </div>
         </div>
-        <span class="section-toggle-arrow">▼</span>
+        <span class="sec-arrow">▼</span>
       </div>
-      <div class="section-body" id="sbody-gedanken" style="display:block;max-height:4000px;opacity:1">
-        <!-- Gedanken / Brain Dump -->
+      <div class="sec-body open" id="sb-gedanken">
+        <div class="sec-inner"><!-- Gedanken / Brain Dump -->
       <div class="card" id="thoughtsCard">
         <div class="card-title">🧠 GEDANKEN-DUMP</div>
 
@@ -1073,22 +1073,22 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
           <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
         </div>
-      </div>
+      </div></div>
       </div>
     </div>
-    <div class="section-block">
-      <div class="section-toggle open" id="stoggle-produktiv" onclick="toggleSection('produktiv')">
-        <div class="section-toggle-left">
-          <span class="section-toggle-icon">🎯</span>
+    <div class="sec-block">
+      <div class="sec-header open" id="sh-produktiv" onclick="toggleSec('produktiv')">
+        <div class="sec-hl">
+          <span class="sec-icon">🎯</span>
           <div>
-            <div class="section-toggle-title">Produktivität</div>
-            <div class="section-toggle-meta">Deep Work · Frösche</div>
+            <div class="sec-title">Produktivität</div>
+            <div class="sec-meta">Deep Work · Frösche</div>
           </div>
         </div>
-        <span class="section-toggle-arrow">▼</span>
+        <span class="sec-arrow">▼</span>
       </div>
-      <div class="section-body" id="sbody-produktiv" style="display:block;max-height:4000px;opacity:1">
-        <!-- Deep Work -->
+      <div class="sec-body open" id="sb-produktiv">
+        <div class="sec-inner"><!-- Deep Work -->
       <div class="card">
         <div class="card-title">DEEP WORK</div>
         <div class="deep-work-wrap">
@@ -1111,24 +1111,24 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div class="card-title">🐸 FRÖSCHE HEUTE</div>
         <div id="frogListInline"></div>
         <div style="text-align:right;margin-top:0.5rem">
-          <button class="tag-edit-btn" onclick="showView('froesche',document.querySelector('[onclick*=froesche]'))">Alle Frösche →</button>
+          <button class="tag-edit-btn" onclick="showView('froesche',document.querySelector('.nav-btn:nth-child(4)'))">Alle Frösche →</button>
         </div>
-      </div>
+      </div></div>
       </div>
     </div>
-    <div class="section-block">
-      <div class="section-toggle " id="stoggle-wiegehts" onclick="toggleSection('wiegehts')">
-        <div class="section-toggle-left">
-          <span class="section-toggle-icon">💚</span>
+    <div class="sec-block">
+      <div class="sec-header " id="sh-wiegehts" onclick="toggleSec('wiegehts')">
+        <div class="sec-hl">
+          <span class="sec-icon">💚</span>
           <div>
-            <div class="section-toggle-title">Wie geht&#39;s mir?</div>
-            <div class="section-toggle-meta">Wellbeing · Stimmung · Energie · Schmerzen</div>
+            <div class="sec-title">Wie geht's mir?</div>
+            <div class="sec-meta">Wellbeing · Stimmung · Energie · Schmerzen</div>
           </div>
         </div>
-        <span class="section-toggle-arrow">▼</span>
+        <span class="sec-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-wiegehts">
-        <!-- Wellbeing -->
+      <div class="sec-body " id="sb-wiegehts">
+        <div class="sec-inner"><!-- Wellbeing -->
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
         <div class="wellbeing-display">
@@ -1186,22 +1186,22 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
         </div>
         <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
-      </div>
+      </div></div>
       </div>
     </div>
-    <div class="section-block">
-      <div class="section-toggle " id="stoggle-koerper" onclick="toggleSection('koerper')">
-        <div class="section-toggle-left">
-          <span class="section-toggle-icon">🌙</span>
+    <div class="sec-block">
+      <div class="sec-header " id="sh-koerper" onclick="toggleSec('koerper')">
+        <div class="sec-hl">
+          <span class="sec-icon">🌙</span>
           <div>
-            <div class="section-toggle-title">Körper &amp; Schlaf</div>
-            <div class="section-toggle-meta">Schlaf · Mahlzeiten · Aktivität · Meds</div>
+            <div class="sec-title">Körper &amp; Schlaf</div>
+            <div class="sec-meta">Schlaf · Mahlzeiten · Aktivität · Meds</div>
           </div>
         </div>
-        <span class="section-toggle-arrow">▼</span>
+        <span class="sec-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-koerper">
-        <!-- Schlaf -->
+      <div class="sec-body " id="sb-koerper">
+        <div class="sec-inner"><!-- Schlaf -->
       <div class="card">
         <div class="card-title">SCHLAF</div>
         <div class="step-row">
@@ -1308,22 +1308,22 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
         </div>
         <div id="medSugg" class="med-sugg"></div>
-      </div>
+      </div></div>
       </div>
     </div>
-    <div class="section-block">
-      <div class="section-toggle " id="stoggle-notiz" onclick="toggleSection('notiz')">
-        <div class="section-toggle-left">
-          <span class="section-toggle-icon">📝</span>
+    <div class="sec-block">
+      <div class="sec-header " id="sh-notiz" onclick="toggleSec('notiz')">
+        <div class="sec-hl">
+          <span class="sec-icon">📝</span>
           <div>
-            <div class="section-toggle-title">Tagesnotiz</div>
-            <div class="section-toggle-meta">Was lief nicht gut · Freie Notiz</div>
+            <div class="sec-title">Tagesnotiz</div>
+            <div class="sec-meta">Was lief nicht gut · Freie Notiz</div>
           </div>
         </div>
-        <span class="section-toggle-arrow">▼</span>
+        <span class="sec-arrow">▼</span>
       </div>
-      <div class="section-body collapsed" id="sbody-notiz">
-        <!-- Was lief nicht gut -->
+      <div class="sec-body " id="sb-notiz">
+        <div class="sec-inner"><!-- Was lief nicht gut -->
       <div class="card">
         <div class="tag-group-header">
           <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
@@ -1335,7 +1335,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
         </div>
         <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
-      </div>
+      </div></div>
       </div>
     </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
@@ -1742,7 +1742,7 @@ async function init(){
   renderInsights();
   updateStreak();
   updatePlanStreak();
-  restoreSectionStates();
+  restoreSecs();
   renderFrogListInline();
 }
 
@@ -3778,74 +3778,55 @@ function thoughtToTomorrowFrog(id){
 }
 
 
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 // KOLLABIERBARE SEKTIONEN
-// ══════════════════════════════════════════════════════════════════
-function getSectionState(){
-  try{ return JSON.parse(localStorage.getItem('section_state')||'{}'); }
-  catch(e){ return {}; }
+// ══════════════════════════════════════════════════════════════
+function toggleSec(sid){
+  const hdr  = document.getElementById('sh-'+sid);
+  const body = document.getElementById('sb-'+sid);
+  if(!hdr||!body) return;
+  const opening = !body.classList.contains('open');
+  body.classList.toggle('open', opening);
+  hdr.classList.toggle('open', opening);
+  // Persist
+  try{
+    const s=JSON.parse(localStorage.getItem('sec_st')||'{}');
+    s[sid]=opening;
+    localStorage.setItem('sec_st',JSON.stringify(s));
+  }catch(e){}
 }
 
-function toggleSection(sid){
-  const toggle = document.getElementById('stoggle-'+sid);
-  const body   = document.getElementById('sbody-'+sid);
-  if(!toggle||!body) return;
-  const opening = !toggle.classList.contains('open');
-  if(opening){
-    body.style.display = 'block';
-    body.classList.remove('collapsed');
-    body.getBoundingClientRect();
-    body.style.maxHeight = '4000px';
-    body.style.opacity   = '1';
-    toggle.classList.add('open');
-  } else {
-    body.style.maxHeight = '0';
-    body.style.opacity   = '0';
-    toggle.classList.remove('open');
-    setTimeout(()=>{ body.classList.add('collapsed'); body.style.display=''; }, 340);
-  }
-  const s = getSectionState(); s[sid]=opening;
-  localStorage.setItem('section_state', JSON.stringify(s));
-}
-
-function restoreSectionStates(){
-  const defaults = {gedanken:true,produktiv:true,wiegehts:false,koerper:false,notiz:false};
-  const state = {...defaults,...getSectionState()};
-  Object.entries(state).forEach(([sid,open])=>{
-    const toggle = document.getElementById('stoggle-'+sid);
-    const body   = document.getElementById('sbody-'+sid);
-    if(!toggle||!body) return;
-    if(open){
-      toggle.classList.add('open');
-      body.classList.remove('collapsed');
-      body.style.display   = 'block';
-      body.style.maxHeight = '4000px';
-      body.style.opacity   = '1';
-    } else {
-      toggle.classList.remove('open');
-      body.classList.add('collapsed');
-      body.style.display = '';
-    }
+function restoreSecs(){
+  const def={gedanken:true,produktiv:true,wiegehts:false,koerper:false,notiz:false};
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem('sec_st')||'{}');}catch(e){}
+  const st={...def,...saved};
+  Object.entries(st).forEach(([sid,open])=>{
+    const hdr  = document.getElementById('sh-'+sid);
+    const body = document.getElementById('sb-'+sid);
+    if(!hdr||!body) return;
+    body.classList.toggle('open', open);
+    hdr.classList.toggle('open', open);
   });
 }
 
 function renderFrogListInline(){
-  const el = document.getElementById('frogListInline');
+  const el=document.getElementById('frogListInline');
   if(!el) return;
-  const frogs = getFrogs(TODAY);
+  const frogs=getFrogs(TODAY);
   if(!frogs.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche. Im Frösche-Tab hinzufügen.</div>';
+    el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche für heute.</div>';
     return;
   }
-  const sorted = [...frogs].sort((a,b)=>a.done===b.done?a.priority-b.priority:a.done?1:-1);
-  el.innerHTML = sorted.map(f=>`
-    <div class="frog-inline-item">
-      <div class="frog-inline-check${f.done?' done':''}"
+  const sorted=[...frogs].sort((a,b)=>a.done===b.done?a.priority-b.priority:a.done?1:-1);
+  el.innerHTML=sorted.map(f=>`
+    <div class="frog-il">
+      <div class="frog-il-check${f.done?' done':''}"
            onclick="toggleFrog('${f.id}');renderFrogListInline()">
         ${f.done?'✓':''}
       </div>
-      <div class="frog-inline-text${f.done?' done':''}">${esc(f.text)}</div>
-      <span style="font-size:0.75rem;color:${{1:'var(--red)',2:'var(--gold)',3:'var(--blue)'}[f.priority]||''}">●</span>
+      <div class="frog-il-txt${f.done?' done':''}">${esc(f.text)}</div>
+      <span style="color:${{1:'var(--red)',2:'var(--gold)',3:'var(--blue)'}[f.priority]||'var(--text3)'}">●</span>
     </div>`).join('');
 }
 
