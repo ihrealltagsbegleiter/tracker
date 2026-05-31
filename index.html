@@ -1775,14 +1775,14 @@ async function init(){
     }
   }
   buildPainDots();
-  buildTagGrid('ernTag', ERN_OPTS, 'ern');
+  buildTagGrid('ernTag', [], 'ern');
   buildTagGrid('painTag', [], 'pain');
   buildMoodGrid();
   renderMedList();
   renderDeepWork();
   populateProjectSelects();
-  buildTagGrid('negTag', NEG_OPTS, 'neg');
-  buildTagGrid('aktTag', AKT_OPTS, 'akt');
+  buildTagGrid('negTag', [], 'neg');
+  buildTagGrid('aktTag', [], 'akt');
   updateHeader();
   renderRoutines();
   renderStats();
