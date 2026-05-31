@@ -538,6 +538,50 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   color:var(--text2);line-height:1.5;
 }
 
+
+/* ─── VORABEND-PLANUNG ──────────────────────────────────────── */
+.tomorrow-card{
+  background:linear-gradient(135deg,#0e1520 0%,#111a2a 100%);
+  border:1px solid #1e3050;border-radius:var(--r);
+  padding:1rem;margin-bottom:0.75rem;
+}
+.tomorrow-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+.tomorrow-title{font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#5b8dee}
+.tomorrow-streak{
+  display:flex;align-items:center;gap:0.3rem;
+  background:rgba(91,141,238,0.12);border:1px solid rgba(91,141,238,0.25);
+  padding:0.25rem 0.6rem;border-radius:20px;
+  font-size:0.72rem;font-weight:700;color:#5b8dee;font-family:'Syne Mono',monospace;
+}
+.frog-planned{
+  background:rgba(91,141,238,0.07);border:1px solid rgba(91,141,238,0.2);
+  border-radius:var(--r2);padding:0.7rem;margin-bottom:0.4rem;
+  display:flex;align-items:flex-start;gap:0.6rem;
+}
+.frog-planned-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+.frog-planned-body{flex:1;min-width:0}
+.frog-planned-text{font-size:0.84rem;font-weight:600;color:var(--text)}
+.frog-planned-meta{font-size:0.68rem;color:var(--text3);margin-top:2px}
+.frog-planned-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem;padding:0.1rem;flex-shrink:0}
+.frog-planned-del:active{color:var(--red)}
+
+.plan-done-badge{
+  display:flex;align-items:center;gap:0.5rem;
+  background:rgba(76,175,130,0.1);border:1px solid rgba(76,175,130,0.25);
+  border-radius:var(--r2);padding:0.7rem 0.9rem;
+  font-size:0.8rem;color:var(--green);font-weight:600;
+}
+
+/* Header Vorabend-Streak Badge */
+.plan-streak-badge{
+  display:flex;align-items:center;gap:0.3rem;
+  background:rgba(91,141,238,0.1);border:1px solid rgba(91,141,238,0.25);
+  padding:0.3rem 0.6rem;border-radius:20px;
+  font-size:0.72rem;font-weight:700;color:#5b8dee;letter-spacing:0.02em;
+  margin-left:0.4rem;
+}
+.header-badges{display:flex;align-items:center;gap:0.3rem}
+
 </style>
 </head>
 <body>
@@ -549,7 +593,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <div class="header-title">Daily Tracker</div>
       <div class="header-date" id="headerDate">—</div>
     </div>
-    <div class="streak-badge">🔥 <span id="streakCount">0</span></div>
+    <div class="header-badges">
+      <div class="streak-badge">🔥 <span id="streakCount">0</span></div>
+      <div class="plan-streak-badge" id="planStreakBadge" style="display:none">📋 <span id="planStreakCount">0</span></div>
+    </div>
   </div>
 
   <!-- CONTENT -->
@@ -805,11 +852,44 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
       <div id="frogList"></div>
 
+      <div class="section-title" style="padding-top:0.5rem">VORABEND-PLANUNG</div>
+      <div class="tomorrow-card" id="tomorrowCard">
+        <div class="tomorrow-header">
+          <span class="tomorrow-title">🌙 Frösche für morgen</span>
+          <span class="tomorrow-streak">📋 <span id="planStreakInline">0</span>d</span>
+        </div>
+        <div id="tomorrowList"></div>
+        <div id="tomorrowAddWrap">
+          <input class="frog-input" id="tomorrowInput" placeholder="Morgens schwierigster Task…" maxlength="200" style="margin-bottom:0.5rem"/>
+          <div class="frog-options-row">
+            <div style="flex:1;min-width:120px">
+              <div class="frog-opt-label">Priorität</div>
+              <select class="frog-select" id="tomorrowPriority">
+                <option value="1">🔴 Kritisch</option>
+                <option value="2" selected>🟡 Wichtig</option>
+                <option value="3">🔵 Sollte morgen</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <div class="frog-opt-label">Dread-Faktor</div>
+              <select class="frog-select" id="tomorrowDread">
+                <option value="5">😰 Sehr hoch</option>
+                <option value="4">😟 Hoch</option>
+                <option value="3" selected>😐 Mittel</option>
+                <option value="2">🙂 Niedrig</option>
+                <option value="1">😊 Kein Problem</option>
+              </select>
+            </div>
+          </div>
+          <button class="frog-submit" style="background:#5b8dee" onclick="addTomorrowFrog()">Für morgen einplanen</button>
+        </div>
+      </div>
+
       <div style="font-size:0.7rem;color:var(--text3);line-height:1.7;padding:0.5rem 0 1rem">
         <strong style="color:var(--text2)">Best Practice:</strong><br>
         · Max. 3 Frösche pro Tag<br>
         · Frösche morgens als erstes angehen<br>
-        · Besser: Frösche am Vorabend planen<br>
+        · Am Vorabend planen = 2× höhere Umsetzungsrate<br>
         · Keine kleinen Tasks vor dem ersten Frosch
       </div>
     </div>
@@ -1034,6 +1114,7 @@ async function init(){
   renderStats();
   renderInsights();
   updateStreak();
+  updatePlanStreak();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2027,6 +2108,8 @@ function renderFrogs(){
   // Hide add form if 3 active frogs
   const activeFrogs = frogs.filter(f=>!f.done).length;
   document.getElementById('frogAddCard').style.opacity = activeFrogs>=3?'0.4':'1';
+  renderTomorrowFrogs();
+  updatePlanStreak();
 }
 
 function getFrogStreak(){
@@ -2051,6 +2134,117 @@ function getTotalEatenFrogs(){
     cur.setDate(cur.getDate()-1);
   }
   return total;
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// VORABEND-PLANUNG
+// ══════════════════════════════════════════════════════════════════
+function getTomorrowKey(){
+  const d = new Date(); d.setDate(d.getDate()+1);
+  return d.toISOString().slice(0,10);
+}
+function getYesterdayKey(){
+  const d = new Date(); d.setDate(d.getDate()-1);
+  return d.toISOString().slice(0,10);
+}
+
+function addTomorrowFrog(){
+  const text = document.getElementById('tomorrowInput').value.trim();
+  if(!text) return;
+  const key = getTomorrowKey();
+  const frogs = getFrogs(key);
+  if(frogs.filter(f=>!f.done).length >= 3){
+    showToast('Max. 3 Frösche für morgen!'); return;
+  }
+  frogs.push({
+    id: Date.now().toString(),
+    text,
+    priority: parseInt(document.getElementById('tomorrowPriority').value),
+    dread: parseInt(document.getElementById('tomorrowDread').value),
+    done: false,
+    planned: true,  // marked as pre-planned
+    created: new Date().toISOString()
+  });
+  saveFrogs(key, frogs);
+  document.getElementById('tomorrowInput').value='';
+  renderTomorrowFrogs();
+  updatePlanStreak();
+  showToast('🌙 Frosch für morgen geplant!');
+}
+
+function deleteTomorrowFrog(id){
+  const key = getTomorrowKey();
+  saveFrogs(key, getFrogs(key).filter(f=>f.id!==id));
+  renderTomorrowFrogs();
+  updatePlanStreak();
+}
+
+function renderTomorrowFrogs(){
+  const key = getTomorrowKey();
+  const frogs = getFrogs(key);
+  const list = document.getElementById('tomorrowList');
+  if(!list) return;
+
+  const active = frogs.filter(f=>!f.done);
+  if(!active.length){
+    list.innerHTML='';
+    return;
+  }
+
+  list.innerHTML = active.map(f=>`
+    <div class="frog-planned">
+      <span class="frog-planned-icon">${['','😊','🙂','😐','😟','😰'][f.dread]}</span>
+      <div class="frog-planned-body">
+        <div class="frog-planned-text">${esc(f.text)}</div>
+        <div class="frog-planned-meta">${PRIORITY_LABELS[f.priority]}</div>
+      </div>
+      <button class="frog-planned-del" onclick="deleteTomorrowFrog('${f.id}')">×</button>
+    </div>`).join('');
+
+  if(active.length>=3){
+    document.getElementById('tomorrowAddWrap').style.opacity='0.4';
+    document.getElementById('tomorrowAddWrap').style.pointerEvents='none';
+  } else {
+    document.getElementById('tomorrowAddWrap').style.opacity='1';
+    document.getElementById('tomorrowAddWrap').style.pointerEvents='auto';
+  }
+}
+
+// Plan streak: how many consecutive evenings did user plan frogs?
+function getPlanStreak(){
+  let streak=0;
+  const cur = new Date(TODAY);
+  // Start from yesterday (planning is done the evening before)
+  cur.setDate(cur.getDate()-1);
+  for(let i=0;i<365;i++){
+    const ds = cur.toISOString().slice(0,10);
+    // A day counts if frogs were planned for the NEXT day
+    const nextDs = new Date(cur); nextDs.setDate(nextDs.getDate()+1);
+    const nextKey = nextDs.toISOString().slice(0,10);
+    const planned = getFrogs(nextKey).filter(f=>f.planned);
+    // Also count today's planning (frogs for tomorrow already set)
+    if(planned.length > 0){ streak++; cur.setDate(cur.getDate()-1); }
+    else break;
+  }
+  // Also check if frogs for tomorrow already planned today
+  const tomorrowPlanned = getFrogs(getTomorrowKey()).filter(f=>f.planned).length > 0;
+  if(tomorrowPlanned && streak===0) streak=1;
+  else if(tomorrowPlanned) streak++; // today adds to streak
+  return streak;
+}
+
+function updatePlanStreak(){
+  const streak = getPlanStreak();
+  // Header badge
+  const badge = document.getElementById('planStreakBadge');
+  const count = document.getElementById('planStreakCount');
+  const inline = document.getElementById('planStreakInline');
+  if(badge){
+    if(streak>0){ badge.style.display='flex'; count.textContent=streak+'T'; }
+    else badge.style.display='none';
+  }
+  if(inline) inline.textContent=streak;
 }
 
 </script>
