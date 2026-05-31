@@ -1019,12 +1019,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   // Show after 2 seconds regardless
   setTimeout(() => {
     log.push('--- State ---');
-    log.push('_useIDB: ' + (typeof window._useIDB !== 'undefined' ? window._useIDB : 'undefined'));
-    log.push('db: ' + (typeof window.db));
-    log.push('allDays: ' + (typeof window.allDays !== 'undefined' ? JSON.stringify(window.allDays).slice(0,50) : 'undefined'));
-    log.push('TODAY: ' + (typeof window.TODAY !== 'undefined' ? window.TODAY : 'undefined'));
-    log.push('init exists: ' + (typeof window.init));
-    log.push('indexedDB: ' + (typeof window.indexedDB));
+    log.push('_useIDB: ' + _useIDB);
+    log.push('db: ' + (db ? 'connected' : 'null'));
+    log.push('allDays: ' + (typeof allDays !== 'undefined' ? allDays.length+' days' : 'undefined'));
+    log.push('TODAY: ' + (typeof TODAY !== 'undefined' ? TODAY : 'undefined'));
+    log.push('init exists: ' + (typeof init));
+    log.push('indexedDB: ' + (typeof indexedDB));
     log.push('views active: ' + [...document.querySelectorAll('.view.active')].map(v=>v.id).join(','));
     showDebug();
   }, 2000);
@@ -1833,6 +1833,10 @@ async function init(){
   updatePlanStreak();
   restoreSecs();
   renderFrogListInline();
+  renderRoutines();
+  renderFrogs();
+  renderInsights();
+  renderWeekReview();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2326,6 +2330,7 @@ function showView(name, btn){
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if(name==='routinen') renderRoutines();
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
   if(name==='froesche'){ renderFrogs(); populateProjectSelects(); }
