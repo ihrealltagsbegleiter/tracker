@@ -11,6 +11,7 @@
 <link rel="manifest" href="/manifest.json"/>
 <title>Daily Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
 <style>
 /* ─── RESET & BASE ─────────────────────────────────────────── */
@@ -192,6 +193,20 @@ textarea::placeholder{color:var(--text3)}
 }
 .save-btn:active{transform:scale(0.98);background:var(--gold2)}
 .save-btn.saved{background:var(--green);color:#fff}
+.ai-btn{
+  width:100%;padding:0.85rem;border:1px solid var(--purple);border-radius:var(--r);
+  background:transparent;color:var(--purple);font-family:'Syne',sans-serif;
+  font-size:0.85rem;font-weight:700;cursor:pointer;margin-top:0.5rem;
+  transition:background 0.2s,color 0.2s;
+}
+.ai-btn:active{background:var(--purple);color:#fff}
+.ai-btn.loading{opacity:0.6;pointer-events:none}
+.ai-result{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
+  padding:1rem;margin-top:0.75rem;font-size:0.82rem;line-height:1.65;color:var(--text);
+  font-family:'Lora',serif;font-style:italic;white-space:pre-wrap}
+.ai-result-label{font-family:'Syne',sans-serif;font-style:normal;font-size:0.65rem;
+  font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--purple);
+  margin-bottom:0.5rem}
 
 /* ─── ROUTINEN ───────────────────────────────────────────────── */
 .routine-item{
@@ -233,6 +248,16 @@ textarea::placeholder{color:var(--text3)}
 .stat-val{font-family:'Syne Mono',monospace;font-size:0.72rem;color:var(--text3)}
 .stat-bar-wrap{width:80px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .stat-bar{height:100%;border-radius:3px;transition:width 0.6s ease;background:var(--gold)}
+
+/* ─── HEATMAP ────────────────────────────────────────────────────── */
+.heatmap-wrap{overflow-x:auto;padding-bottom:0.3rem}
+.heatmap-grid{display:grid;grid-template-rows:repeat(7,12px);grid-auto-flow:column;gap:2px;width:max-content}
+.hm-cell{width:12px;height:12px;border-radius:2px;cursor:default;transition:opacity 0.15s}
+.hm-cell:hover{opacity:0.7}
+.heatmap-months{display:flex;gap:0;margin-bottom:3px;font-size:0.6rem;color:var(--text3);font-family:'Syne Mono',monospace;width:max-content}
+.heatmap-days{display:grid;grid-template-rows:repeat(7,12px);gap:2px;margin-right:4px;font-size:0.55rem;color:var(--text3);font-family:'Syne Mono',monospace;line-height:12px}
+.heatmap-legend{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:0.6rem;color:var(--text3)}
+.heatmap-outer{display:flex;gap:4px;overflow-x:auto}
 
 /* ─── CHART ──────────────────────────────────────────────────── */
 .chart-wrap{padding:0.5rem 0;overflow:hidden}
@@ -1023,7 +1048,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
             <button class="tag-add-submit" onclick="addCustomTag('pain')">+</button>
           </div>
         </div>
-        <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
+        <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem" oninput="scheduleAutoSave()"></textarea>
       </div>
 
       <!-- Mahlzeiten -->
@@ -1112,7 +1137,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <input class="tag-add-input" id="negAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('neg')"/>
           <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
         </div>
-        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
+        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem" oninput="scheduleAutoSave()"></textarea>
       </div>
 
       <!-- Aktivität -->
@@ -1217,6 +1242,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
+      <button class="ai-btn" id="aiBtn" onclick="runAiDayReview()">✦ KI-Auswertung</button>
+      <div id="aiReviewResult" style="display:none"></div>
     </div>
 
     <!-- VIEW: ROUTINEN -->
@@ -1233,6 +1260,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <button class="period-tab active" onclick="setPeriod(7,this)">7T</button>
         <button class="period-tab" onclick="setPeriod(14,this)">14T</button>
         <button class="period-tab" onclick="setPeriod(30,this)">30T</button>
+        <button class="period-tab" onclick="setPeriod(90,this)">90T</button>
+        <button class="period-tab" onclick="setPeriod(365,this)">1J</button>
+      </div>
+      <div class="card">
+        <div class="card-title">JAHRESÜBERSICHT – LEBENSGEFÜHL</div>
+        <div id="heatmapChart"></div>
       </div>
       <div class="card">
         <div class="card-title">LEBENSGEFÜHL – VERLAUF</div>
@@ -1260,9 +1293,17 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <!-- VIEW: INSIGHTS -->
     <div class="view" id="view-insights">
       <div class="section-title">WAS TUT DIR GUT?</div>
+      <div class="card" style="margin-bottom:0.75rem">
+        <div class="card-title">SCHLAF · HRV · ENERGIE IM VERLAUF</div>
+        <div id="insightsTrendChart"></div>
+        <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.65rem;font-family:'Syne Mono',monospace">
+          <span style="color:#5b8dee">● Schlaf (h)</span>
+          <span style="color:#9b72e8">● HRV /10</span>
+          <span style="color:#4caf82">● Energie</span>
+        </div>
+      </div>
       <div id="corrList"></div>
     </div>
-
 
     <!-- VIEW: FRÖSCHE -->
     <div class="view" id="view-froesche">
@@ -1468,6 +1509,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <div style="font-size:0.7rem;color:var(--text3);text-align:center;margin-top:1.5rem;line-height:1.6">
         Daily Tracker · Daten lokal gespeichert (IndexedDB)<br>Kein Server · Kein Account
       </div>
+
+    </div><!-- /view-einstellungen -->
 
   </div><!-- /content -->
 
@@ -1675,6 +1718,7 @@ function updateWellbeing(v){
   // Color
   const h = v<=3?0:v<=5?30:v<=7?60:120;
   el.style.color = `hsl(${h},70%,${v<=3?50:55}%)`;
+  scheduleAutoSave();
 }
 
 const LIMITS = {sleep:[2,14,0.5],hrv:[10,200,1],energy:[1,10,1]};
@@ -1684,6 +1728,7 @@ function adjustVal(key, delta){
   state[key] = Math.min(max, Math.max(min, +(state[key]+delta).toFixed(1)));
   const ids = {sleep:'sleepVal',hrv:'hrvVal',energy:'energyVal'};
   document.getElementById(ids[key]).textContent = decimals ? state[key].toFixed(1) : state[key];
+  scheduleAutoSave();
 }
 
 function buildPainDots(){
@@ -1697,6 +1742,7 @@ function buildPainDots(){
     d.onclick = ()=>{
       state.pain = i;
       wrap.querySelectorAll('.pain-dot').forEach(x=>x.classList.toggle('active', parseInt(x.dataset.v)===i));
+      scheduleAutoSave();
     };
     wrap.appendChild(d);
   }
@@ -1743,6 +1789,7 @@ function buildTagGrid(id, opts, key){
         t.classList.toggle('active');
         if(state[stateKey].includes(opt)) state[stateKey] = state[stateKey].filter(x=>x!==opt);
         else state[stateKey].push(opt);
+        scheduleAutoSave();
       };
     }
     wrap.appendChild(t);
@@ -1784,7 +1831,28 @@ function deleteCustomTag(key, opt, e){
   buildTagGrid(key+'Tag', [], key);
 }
 
+// ── AUTO-SAVE ────────────────────────────────────────────────────
+let _autoSaveTimer = null;
+function scheduleAutoSave(){
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(()=>autoSave(), 1200);
+}
+async function autoSave(){
+  state.note = document.getElementById('noteText').value;
+  state.painNote = document.getElementById('painNote').value;
+  state.date = TODAY;
+  await dbPut('days', state);
+  allDays = await dbGetAll('days');
+  updateStreak();
+  // Subtle indicator on save button
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✓ Auto-gespeichert';
+  btn.classList.add('saved');
+  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = 'Aktualisieren'; },1800);
+}
+
 async function saveToday(){
+  clearTimeout(_autoSaveTimer);
   state.note = document.getElementById('noteText').value;
   state.painNote = document.getElementById('painNote').value;
   state.date = TODAY;
@@ -2008,10 +2076,93 @@ function setPeriod(n, btn){
 
 function renderStats(){
   const days = getRecentDays(statsPeriod);
+  renderHeatmap();
   renderWellbeingChart(days);
   renderAvgStats(days);
   renderTagStats(days);
   renderRoutineChart();
+}
+
+function renderHeatmap(){
+  const el = document.getElementById('heatmapChart');
+  if(!el) return;
+
+  // Build lookup: date string → wellbeing value
+  const lookup = {};
+  allDays.forEach(d=>{ if(d.wellbeing) lookup[d.date]=d.wellbeing; });
+
+  // Show last 53 weeks (371 days) = GitHub-style
+  const today = new Date(TODAY);
+  const WEEKS = 27; // ~6 months fits mobile
+  const totalDays = WEEKS * 7;
+  // Start on Monday
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - totalDays + 1);
+  // Align to Monday
+  const dow = (startDate.getDay()+6)%7; // Mon=0
+  startDate.setDate(startDate.getDate() - dow);
+
+  // Color scale: 0=no data, 1-3=red, 4-5=orange, 6-7=gold, 8-9=green, 10=bright green
+  const color = v => {
+    if(!v) return 'var(--bg3)';
+    if(v<=3) return '#c0392b';
+    if(v<=5) return '#e67e22';
+    if(v<=7) return '#d4a843';
+    if(v<=9) return '#4caf82';
+    return '#2ecc71';
+  };
+
+  // Build cells
+  const cells = [];
+  const monthLabels = [];
+  let lastMonth = -1;
+  for(let w=0; w<WEEKS; w++){
+    let colMonth = -1;
+    for(let d=0; d<7; d++){
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + w*7 + d);
+      const ds = date.toISOString().slice(0,10);
+      const v = lookup[ds];
+      const isFuture = date > today;
+      cells.push({ds, v, isFuture});
+      if(d===0 && date.getMonth()!==lastMonth){
+        colMonth = date.getMonth();
+        lastMonth = colMonth;
+        monthLabels.push({week:w, label:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][colMonth]});
+      }
+    }
+  }
+
+  // Month label row
+  let monthHtml = '<div class="heatmap-months" style="margin-left:22px">';
+  for(let w=0; w<WEEKS; w++){
+    const ml = monthLabels.find(m=>m.week===w);
+    monthHtml += `<div style="width:14px;flex-shrink:0">${ml?ml.label:''}</div>`;
+  }
+  monthHtml += '</div>';
+
+  // Day labels
+  const dayHtml = '<div class="heatmap-days"><div>Mo</div><div></div><div>Mi</div><div></div><div>Fr</div><div></div><div>So</div></div>';
+
+  // Grid
+  let gridHtml = '<div class="heatmap-grid">';
+  cells.forEach(({ds,v,isFuture})=>{
+    const bg = isFuture ? 'transparent' : color(v);
+    const border = isFuture ? 'border:1px dashed var(--border)' : '';
+    const title = v ? `${ds}: ${v}/10` : ds;
+    gridHtml += `<div class="hm-cell" style="background:${bg};${border}" title="${title}"></div>`;
+  });
+  gridHtml += '</div>';
+
+  // Legend
+  const legendHtml = `<div class="heatmap-legend">
+    <span>Wenig</span>
+    ${[0,3,5,7,9,10].map(v=>`<div class="hm-cell" style="background:${color(v||undefined)};${!v?'border:1px solid var(--border)':''}"></div>`).join('')}
+    <span>Viel</span>
+    <span style="margin-left:auto;color:var(--text3)">Ø ${allDays.length?((allDays.reduce((s,d)=>s+(d.wellbeing||0),0)/allDays.filter(d=>d.wellbeing).length)||0).toFixed(1):'-'}/10 gesamt</span>
+  </div>`;
+
+  el.innerHTML = monthHtml + `<div class="heatmap-outer">${dayHtml}${gridHtml}</div>` + legendHtml;
 }
 
 function getRecentDays(n){
@@ -2087,9 +2238,33 @@ function renderTagStats(days){
 // ══════════════════════════════════════════════════════════════════
 // INSIGHTS / KORRELATIONEN
 // ══════════════════════════════════════════════════════════════════
+function renderInsightsTrendChart(days){
+  const el = document.getElementById('insightsTrendChart');
+  if(!el) return;
+  if(days.length < 2){ el.innerHTML='<div class="empty" style="padding:1rem 0"><div class="empty-text">Mehr Tage für Verlauf.</div></div>'; return; }
+  const W = el.clientWidth||300, H = 80;
+  const xStep = (W-20)/(days.length-1);
+  const drawLine = (vals, color, maxVal) => {
+    const pts = vals.map((v,i)=>[(10+i*xStep).toFixed(1),(H-10-(v/maxVal*(H-20))).toFixed(1)]);
+    return `<path d="M${pts.map(p=>p.join(',')).join(' L')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>`;
+  };
+  const sleepVals = days.map(d=>Math.min(d.sleep||0,14));
+  const hrvVals   = days.map(d=>Math.min((d.hrv||0)/10,10));
+  const enVals    = days.map(d=>d.energy||0);
+  el.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">
+    ${drawLine(sleepVals,'#5b8dee',14)}
+    ${drawLine(hrvVals,'#9b72e8',10)}
+    ${drawLine(enVals,'#4caf82',10)}
+    ${days.map((_,i)=>i%Math.ceil(days.length/5)===0?`<text x="${(10+i*xStep).toFixed(1)}" y="${H}" font-size="7" fill="#4a5268" text-anchor="middle" font-family="Syne Mono">${days[i].date.slice(5)}</text>`:'').join('')}
+  </svg>`;
+}
+
 function renderInsights(){
   const el = document.getElementById('corrList');
   const days = getRecentDays(30);
+
+  renderInsightsTrendChart(days);
+
   if(days.length < 5){
     el.innerHTML='<div class="empty"><span class="empty-icon">◈</span><div class="empty-text">Mindestens 5 Tage Daten für Korrelationen.<br>Weiter so!</div></div>';
     return;
@@ -2136,13 +2311,25 @@ function renderInsights(){
 
   if(!results.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◈</span><div class="empty-text">Noch keine aussagekräftigen Muster erkennbar.</div></div>'; return; }
 
+  // Bar visualization for correlation strength
   el.innerHTML = '<div class="section-title" style="padding-top:0">KORRELATION MIT LEBENSGEFÜHL</div>'
-    + results.slice(0,10).map(c=>`
+    + '<div style="font-size:0.68rem;color:var(--text3);margin-bottom:0.75rem;line-height:1.5">Basiert auf den letzten 30 Tagen. Balken = Stärke des Zusammenhangs. Grün = hilft dir, Rot = belastet dich.</div>'
+    + results.slice(0,10).map(c=>{
+      const pct = Math.min(100, Math.abs(c.r)*100).toFixed(0);
+      const barColor = c.r>0.1 ? 'var(--green)' : c.r<-0.1 ? 'var(--red)' : 'var(--text3)';
+      return `
     <div class="corr-item ${c.r>0.1?'pos':c.r<-0.1?'neg':''}">
-      <div class="corr-label">${esc(c.label)}</div>
-      <div class="corr-val">${c.desc} · r = ${c.r.toFixed(2)}</div>
-    </div>`).join('')
-    + '<div style="font-size:0.7rem;color:var(--text3);margin-top:0.75rem;line-height:1.6">r > 0.3 = relevanter positiver Zusammenhang · r < −0.3 = relevanter negativer Zusammenhang</div>';
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+        <div class="corr-label">${esc(c.label)}</div>
+        <div style="font-family:'Syne Mono',monospace;font-size:0.68rem;color:${barColor}">r = ${c.r.toFixed(2)}</div>
+      </div>
+      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:3px">
+        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width 0.6s ease"></div>
+      </div>
+      <div class="corr-val">${c.desc}</div>
+    </div>`;
+    }).join('')
+    + '<div style="font-size:0.65rem;color:var(--text3);margin-top:0.75rem;line-height:1.6;padding:0.5rem;background:var(--bg3);border-radius:var(--r2)">📊 Korrelation ≠ Kausalität. r > 0,3 = relevanter Zusammenhang · r < −0,3 = relevanter negativer Zusammenhang · Werte darunter sind schwache Hinweise.</div>';
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2188,7 +2375,21 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 // ══════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════
-init().then(()=>{ if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications(); }).catch(console.error);
+init().then(()=>{
+  if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications();
+  // Backup reminder: show once per month
+  const lastRemind = localStorage.getItem('last_backup_remind');
+  const now = Date.now();
+  if(!lastRemind || now - parseInt(lastRemind) > 30*24*60*60*1000){
+    // Only remind if there's actual data
+    if(allDays.length > 5){
+      setTimeout(()=>{
+        showToast('💾 Tipp: Daten regelmäßig exportieren (Einstellungen → Export)');
+        localStorage.setItem('last_backup_remind', now.toString());
+      }, 4000);
+    }
+  }
+}).catch(console.error);
 
 // ══════════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
@@ -2960,6 +3161,7 @@ function toggleMood(label){
   if(state.moods.includes(label)) state.moods=state.moods.filter(x=>x!==label);
   else state.moods.push(label);
   buildMoodGrid();
+  scheduleAutoSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2968,6 +3170,7 @@ function toggleMood(label){
 function saveGratitude(idx, val){
   if(!state.gratitude) state.gratitude=['','',''];
   state.gratitude[idx] = val;
+  scheduleAutoSave();
 }
 
 function restoreGratitude(){
@@ -3029,6 +3232,7 @@ function toggleMedTaken(id){
   if(state.meds_taken.includes(id)) state.meds_taken=state.meds_taken.filter(x=>x!==id);
   else { state.meds_taken.push(id); showToast('✓ Eingenommen!'); }
   renderMedList();
+  scheduleAutoSave();
 }
 
 function deleteMedFromSchedule(id, e){
@@ -3114,6 +3318,7 @@ function setDeepWork(blocks){
   state.deepWork = (blocks === current ? blocks-1 : blocks) * DW_STEP;
   if(state.deepWork < 0) state.deepWork = 0;
   renderDeepWork();
+  scheduleAutoSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -3778,6 +3983,67 @@ function renderFutureFrogs(){
   }).join('');
 }
 
+// ══════════════════════════════════════════════════════════════════
+// KI-TAGESAUSWERTUNG
+// ══════════════════════════════════════════════════════════════════
+async function runAiDayReview(){
+  const btn = document.getElementById('aiBtn');
+  const resultEl = document.getElementById('aiReviewResult');
+  btn.textContent = '✦ Analysiere…';
+  btn.classList.add('loading');
+  resultEl.style.display = 'none';
+
+  // Build context from today + last 7 days
+  const recentDays = getRecentDays(7);
+  const todayEntry = {...state};
+  const avgWb = recentDays.length ? (recentDays.reduce((s,d)=>s+(d.wellbeing||5),0)/recentDays.length).toFixed(1) : '–';
+  const avgSleep = recentDays.length ? (recentDays.reduce((s,d)=>s+(d.sleep||0),0)/recentDays.length).toFixed(1) : '–';
+
+  const prompt = `Du bist ein einfühlsamer Gesundheits- und Produktivitätscoach. Analysiere diesen Tageseintrag und gib eine persönliche, konkrete Auswertung auf Deutsch. Sei ehrlich, konstruktiv und warmherzig. Max. 120 Wörter.
+
+HEUTE (${TODAY}):
+- Lebensgefühl: ${todayEntry.wellbeing||'–'}/10
+- Schlaf: ${todayEntry.sleep||'–'} h
+- HRV: ${todayEntry.hrv||'–'} ms
+- Energie: ${todayEntry.energy||'–'}/10
+- Schmerz: ${todayEntry.pain||0}/10 ${todayEntry.pain_tags?.length ? '('+todayEntry.pain_tags.join(', ')+')' : ''}
+- Ernährung: ${(todayEntry.ern||[]).join(', ')||'keine Angabe'}
+- Aktivität: ${(todayEntry.akt||[]).join(', ')||'keine Angabe'}
+- Stimmung: ${(todayEntry.moods||[]).join(', ')||'keine Angabe'}
+- Deep Work: ${todayEntry.deepWork||0} h
+- Dankbarkeit: ${(todayEntry.gratitude||[]).filter(Boolean).join(' / ')||'–'}
+- Notiz: ${todayEntry.note||'–'}
+
+KONTEXT (letzte 7 Tage):
+- Ø Lebensgefühl: ${avgWb}/10
+- Ø Schlaf: ${avgSleep} h
+
+Gib 2-3 konkrete Beobachtungen und einen Handlungsvorschlag für morgen.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content||[]).find(b=>b.type==='text')?.text || 'Keine Antwort erhalten.';
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `<div class="ai-result"><div class="ai-result-label">✦ KI-Auswertung für heute</div>${esc(text)}</div>`;
+  } catch(e) {
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `<div class="ai-result" style="color:var(--red)">Fehler: KI nicht erreichbar. Bitte erneut versuchen.</div>`;
+  }
+
+  btn.textContent = '✦ KI-Auswertung';
+  btn.classList.remove('loading');
+}
+
 </script>
 </body>
 </html>
+
