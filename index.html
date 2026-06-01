@@ -1264,32 +1264,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     </div>
 
 
-    <!-- VIEW: WOCHENRÜCKBLICK -->
-    <div class="view" id="view-woche">
-      <div class="review-card" id="reviewCard">
-        <div class="review-header">
-          <span class="review-title">📋 Wochenrückblick</span>
-          <span class="review-week" id="reviewWeekLabel"></span>
-        </div>
-        <div class="review-stats-grid" id="reviewStatsGrid"></div>
-        <div class="review-section">
-          <div class="review-section-label">✅ Was lief diese Woche gut?</div>
-          <textarea class="review-textarea" id="reviewGood" placeholder="Was bin ich stolz auf? Was hat geklappt?…"></textarea>
-        </div>
-        <div class="review-section">
-          <div class="review-section-label">🔧 Was möchte ich verbessern?</div>
-          <textarea class="review-textarea" id="reviewImprove" placeholder="Was hat mich gebremst? Was ändern?…"></textarea>
-        </div>
-        <div class="review-section">
-          <div class="review-section-label">🎯 Fokus nächste Woche</div>
-          <textarea class="review-textarea" id="reviewFocus" placeholder="Was ist mein wichtigstes Ziel für nächste Woche?…"></textarea>
-        </div>
-        <button class="review-save-btn" id="reviewSaveBtn" onclick="saveWeekReview()">Rückblick speichern</button>
-      </div>
-      <div class="section-title">FRÜHERE RÜCKBLICKE</div>
-      <div id="reviewHistory"></div>
-    </div>
-
     <!-- VIEW: FRÖSCHE -->
     <div class="view" id="view-froesche">
 
@@ -1380,6 +1354,58 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         · Am Vorabend planen = 2× höhere Umsetzungsrate<br>
         · Keine kleinen Tasks vor dem ersten Frosch
       </div>
+    </div>
+
+      <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#4a5268;padding:1.2rem 0 0.6rem">ZUKÜNFTIGE FRÖSCHE</div>
+      <div style="font-size:0.75rem;color:#4a5268;margin-bottom:0.75rem;line-height:1.5">Ideen für später – einem Tag zuordnen wenn du bereit bist.</div>
+      <div id="futureFrogList" style="margin-bottom:0.5rem">
+        <div style="text-align:center;padding:0.75rem;color:#4a5268;font-size:0.8rem">📅 Noch keine zukünftigen Frösche.</div>
+      </div>
+      <div style="background:#161b26;border:1px solid rgba(155,114,232,0.3);border-radius:14px;padding:1rem;margin-bottom:0.75rem">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9b72e8;margin-bottom:0.75rem">📅 Frosch für später</div>
+        <input class="frog-input" id="futureFrogInput" placeholder="Aufgabe für einen zukünftigen Tag…" maxlength="200" onkeydown="if(event.key==='Enter')addFutureFrog()" style="margin-bottom:0.5rem"/>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#8890a8;margin-bottom:0.25rem">Priorität</div>
+            <select class="frog-select" id="futurePriority">
+              <option value="1">🔴 Kritisch</option>
+              <option value="2" selected>🟡 Wichtig</option>
+              <option value="3">🔵 Sollte bald</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#8890a8;margin-bottom:0.25rem">Geplant für</div>
+            <input type="date" class="frog-select" id="futureFrogDate" style="cursor:pointer"/>
+          </div>
+        </div>
+        <button onclick="addFutureFrog()" style="width:100%;padding:0.8rem;background:#9b72e8;color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:0.84rem;font-weight:800;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase">Für später einplanen</button>
+      </div>
+    </div>
+
+    <!-- VIEW: WOCHENRÜCKBLICK -->
+    <div class="view" id="view-woche">
+      <div class="review-card" id="reviewCard">
+        <div class="review-header">
+          <span class="review-title">📋 Wochenrückblick</span>
+          <span class="review-week" id="reviewWeekLabel"></span>
+        </div>
+        <div class="review-stats-grid" id="reviewStatsGrid"></div>
+        <div class="review-section">
+          <div class="review-section-label">✅ Was lief diese Woche gut?</div>
+          <textarea class="review-textarea" id="reviewGood" placeholder="Was bin ich stolz auf? Was hat geklappt?…"></textarea>
+        </div>
+        <div class="review-section">
+          <div class="review-section-label">🔧 Was möchte ich verbessern?</div>
+          <textarea class="review-textarea" id="reviewImprove" placeholder="Was hat mich gebremst? Was ändern?…"></textarea>
+        </div>
+        <div class="review-section">
+          <div class="review-section-label">🎯 Fokus nächste Woche</div>
+          <textarea class="review-textarea" id="reviewFocus" placeholder="Was ist mein wichtigstes Ziel für nächste Woche?…"></textarea>
+        </div>
+        <button class="review-save-btn" id="reviewSaveBtn" onclick="saveWeekReview()">Rückblick speichern</button>
+      </div>
+      <div class="section-title">FRÜHERE RÜCKBLICKE</div>
+      <div id="reviewHistory"></div>
     </div>
 
     <!-- VIEW: EINSTELLUNGEN & EXPORT -->
