@@ -57,7 +57,12 @@ body{font-family:'Syne',sans-serif;color:var(--text);overscroll-behavior:none}
 }
 .header-left{}
 .header-title{font-size:1.25rem;font-weight:800;letter-spacing:-0.03em;color:var(--text)}
-.header-date{font-size:0.7rem;color:var(--text3);margin-top:1px;font-family:'Syne Mono',monospace;letter-spacing:0.05em}
+.header-date{font-size:0.7rem;color:var(--text3);font-family:'Syne Mono',monospace;letter-spacing:0.05em}
+.header-date-row{display:flex;align-items:center;gap:0.25rem;margin-top:2px}
+.date-nav-btn{background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:0 0.15rem;line-height:1;transition:color 0.15s;font-family:'Syne',sans-serif}
+.date-nav-btn:active{color:var(--gold)}
+.date-nav-btn:disabled{opacity:0.2;pointer-events:none}
+.header-date.is-past{color:var(--blue)}
 .streak-badge{
   display:flex;align-items:center;gap:0.3rem;
   background:var(--bg3);border:1px solid var(--border2);
@@ -972,7 +977,11 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   <div class="header">
     <div class="header-left">
       <div class="header-title">Daily Tracker</div>
-      <div class="header-date" id="headerDate">—</div>
+      <div class="header-date-row">
+        <button class="date-nav-btn" onclick="navigateDate(-1)" title="Vorheriger Tag">‹</button>
+        <div class="header-date" id="headerDate">—</div>
+        <button class="date-nav-btn" onclick="navigateDate(1)" id="dateNavNext" title="Nächster Tag">›</button>
+      </div>
     </div>
     <div class="header-badges">
       <div class="streak-badge">🔥 <span id="streakCount">0</span></div>
@@ -1637,6 +1646,7 @@ function dbDelete(store,key){
 // STATE
 // ══════════════════════════════════════════════════════════════════
 const TODAY = new Date().toISOString().slice(0,10);
+let activeDate = TODAY; // aktuell bearbeitetes Datum (kann von TODAY abweichen)
 let state = {
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
@@ -1841,7 +1851,57 @@ function deleteCustomTag(key, opt, e){
   buildTagGrid(key+'Tag', [], key);
 }
 
-// ── AUTO-SAVE ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// DATUMS-NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+async function navigateDate(delta){
+  const d = new Date(activeDate + 'T12:00:00');
+  d.setDate(d.getDate() + delta);
+  const newDate = d.toISOString().slice(0,10);
+  if(newDate > TODAY) return; // nicht in die Zukunft
+  activeDate = newDate;
+  await loadDateData();
+}
+
+async function loadDateData(){
+  // State zurücksetzen
+  state = {
+    wellbeing:5, sleep:7.0, hrv:55, energy:7, pain:0,
+    ern:[], neg:[], akt:[], pain_tags:[], moods:[], note:'', painNote:'',
+    deepWork:0, wins:[], thoughts:[], meds_taken:[], meals:{}, gratitude:['','',''],
+    date: activeDate
+  };
+
+  const data = await dbGet('days', activeDate);
+  if(data){
+    state = {...state, ...data};
+  }
+
+  // UI wiederherstellen
+  document.getElementById('wellbeingSlider').value = state.wellbeing;
+  updateWellbeing(state.wellbeing);
+  document.getElementById('sleepVal').textContent = state.sleep.toFixed(1);
+  document.getElementById('hrvVal').textContent = state.hrv;
+  document.getElementById('energyVal').textContent = state.energy;
+  document.getElementById('noteText').value = state.note||'';
+  document.getElementById('painNote').value = state.painNote||'';
+  buildPainDots();
+  buildTagGrid('ernTag', [], 'ern');
+  buildTagGrid('painTag', [], 'pain');
+  buildTagGrid('negTag', [], 'neg');
+  buildTagGrid('aktTag', [], 'akt');
+  buildMoodGrid();
+  renderMedList();
+  renderDeepWork();
+  renderAllMeals();
+  restoreGratitude();
+  renderWins();
+  renderThoughts();
+  renderFrogs();
+  updateHeader();
+  showToast(activeDate === TODAY ? 'Heute' : activeDate);
+}
+
 let _autoSaveTimer = null;
 function scheduleAutoSave(){
   clearTimeout(_autoSaveTimer);
@@ -1850,24 +1910,22 @@ function scheduleAutoSave(){
 async function autoSave(){
   state.note = document.getElementById('noteText').value;
   state.painNote = document.getElementById('painNote').value;
-  state.date = TODAY;
+  state.date = activeDate;
   await dbPut('days', state);
   allDays = await dbGetAll('days');
   updateStreak();
-  // Subtle indicator on save button
   const btn = document.getElementById('saveBtn');
   btn.textContent = '✓ Auto-gespeichert';
   btn.classList.add('saved');
-  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = 'Aktualisieren'; },1800);
+  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = activeDate===TODAY?'Aktualisieren':'Eintrag speichern'; },1800);
 }
 
 async function saveToday(){
   clearTimeout(_autoSaveTimer);
   state.note = document.getElementById('noteText').value;
   state.painNote = document.getElementById('painNote').value;
-  state.date = TODAY;
+  state.date = activeDate;
   await dbPut('days', state);
-  // Refresh allDays
   allDays = await dbGetAll('days');
   updateStreak();
   renderStats();
@@ -1876,8 +1934,8 @@ async function saveToday(){
   const btn = document.getElementById('saveBtn');
   btn.textContent = '✓ Gespeichert';
   btn.classList.add('saved');
-  showToast('Tag gespeichert!');
-  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = 'Aktualisieren'; },2500);
+  showToast('Eintrag gespeichert!');
+  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = activeDate===TODAY?'Aktualisieren':'Eintrag speichern'; },2500);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2363,10 +2421,19 @@ function showView(name, btn){
 // UTILS
 // ══════════════════════════════════════════════════════════════════
 function updateHeader(){
-  const d = new Date();
+  const d = new Date(activeDate + 'T12:00:00');
   const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
   const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  document.getElementById('headerDate').textContent = days[d.getDay()]+', '+d.getDate()+'. '+months[d.getMonth()]+' '+d.getFullYear();
+  const el = document.getElementById('headerDate');
+  const isToday = activeDate === TODAY;
+  el.textContent = (isToday ? 'Heute · ' : '') + days[d.getDay()]+', '+d.getDate()+'. '+months[d.getMonth()]+' '+d.getFullYear();
+  el.className = 'header-date' + (isToday ? '' : ' is-past');
+  // Nächster-Tag-Button deaktivieren wenn activeDate === TODAY
+  const nextBtn = document.getElementById('dateNavNext');
+  if(nextBtn) nextBtn.disabled = activeDate >= TODAY;
+  // Save-Button-Label
+  const saveBtn = document.getElementById('saveBtn');
+  if(saveBtn) saveBtn.textContent = isToday ? 'Tag speichern' : 'Eintrag speichern';
 }
 function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 function showToast(msg){
@@ -2936,20 +3003,20 @@ function addFrog(){
 }
 
 function toggleFrog(id){
-  const frogs = getFrogs(TODAY);
+  const frogs = getFrogs(activeDate);
   const f = frogs.find(f=>f.id===id);
   if(!f) return;
   f.done = !f.done;
   if(f.done) f.completedAt = new Date().toISOString();
   else delete f.completedAt;
-  saveFrogs(TODAY, frogs);
+  saveFrogs(activeDate, frogs);
   renderFrogs();
   if(f.done) showToast('🎉 Frosch gegessen!');
 }
 
 function deleteFrog(id){
-  const frogs = getFrogs(TODAY).filter(f=>f.id!==id);
-  saveFrogs(TODAY, frogs);
+  const frogs = getFrogs(activeDate).filter(f=>f.id!==id);
+  saveFrogs(activeDate, frogs);
   renderFrogs();
 }
 
@@ -2958,11 +3025,11 @@ const PRIORITY_COLORS = {1:'var(--red)',2:'var(--gold)',3:'var(--blue)'};
 const DREAD_LABELS = {5:'😰 Sehr hoch',4:'😟 Hoch',3:'😐 Mittel',2:'🙂 Niedrig',1:'😊 Kein Problem'};
 
 function moveFrogToMorrow(id){
-  const frogs = getFrogs(TODAY);
+  const frogs = getFrogs(activeDate);
   const f = frogs.find(x=>x.id===id);
   if(!f) return;
   // Entfernen aus heute
-  saveFrogs(TODAY, frogs.filter(x=>x.id!==id));
+  saveFrogs(activeDate, frogs.filter(x=>x.id!==id));
   // Hinzufügen zu morgen
   const tKey = getTomorrowKey();
   const tFrogs = getFrogs(tKey);
@@ -2973,11 +3040,11 @@ function moveFrogToMorrow(id){
 }
 
 function moveFrogToLater(id){
-  const frogs = getFrogs(TODAY);
+  const frogs = getFrogs(activeDate);
   const f = frogs.find(x=>x.id===id);
   if(!f) return;
   // Entfernen aus heute
-  saveFrogs(TODAY, frogs.filter(x=>x.id!==id));
+  saveFrogs(activeDate, frogs.filter(x=>x.id!==id));
   // Hinzufügen zu Future Frogs
   const future = getFutureFrogs();
   future.push({id: Date.now().toString(), text:f.text, priority:f.priority, dread:f.dread, project:f.project||'', created:new Date().toISOString()});
@@ -2988,7 +3055,7 @@ function moveFrogToLater(id){
 }
 
 function renderFrogs(){
-  const frogs = getFrogs(TODAY);
+  const frogs = getFrogs(activeDate);
   const list = document.getElementById('frogList');
 
   // Sort: undone first, then by priority, then dread desc
