@@ -1363,7 +1363,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div id="avgStats"></div>
       </div>
       <div class="card">
-        <div class="card-title">HÄUFIGSTE EINTRÄGE</div>
+        <div class="card-title">HÄUFIGSTE EINTRÄGE <span style="font-size:0.6rem;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">inkl. Sport/Gesundheits-Routinen</span></div>
         <div id="tagStats"></div>
       </div>
       <div class="card">
@@ -1885,6 +1885,39 @@ function buildPainDots(){
 
 // Tag option storage key per group
 const TAG_STORE = {ern:'custom_ern_opts', neg:'custom_neg_opts', akt:'custom_akt_opts', pain:'custom_pain_opts'};
+
+// Kategorie-Mapping: Welche Routine-Kategorien fließen in welche Tag-Gruppe ein?
+const ROUTINE_CAT_MAP = {
+  'Sport':       'akt',
+  'Gesundheit':  'akt',
+  'Morgenroutine': null, // eigene Kategorie, kein Tag
+  'Lernen':      null,
+  'Entspannung': null,
+  'Sonstiges':   null,
+};
+
+// Gibt effektive akt-Tags für einen Tag zurück (manuell + erledigte Sport/Gesundheits-Routinen)
+function getEffectiveAkt(dayData){
+  const manual = dayData.akt || [];
+  const date = dayData.date;
+  if(!date) return manual;
+
+  // Erledigte Routinen für diesen Tag mit Sport/Gesundheit-Kategorie
+  const routineTags = allRoutines
+    .filter(r => ROUTINE_CAT_MAP[r.cat] === 'akt')
+    .filter(r => routineCompletions.some(c => c.rid === r.id && c.date === date))
+    .map(r => r.name);
+
+  // Duplikate vermeiden
+  const all = [...manual];
+  routineTags.forEach(t => { if(!all.includes(t)) all.push(t); });
+  return all;
+}
+
+// Gibt alle kombinierten Tags für Korrelation zurück
+function getEffectiveTags(dayData){
+  return [...new Set([...(dayData.ern||[]), ...(dayData.neg||[]), ...getEffectiveAkt(dayData)])];
+}
 const TAG_DEFAULTS = {
   ern: ['Ausgewogen','Viel Gemüse','Wenig Zucker','Fast Food','Alkohol','Kaffee++','Viel Wasser','Wenig gegessen'],
   neg: ['Schlecht geschlafen','Stress Arbeit','Müdigkeit','Migräne','Rücken','Verdauung','Stimmungstief','Soziale Probleme','Überforderung'],
@@ -2166,8 +2199,8 @@ function openAddRoutine(editId){
     <select class="input" id="rCat">
       <option value="">Kategorie wählen…</option>
       <option${existing&&existing.cat==='Morgenroutine'?' selected':''}>Morgenroutine</option>
-      <option${existing&&existing.cat==='Sport'?' selected':''}>Sport</option>
-      <option${existing&&existing.cat==='Gesundheit'?' selected':''}>Gesundheit</option>
+      <option${existing&&existing.cat==='Sport'?' selected':''}>Sport ✦ fließt in Aktivitäts-Statistik</option>
+      <option${existing&&existing.cat==='Gesundheit'?' selected':''}>Gesundheit ✦ fließt in Aktivitäts-Statistik</option>
       <option${existing&&existing.cat==='Lernen'?' selected':''}>Lernen</option>
       <option${existing&&existing.cat==='Entspannung'?' selected':''}>Entspannung</option>
       <option${existing&&existing.cat==='Sonstiges'?' selected':''}>Sonstiges</option>
@@ -2213,7 +2246,7 @@ async function saveRoutine(editId){
     id: editId || Date.now().toString(),
     name,
     time: document.getElementById('rTime').value,
-    cat: document.getElementById('rCat').value,
+    cat: document.getElementById('rCat').value.split(' ✦')[0].trim(), // Hinweis-Text entfernen
     days,
     freq: parseInt(document.getElementById('rFreq').value),
     order: editId ? (allRoutines.find(x=>x.id===editId)?.order??999) : allRoutines.length,
@@ -2472,7 +2505,7 @@ function renderTagStats(days){
   if(!days.length){ el.innerHTML=''; return; }
   const counts = {};
   days.forEach(d=>{
-    [...(d.ern||[]),...(d.neg||[]),...(d.akt||[])].forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+    [...(d.ern||[]),...(d.neg||[]),...getEffectiveAkt(d)].forEach(t=>{ counts[t]=(counts[t]||0)+1; });
   });
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
   if(!sorted.length){ el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Tags gesetzt.</div>'; return; }
@@ -2664,9 +2697,9 @@ function renderInsights(){
   });
 
   // Tag correlations: did this tag appear → higher wellbeing?
-  const allTags = [...new Set(days.flatMap(d=>[...(d.akt||[]),...(d.ern||[])]))];
+  const allTags = [...new Set(days.flatMap(d=>getEffectiveTags(d)))];
   allTags.forEach(tag=>{
-    const vals = days.map(d=>(d.akt||[]).includes(tag)||(d.ern||[]).includes(tag)?1:0);
+    const vals = days.map(d=>getEffectiveTags(d).includes(tag)?1:0);
     if(vals.filter(v=>v>0).length < 3) return;
     const r = correlate(vals);
     if(r!==null && Math.abs(r)>0.2) results.push({label:'✦ '+tag,r,desc:r>0?'Positiver Einfluss auf dein Wohlbefinden':'Negativer Einfluss auf dein Wohlbefinden'});
@@ -4526,7 +4559,7 @@ HEUTE (${TODAY}):
 - Energie: ${todayEntry.energy||'–'}/10
 - Schmerz: ${todayEntry.pain||0}/10 ${todayEntry.pain_tags?.length ? '('+todayEntry.pain_tags.join(', ')+')' : ''}
 - Ernährung: ${(todayEntry.ern||[]).join(', ')||'keine Angabe'}
-- Aktivität: ${(todayEntry.akt||[]).join(', ')||'keine Angabe'}
+- Aktivität: ${getEffectiveAkt(todayEntry).join(', ')||'keine Angabe'}
 - Stimmung: ${(todayEntry.moods||[]).join(', ')||'keine Angabe'}
 - Deep Work: ${todayEntry.deepWork||0} h
 - Dankbarkeit: ${(todayEntry.gratitude||[]).filter(Boolean).join(' / ')||'–'}
