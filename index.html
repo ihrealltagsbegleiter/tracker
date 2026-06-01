@@ -164,8 +164,6 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
 .sleep-star{font-size:1.3rem;color:var(--border2);cursor:pointer;transition:color 0.15s;line-height:1}
 .sleep-star.active{color:var(--gold)}
 .sleep-quality-text{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace;min-width:60px}
-.oura-btn{background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text3);font-size:0.62rem;font-weight:700;cursor:pointer;padding:0.15rem 0.4rem;font-family:'Syne',sans-serif;white-space:nowrap;transition:all 0.15s;margin-left:auto}
-.oura-btn:active{background:var(--gold);border-color:var(--gold);color:#000}
 
 /* ─── PAIN SCALE ─────────────────────────────────────────────── */
 .pain-dots{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;padding:0.4rem 0}
@@ -1111,7 +1109,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
             <span class="sleep-star" onclick="setSleepQuality(5)" title="Sehr gut">★</span>
           </div>
           <div class="sleep-quality-text" id="sleepQualityText">—</div>
-          <button class="oura-btn" onclick="importOuraToday()" title="Schlaf & HRV von Oura laden">⟳ Oura</button>
         </div>
       </div>
 
@@ -1629,22 +1626,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div class="settings-arrow">→</div>
       </div>
       <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)"/>
-
-      <div class="section-title">OURA-INTEGRATION</div>
-
-      <div class="card" style="margin-bottom:0.75rem">
-        <div class="card-title">OURA RING – SCHLAF & HRV</div>
-        <div style="font-size:0.75rem;color:var(--text2);margin-bottom:0.75rem;line-height:1.5">Importiert Schlaf, Schlafqualität und HRV automatisch aus deiner Oura-App für den gewählten Tag.</div>
-        <div style="margin-bottom:0.6rem">
-          <div class="sleep-quality-label" style="margin-bottom:0.3rem">Worker-URL</div>
-          <input class="input" id="ouraWorkerUrl" type="url" placeholder="https://oura-proxy.XXX.workers.dev" style="font-size:0.78rem"/>
-        </div>
-        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
-          <button class="ob-next" style="flex:1;padding:0.6rem" onclick="saveOuraConfig()">Speichern</button>
-          <button class="ob-next" style="flex:1;padding:0.6rem;background:var(--green)" onclick="importOuraToday()">Heute laden</button>
-        </div>
-        <div id="ouraStatus" style="font-size:0.72rem;color:var(--text3);min-height:1.2rem"></div>
-      </div>
 
       <div class="section-title">PUSH-BENACHRICHTIGUNGEN</div>
 
@@ -2810,7 +2791,6 @@ function showView(name, btn){
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
   if(name==='froesche'){ renderFrogs(); populateProjectSelects(); }
   if(name==='woche'){ renderWeekReview(); renderWeekGoal(); }
-  if(name==='einstellungen'){ restoreOuraConfig(); }
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
 }
@@ -2974,106 +2954,6 @@ function finishOnboarding(){
     }
   }
 }).catch(console.error);
-
-// ══════════════════════════════════════════════════════════════════
-// OURA-INTEGRATION
-// ══════════════════════════════════════════════════════════════════
-function getOuraWorkerUrl(){
-  return localStorage.getItem('oura_worker_url')||'';
-}
-
-function saveOuraConfig(){
-  const url = document.getElementById('ouraWorkerUrl')?.value?.trim();
-  if(!url){ setOuraStatus('❌ Bitte URL eingeben', 'var(--red)'); return; }
-  localStorage.setItem('oura_worker_url', url);
-  setOuraStatus('✅ URL gespeichert', 'var(--green)');
-}
-
-function setOuraStatus(msg, color='var(--text3)'){
-  const el = document.getElementById('ouraStatus');
-  if(el){ el.textContent = msg; el.style.color = color; }
-}
-
-async function importOuraForDate(date){
-  const workerUrl = getOuraWorkerUrl();
-  if(!workerUrl){ showToast('Bitte zuerst Worker-URL in Export → Oura speichern'); return false; }
-
-  setOuraStatus('⏳ Lade Oura-Daten…');
-
-  try {
-    // Schlaf: start_date = Datum, end_date = Datum
-    const sleepRes = await fetch(`${workerUrl}?path=usercollection/sleep?start_date=${date}&end_date=${date}`);
-    const sleepData = await sleepRes.json();
-
-    // Tageswert aus allen Schlafphasen summieren
-    const sleepSessions = (sleepData.data||[]).filter(s=>s.type==='long_sleep'||s.type==='sleep');
-    let totalSleep = 0, avgHrv = 0, sleepScore = 0, sessionCount = 0;
-
-    sleepSessions.forEach(s=>{
-      totalSleep += s.total_sleep_duration||0;
-      if(s.average_hrv) { avgHrv += s.average_hrv; sessionCount++; }
-      if(s.sleep_phase_5_min) sleepScore = Math.max(sleepScore, s.contributors?.total_sleep||0);
-    });
-
-    const sleepHours = totalSleep > 0 ? Math.round(totalSleep/360)/10 : null;
-    const hrv = sessionCount > 0 ? Math.round(avgHrv/sessionCount) : null;
-
-    // Readiness für Schlafqualitäts-Score
-    const readinessRes = await fetch(`${workerUrl}?path=usercollection/daily_readiness?start_date=${date}&end_date=${date}`);
-    const readinessData = await readinessRes.json();
-    const readiness = readinessData.data?.[0];
-    const readinessScore = readiness?.score||null;
-
-    // Schlafqualität: Readiness-Score → 1–5 Sterne
-    let sleepQuality = 0;
-    if(readinessScore !== null){
-      if(readinessScore >= 85) sleepQuality = 5;
-      else if(readinessScore >= 70) sleepQuality = 4;
-      else if(readinessScore >= 55) sleepQuality = 3;
-      else if(readinessScore >= 40) sleepQuality = 2;
-      else sleepQuality = 1;
-    }
-
-    // In State schreiben (nur wenn Daten für activeDate geladen)
-    if(date === activeDate){
-      if(sleepHours !== null){ state.sleep = sleepHours; document.getElementById('sleepVal').textContent = sleepHours.toFixed(1); }
-      if(hrv !== null){ state.hrv = hrv; document.getElementById('hrvVal').textContent = hrv; }
-      if(sleepQuality){ state.sleepQuality = sleepQuality; renderSleepQuality(); }
-      scheduleAutoSave();
-    }
-
-    const parts = [];
-    if(sleepHours) parts.push(`Schlaf: ${sleepHours}h`);
-    if(hrv) parts.push(`HRV: ${hrv} ms`);
-    if(sleepQuality) parts.push(`Qualität: ${'⭐'.repeat(sleepQuality)}`);
-
-    if(!parts.length){
-      setOuraStatus(`ℹ️ Keine Daten für ${date} in Oura gefunden`, 'var(--text3)');
-      return false;
-    }
-
-    setOuraStatus(`✅ ${parts.join(' · ')} (${date})`, 'var(--green)');
-    return true;
-
-  } catch(e){
-    setOuraStatus(`❌ Fehler: ${e.message}`, 'var(--red)');
-    return false;
-  }
-}
-
-async function importOuraToday(){
-  const btn = event?.target;
-  if(btn){ btn.textContent='⏳ Laden…'; btn.disabled=true; }
-  await importOuraForDate(activeDate);
-  if(btn){ btn.textContent='Heute laden'; btn.disabled=false; }
-}
-
-// Worker-URL beim Öffnen der Export-View wiederherstellen
-function restoreOuraConfig(){
-  const el = document.getElementById('ouraWorkerUrl');
-  if(el) el.value = getOuraWorkerUrl();
-}
-
 
 
 function exportWeekPDF(){
