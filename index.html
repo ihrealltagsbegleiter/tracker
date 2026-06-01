@@ -1496,10 +1496,19 @@ function escapeRegex(s){ return s.split('').map(c=>'\\^$.|?*+()[]{}'.includes(c)
 // ══════════════════════════════════════════════════════════════════
 let db;
 const DB_NAME = 'tracker_v1', DB_VERSION = 1;
+
+let _useIDB = true;
+let _memStore = {days:{}, routines:{}, routine_completions:{}};
+function _loadFromLS(){
+  try{ _memStore.days = JSON.parse(localStorage.getItem('tracker_days')||'{}'); }catch(e){}
+  try{ _memStore.routines = JSON.parse(localStorage.getItem('tracker_routines')||'{}'); }catch(e){}
+  try{ _memStore.routine_completions = JSON.parse(localStorage.getItem('tracker_routine_completions')||'{}'); }catch(e){}
+}
+
 function openDB(){
   return new Promise((res,rej)=>{
     const idb = window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB;
-    if(!idb){rej(new Error("no IDB"));return;}
+    if(!idb){ _useIDB=false; _loadFromLS(); res(null); return; }
     const req = idb.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = e=>{
       const d = e.target.result;
@@ -1620,9 +1629,6 @@ async function init(){
   buildTagGrid('negTag', [], 'neg');
   buildTagGrid('aktTag', [], 'akt');
   updateHeader();
-  renderRoutines();
-  renderStats();
-  renderInsights();
   updateStreak();
   updatePlanStreak();
   renderRoutines();
