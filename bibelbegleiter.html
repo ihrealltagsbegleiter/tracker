@@ -284,10 +284,21 @@ let currentSituation = '';
 let activeTopic = null;
 
 // ── API ──────────────────────────────────────────────────────────────
-const PROXY_URL = 'https://bibelbegleiter-proxy.ihrealltagsbegleiter.workers.dev';
+const WORKER_URL = 'https://bibelbegleiter-proxy.ihrealltagsbegleiter.workers.dev';
+const FALLBACK_URL = 'https://corsproxy.io/?https://api.anthropic.com/v1/messages';
 
 async function claudeAPI(body) {
-  const r = await fetch(PROXY_URL, {
+  // Primär: eigener Cloudflare Worker
+  try {
+    const r = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (r.ok) return r.json();
+  } catch {}
+  // Fallback: corsproxy.io
+  const r = await fetch(FALLBACK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
