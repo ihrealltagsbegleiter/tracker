@@ -1,18 +1,14 @@
 <!DOCTYPE html>
-<!-- v11.3 build:20260531204311 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#0c0f14"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Tracker"/>
-<link rel="manifest" href="/tracker/manifest.json"/>
+<link rel="manifest" href="/manifest.json"/>
 <title>Daily Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
@@ -932,63 +928,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 .thought-to-frog:active{background:var(--gold);color:#000}
 
-
-/* ─── KOLLABIERBARE SEKTIONEN ──────────────────────────────── */
-.sec-block { margin-bottom:0.6rem }
-
-.sec-header {
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0.75rem 1rem;
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  user-select:none;
-}
-.sec-header.open { border-radius:var(--r) var(--r) 0 0; border-bottom-color:var(--border) }
-.sec-header:active { background:var(--bg3) }
-.sec-hl { display:flex;align-items:center;gap:0.6rem;pointer-events:none }
-.sec-icon { font-size:1rem }
-.sec-title { font-size:0.82rem;font-weight:800;color:var(--text) }
-.sec-meta { font-size:0.64rem;color:var(--text3);margin-top:1px }
-.sec-arrow { font-size:0.7rem;color:var(--text3);pointer-events:none;
-  transition:transform 0.25s;display:inline-block }
-.sec-header.open .sec-arrow { transform:rotate(180deg) }
-
-/* body: hidden by default via display:none set in HTML */
-.sec-body {
-  display:none;
-  background:var(--bg2);
-  border:1px solid var(--border);border-top:none;
-  border-radius:0 0 var(--r) var(--r);
-  overflow:hidden;
-}
-.sec-body.open { display:block }
-
-/* inner animator */
-.sec-inner {
-  padding:0.6rem 0.75rem 0.3rem;
-  max-height:0;overflow:hidden;
-  transition:max-height 0.35s ease;
-}
-.sec-body.open .sec-inner { max-height:5000px }
-
-.sec-body .card {
-  background:var(--bg3);border-color:var(--border);margin-bottom:0.5rem;
-}
-.sec-body .card:last-child { margin-bottom:0.25rem }
-
-/* Inline frog */
-.frog-il { display:flex;align-items:center;gap:0.6rem;
-  padding:0.5rem 0;border-bottom:1px solid var(--border) }
-.frog-il:last-child { border-bottom:none }
-.frog-il-check { width:22px;height:22px;border-radius:50%;
-  border:2px solid var(--border2);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.75rem;cursor:pointer;color:#fff;transition:all 0.15s }
-.frog-il-check.done { background:var(--green);border-color:var(--green) }
-.frog-il-txt { flex:1;font-size:0.82rem;font-weight:600 }
-.frog-il-txt.done { text-decoration:line-through;color:var(--text3) }
-
 </style>
 </head>
 <body>
@@ -1011,128 +950,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
-
-    <div class="sec-block">
-      <div class="sec-header open" id="sh-gedanken" onclick="toggleSec('gedanken')">
-        <div class="sec-hl">
-          <span class="sec-icon">🧠</span>
-          <div>
-            <div class="sec-title">Kopf &amp; Gedanken</div>
-            <div class="sec-meta">Dump · Erfolge · Dankbarkeit</div>
-          </div>
-        </div>
-        <span class="sec-arrow">▼</span>
-      </div>
-      <div class="sec-body open" id="sb-gedanken">
-        <div class="sec-inner"><!-- Gedanken / Brain Dump -->
-      <div class="card" id="thoughtsCard">
-        <div class="card-title">🧠 GEDANKEN-DUMP</div>
-
-        <!-- Filter -->
-        <div class="thought-filter-row">
-          <button class="thought-filter active" data-filter="all" onclick="setThoughtFilter('all',this)">Alle</button>
-          <button class="thought-filter" data-filter="do" onclick="setThoughtFilter('do',this)">🔴 Erledigen</button>
-          <button class="thought-filter" data-filter="clarify" onclick="setThoughtFilter('clarify',this)">🟡 Klären</button>
-          <button class="thought-filter" data-filter="release" onclick="setThoughtFilter('release',this)">🔵 Loslassen</button>
-          <button class="thought-filter" data-filter="dump" onclick="setThoughtFilter('dump',this)">💜 Nur raus</button>
-        </div>
-
-        <!-- List -->
-        <div id="thoughtList"></div>
-
-        <!-- Add -->
-        <textarea class="thought-add-area" id="thoughtInput"
-          placeholder="Was geht dir im Kopf rum? Einfach rausschreiben…"
-          rows="2"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addThought()}"
-        ></textarea>
-        <div class="thought-toolbar">
-          <button class="thought-type-btn type-do" data-type="do" onclick="selectThoughtType('do',this)">🔴 Erledigen</button>
-          <button class="thought-type-btn type-clarify" data-type="clarify" onclick="selectThoughtType('clarify',this)">🟡 Klären</button>
-          <button class="thought-type-btn type-release" data-type="release" onclick="selectThoughtType('release',this)">🔵 Loslassen</button>
-          <button class="thought-type-btn type-dump active" data-type="dump" onclick="selectThoughtType('dump',this)">💜 Nur raus</button>
-          <button class="thought-add-btn" onclick="addThought()">Ablegen →</button>
-        </div>
-      </div>
-<!-- Erfolge -->
-      <div class="card" id="winsCard">
-        <div class="card-title">🏆 KLEINE ERFOLGE</div>
-        <div class="win-list" id="winList"></div>
-        <div class="win-add-row">
-          <input class="win-input" id="winInput"
-            placeholder="Was hast du heute erreicht?…"
-            autocomplete="off"
-            oninput="showWinSugg()"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
-          />
-          <button class="win-add-btn" onclick="addWin()">+</button>
-        </div>
-        <div class="win-sugg" id="winSugg"></div>
-      </div>
-<!-- Dankbarkeit -->
-      <div class="card">
-        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
-        <div id="gratitudeList">
-          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
-        </div>
-      </div></div>
-      </div>
-    </div>
-    <div class="sec-block">
-      <div class="sec-header open" id="sh-produktiv" onclick="toggleSec('produktiv')">
-        <div class="sec-hl">
-          <span class="sec-icon">🎯</span>
-          <div>
-            <div class="sec-title">Produktivität</div>
-            <div class="sec-meta">Deep Work · Frösche</div>
-          </div>
-        </div>
-        <span class="sec-arrow">▼</span>
-      </div>
-      <div class="sec-body open" id="sb-produktiv">
-        <div class="sec-inner"><!-- Deep Work -->
-      <div class="card">
-        <div class="card-title">DEEP WORK</div>
-        <div class="deep-work-wrap">
-          <div class="deep-work-row">
-            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
-            <div>
-              <div class="dw-total" id="dwTotal">0.0</div>
-              <div class="dw-unit">Stunden</div>
-            </div>
-          </div>
-          <div class="dw-goal-row">
-            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
-            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
-            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🐸 FRÖSCHE HEUTE</div>
-        <div id="frogListInline"></div>
-        <div style="text-align:right;margin-top:0.5rem">
-          <button class="tag-edit-btn" onclick="showView('froesche',document.querySelector('.nav-btn:nth-child(4)'))">Alle Frösche →</button>
-        </div>
-      </div></div>
-      </div>
-    </div>
-    <div class="sec-block">
-      <div class="sec-header " id="sh-wiegehts" onclick="toggleSec('wiegehts')">
-        <div class="sec-hl">
-          <span class="sec-icon">💚</span>
-          <div>
-            <div class="sec-title">Wie geht's mir?</div>
-            <div class="sec-meta">Wellbeing · Stimmung · Energie · Schmerzen</div>
-          </div>
-        </div>
-        <span class="sec-arrow">▼</span>
-      </div>
-      <div class="sec-body " id="sb-wiegehts">
-        <div class="sec-inner"><!-- Wellbeing -->
+      <!-- Wellbeing -->
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
         <div class="wellbeing-display">
@@ -1144,12 +962,27 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="slider-labels"><span>1 – Sehr schlecht</span><span>10 – Ausgezeichnet</span></div>
         </div>
       </div>
-<!-- Stimmung -->
+
+
+      <!-- Stimmung -->
       <div class="card">
         <div class="card-title">STIMMUNG</div>
         <div class="mood-grid" id="moodGrid"></div>
       </div>
-<!-- HRV & Energie -->
+      <!-- Schlaf -->
+      <div class="card">
+        <div class="card-title">SCHLAF</div>
+        <div class="step-row">
+          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
+          <div>
+            <div class="step-val" id="sleepVal">7.0</div>
+            <div class="step-unit">Stunden</div>
+          </div>
+          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
+        </div>
+      </div>
+
+      <!-- HRV & Energie -->
       <div class="metrics-grid" style="margin-bottom:0.75rem">
         <div class="card" style="margin-bottom:0">
           <div class="card-title">HRV</div>
@@ -1174,7 +1007,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
         </div>
       </div>
-<!-- Schmerzen -->
+
+      <!-- Schmerzen -->
       <div class="card">
         <div class="card-title">SCHMERZEN (0 = keine)</div>
         <div class="pain-dots" id="painDots"></div>
@@ -1190,34 +1024,9 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
         </div>
         <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem"></textarea>
-      </div></div>
       </div>
-    </div>
-    <div class="sec-block">
-      <div class="sec-header " id="sh-koerper" onclick="toggleSec('koerper')">
-        <div class="sec-hl">
-          <span class="sec-icon">🌙</span>
-          <div>
-            <div class="sec-title">Körper &amp; Schlaf</div>
-            <div class="sec-meta">Schlaf · Mahlzeiten · Aktivität · Meds</div>
-          </div>
-        </div>
-        <span class="sec-arrow">▼</span>
-      </div>
-      <div class="sec-body " id="sb-koerper">
-        <div class="sec-inner"><!-- Schlaf -->
-      <div class="card">
-        <div class="card-title">SCHLAF</div>
-        <div class="step-row">
-          <button class="step-btn" onclick="adjustVal('sleep',-0.5)">−</button>
-          <div>
-            <div class="step-val" id="sleepVal">7.0</div>
-            <div class="step-unit">Stunden</div>
-          </div>
-          <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
-        </div>
-      </div>
-<!-- Mahlzeiten -->
+
+      <!-- Mahlzeiten -->
       <div class="card" id="mealCard">
         <div class="card-title">MAHLZEITEN</div>
 
@@ -1278,7 +1087,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="meal-suggestions" id="sugg-snacks"></div>
         </div>
       </div>
-<!-- Ernährungsqualität -->
+
+      <!-- Ernährungsqualität -->
       <div class="card">
         <div class="tag-group-header">
           <div class="card-title" style="margin-bottom:0">ERNÄHRUNGSQUALITÄT</div>
@@ -1290,44 +1100,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <button class="tag-add-submit" onclick="addCustomTag('ern')">+</button>
         </div>
       </div>
-<!-- Aktivität -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
-          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="aktTag"></div>
-        <div class="tag-add-row" id="aktAddRow" style="display:none">
-          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
-        </div>
-      </div>
-<!-- Medikamente & Supplements -->
-      <div class="card">
-        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
-        <div id="medList"></div>
-        <div class="med-add-row">
-          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
-          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
-          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
-        </div>
-        <div id="medSugg" class="med-sugg"></div>
-      </div></div>
-      </div>
-    </div>
-    <div class="sec-block">
-      <div class="sec-header " id="sh-notiz" onclick="toggleSec('notiz')">
-        <div class="sec-hl">
-          <span class="sec-icon">📝</span>
-          <div>
-            <div class="sec-title">Tagesnotiz</div>
-            <div class="sec-meta">Was lief nicht gut · Freie Notiz</div>
-          </div>
-        </div>
-        <span class="sec-arrow">▼</span>
-      </div>
-      <div class="sec-body " id="sb-notiz">
-        <div class="sec-inner"><!-- Was lief nicht gut -->
+
+      <!-- Was lief nicht gut -->
       <div class="card">
         <div class="tag-group-header">
           <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
@@ -1339,9 +1113,109 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
         </div>
         <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem"></textarea>
-      </div></div>
       </div>
-    </div>
+
+      <!-- Aktivität -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
+          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="aktTag"></div>
+        <div class="tag-add-row" id="aktAddRow" style="display:none">
+          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
+        </div>
+      </div>
+
+
+      <!-- Medikamente & Supplements -->
+      <div class="card">
+        <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
+        <div id="medList"></div>
+        <div class="med-add-row">
+          <input class="med-input" id="medNameInput" placeholder="Name (z.B. Ibuprofen 400mg)" oninput="showMedSugg()" onkeydown="if(event.key==='Enter')addMed()"/>
+          <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
+          <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
+        </div>
+        <div id="medSugg" class="med-sugg"></div>
+      </div>
+
+      <!-- Dankbarkeit -->
+      <div class="card">
+        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
+        <div id="gratitudeList">
+          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
+        </div>
+      </div>
+
+      <!-- Deep Work -->
+      <div class="card">
+        <div class="card-title">DEEP WORK</div>
+        <div class="deep-work-wrap">
+          <div class="deep-work-row">
+            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
+            <div>
+              <div class="dw-total" id="dwTotal">0.0</div>
+              <div class="dw-unit">Stunden</div>
+            </div>
+          </div>
+          <div class="dw-goal-row">
+            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
+            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
+            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Erfolge -->
+      <div class="card" id="winsCard">
+        <div class="card-title">🏆 KLEINE ERFOLGE</div>
+        <div class="win-list" id="winList"></div>
+        <div class="win-add-row">
+          <input class="win-input" id="winInput"
+            placeholder="Was hast du heute erreicht?…"
+            autocomplete="off"
+            oninput="showWinSugg()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
+          />
+          <button class="win-add-btn" onclick="addWin()">+</button>
+        </div>
+        <div class="win-sugg" id="winSugg"></div>
+      </div>
+
+      <!-- Gedanken / Brain Dump -->
+      <div class="card" id="thoughtsCard">
+        <div class="card-title">🧠 GEDANKEN-DUMP</div>
+
+        <!-- Filter -->
+        <div class="thought-filter-row">
+          <button class="thought-filter active" data-filter="all" onclick="setThoughtFilter('all',this)">Alle</button>
+          <button class="thought-filter" data-filter="do" onclick="setThoughtFilter('do',this)">🔴 Erledigen</button>
+          <button class="thought-filter" data-filter="clarify" onclick="setThoughtFilter('clarify',this)">🟡 Klären</button>
+          <button class="thought-filter" data-filter="release" onclick="setThoughtFilter('release',this)">🔵 Loslassen</button>
+          <button class="thought-filter" data-filter="dump" onclick="setThoughtFilter('dump',this)">💜 Nur raus</button>
+        </div>
+
+        <!-- List -->
+        <div id="thoughtList"></div>
+
+        <!-- Add -->
+        <textarea class="thought-add-area" id="thoughtInput"
+          placeholder="Was geht dir im Kopf rum? Einfach rausschreiben…"
+          rows="2"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addThought()}"
+        ></textarea>
+        <div class="thought-toolbar">
+          <button class="thought-type-btn type-do" data-type="do" onclick="selectThoughtType('do',this)">🔴 Erledigen</button>
+          <button class="thought-type-btn type-clarify" data-type="clarify" onclick="selectThoughtType('clarify',this)">🟡 Klären</button>
+          <button class="thought-type-btn type-release" data-type="release" onclick="selectThoughtType('release',this)">🔵 Loslassen</button>
+          <button class="thought-type-btn type-dump active" data-type="dump" onclick="selectThoughtType('dump',this)">💜 Nur raus</button>
+          <button class="thought-add-btn" onclick="addThought()">Ablegen →</button>
+        </div>
+      </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
     </div>
 
@@ -1419,12 +1293,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <!-- VIEW: FRÖSCHE -->
     <div class="view" id="view-froesche">
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
-        <div style="font-size:0.72rem;color:var(--text3)">Projekte gruppierten Frösche</div>
-        <button onclick="manageProjects()" style="display:flex;align-items:center;gap:0.4rem;background:var(--purple);border:none;border-radius:20px;color:#fff;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;padding:0.35rem 0.85rem;cursor:pointer;letter-spacing:0.03em">
-          ⊞ Projekte verwalten
-        </button>
-      </div>
+      <div style="text-align:right;margin-bottom:0.5rem"><button class="tag-edit-btn" onclick="manageProjects()">⊞ Projekte</button></div>
       <div class="frog-quote">
         „Iss den Frosch als erstes am Morgen – dann kann dir den Rest des Tages nichts Schlimmeres passieren." – Mark Twain
       </div>
@@ -1455,10 +1324,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
         </div>
         <div style="margin-bottom:0.5rem">
-          <div class="frog-opt-label" style="display:flex;align-items:center;justify-content:space-between">
-            Projekt (optional)
-            <button onclick="manageProjects()" style="background:none;border:none;color:var(--purple);font-size:0.7rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;padding:0">+ Neu</button>
-          </div>
+          <div class="frog-opt-label">Projekt (optional)</div>
           <select class="project-select" id="frogProject">
             <option value="">– Kein Projekt –</option>
           </select>
@@ -1498,10 +1364,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
             </div>
           </div>
           <div style="margin-bottom:0.5rem">
-            <div class="frog-opt-label" style="display:flex;align-items:center;justify-content:space-between">
-              Projekt (optional)
-              <button onclick="manageProjects()" style="background:none;border:none;color:var(--purple);font-size:0.7rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;padding:0">+ Neu</button>
-            </div>
+            <div class="frog-opt-label">Projekt (optional)</div>
             <select class="project-select" id="tomorrowProject">
               <option value="">– Kein Projekt –</option>
             </select>
@@ -1580,6 +1443,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <div style="font-size:0.7rem;color:var(--text3);text-align:center;margin-top:1.5rem;line-height:1.6">
         Daily Tracker · Daten lokal gespeichert (IndexedDB)<br>Kein Server · Kein Account
       </div>
+    </div>
 
   </div><!-- /content -->
 
@@ -1625,105 +1489,71 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 <div class="toast hidden" id="toast"></div>
 
 <script>
+
+function escapeRegex(s){ return s.split('').map(c=>'\\^$.|?*+()[]{}'.includes(c)?'\\'+c:c).join(''); }
 // ══════════════════════════════════════════════════════════════════
 // DB (IndexedDB)
 // ══════════════════════════════════════════════════════════════════
-// ── Storage layer: IndexedDB with localStorage fallback ──────────
-let db = null;
-let _memStore = {days:{}, routines:{}, routine_completions:{}};
-let _useIDB = false;
+let db;
 const DB_NAME = 'tracker_v1', DB_VERSION = 1;
 
-function openDB(){
-  return new Promise((res)=>{
-    try {
-      const idb = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB;
-      if(!idb){ _useIDB=false; _loadFromLS(); res(null); return; }
-      const req = idb.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = e=>{
-        const d = e.target.result;
-        if(!d.objectStoreNames.contains('days'))
-          d.createObjectStore('days',{keyPath:'date'});
-        if(!d.objectStoreNames.contains('routines'))
-          d.createObjectStore('routines',{keyPath:'id'});
-        if(!d.objectStoreNames.contains('routine_completions'))
-          d.createObjectStore('routine_completions',{keyPath:'key'});
-      };
-      req.onsuccess = e=>{ db=e.target.result; _useIDB=true; res(db); };
-      req.onerror = ()=>{ _useIDB=false; _loadFromLS(); res(null); };
-    } catch(e){ _useIDB=false; _loadFromLS(); res(null); }
-  });
-}
-
-// localStorage fallback
-function _lsKey(store){ return 'tracker_'+store; }
+let _useIDB = true;
+let _memStore = {days:{}, routines:{}, routine_completions:{}};
 function _loadFromLS(){
-  ['days','routines','routine_completions'].forEach(s=>{
-    try{ _memStore[s] = JSON.parse(localStorage.getItem(_lsKey(s))||'{}'); }
-    catch(e){ _memStore[s]={}; }
-  });
-}
-function _saveToLS(store){
-  try{ localStorage.setItem(_lsKey(store), JSON.stringify(_memStore[store])); }
-  catch(e){}
+  try{ _memStore.days = JSON.parse(localStorage.getItem('tracker_days')||'{}'); }catch(e){}
+  try{ _memStore.routines = JSON.parse(localStorage.getItem('tracker_routines')||'{}'); }catch(e){}
+  try{ _memStore.routine_completions = JSON.parse(localStorage.getItem('tracker_routine_completions')||'{}'); }catch(e){}
 }
 
+function openDB(){
+  return new Promise((res,rej)=>{
+    const idb = window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB;
+    if(!idb){ _useIDB=false; _loadFromLS(); res(null); return; }
+    const req = idb.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e=>{
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('days'))
+        d.createObjectStore('days',{keyPath:'date'});
+      if(!d.objectStoreNames.contains('routines'))
+        d.createObjectStore('routines',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('routine_completions'))
+        d.createObjectStore('routine_completions',{keyPath:'key'});
+    };
+    req.onsuccess = e=>{ db=e.target.result; res(db); };
+    req.onerror = e=>rej(e);
+  });
+}
 function dbPut(store,obj){
-  if(_useIDB && db){
-    return new Promise((res,rej)=>{
-      try{
-        const tx = db.transaction(store,'readwrite');
-        const r = tx.objectStore(store).put(obj);
-        r.onsuccess=()=>res(r.result);
-        r.onerror=rej;
-      }catch(e){rej(e);}
-    });
-  }
-  const key = obj.date||obj.id||obj.key;
-  _memStore[store][key] = obj;
-  _saveToLS(store);
-  return Promise.resolve(key);
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readwrite');
+    const r = tx.objectStore(store).put(obj);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=rej;
+  });
 }
 function dbGet(store,key){
-  if(_useIDB && db){
-    return new Promise((res,rej)=>{
-      try{
-        const tx = db.transaction(store,'readonly');
-        const r = tx.objectStore(store).get(key);
-        r.onsuccess=()=>res(r.result);
-        r.onerror=rej;
-      }catch(e){rej(e);}
-    });
-  }
-  return Promise.resolve(_memStore[store][key]);
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readonly');
+    const r = tx.objectStore(store).get(key);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=rej;
+  });
 }
 function dbGetAll(store){
-  if(_useIDB && db){
-    return new Promise((res,rej)=>{
-      try{
-        const tx = db.transaction(store,'readonly');
-        const r = tx.objectStore(store).getAll();
-        r.onsuccess=()=>res(r.result);
-        r.onerror=rej;
-      }catch(e){rej(e);}
-    });
-  }
-  return Promise.resolve(Object.values(_memStore[store]||{}));
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readonly');
+    const r = tx.objectStore(store).getAll();
+    r.onsuccess=()=>res(r.result);
+    r.onerror=rej;
+  });
 }
 function dbDelete(store,key){
-  if(_useIDB && db){
-    return new Promise((res,rej)=>{
-      try{
-        const tx = db.transaction(store,'readwrite');
-        const r = tx.objectStore(store).delete(key);
-        r.onsuccess=()=>res();
-        r.onerror=rej;
-      }catch(e){rej(e);}
-    });
-  }
-  delete _memStore[store][key];
-  _saveToLS(store);
-  return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(store,'readwrite');
+    const r = tx.objectStore(store).delete(key);
+    r.onsuccess=()=>res();
+    r.onerror=rej;
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1799,17 +1629,13 @@ async function init(){
   buildTagGrid('negTag', [], 'neg');
   buildTagGrid('aktTag', [], 'akt');
   updateHeader();
-  renderRoutines();
-  renderStats();
-  renderInsights();
   updateStreak();
   updatePlanStreak();
-  restoreSecs();
-  renderFrogListInline();
   renderRoutines();
   renderFrogs();
   renderInsights();
   renderWeekReview();
+  renderFutureFrogs();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2332,22 +2158,13 @@ function closeModal(){ document.getElementById('modal').style.display='none'; }
 // ══════════════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ══════════════════════════════════════════════════════════════════
-if('serviceWorker' in navigator){
-  // Unregister all old SWs first to clear broken caches
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>r.unregister());
-  }).catch(()=>{}).finally(()=>{
-    navigator.serviceWorker.register('/tracker/sw.js').catch(()=>{});
-  });
-}
+// SW disabled
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.unregister()));}
 
 // ══════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════
-init().then(()=>{ 
-  if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') 
-    scheduleAllNotifications(); 
-}).catch(err=>console.error('Init error:',err));
+init().then(()=>{ if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications(); }).catch(console.error);
 
 // ══════════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
@@ -2412,7 +2229,6 @@ function exportJSON(){
     winMemory: getWinMemory(),
     weekReviews: getWeekReviews(),
     projects: getProjects(),
-    dwGoal: localStorage.getItem('dw_goal')||'4',
   };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
@@ -2481,7 +2297,6 @@ async function performImport(encodedData){
     if(Array.isArray(data.winMemory)) localStorage.setItem('win_memory', JSON.stringify(data.winMemory));
     if(data.weekReviews) saveWeekReviews(data.weekReviews);
     if(Array.isArray(data.projects)) saveProjects(data.projects);
-    if(data.dwGoal) localStorage.setItem('dw_goal', data.dwGoal);
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
@@ -2828,7 +2643,7 @@ function showSuggestions(slot){
   if(!matches.length){ sugg.innerHTML=''; return; }
 
   sugg.innerHTML = matches.map(m=>{
-    const hi = m.replace(new RegExp('('+query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi'), '<mark>$1</mark>');
+    const hi = esc(m.text||m);
     return `<div class="meal-suggestion" tabindex="0"
       onclick="selectSuggestion('${slot}','${m.replace(/'/g,"\'")}')"
       onkeydown="if(event.key==='Enter')selectSuggestion('${slot}','${m.replace(/'/g,"\'")}');if(event.key==='Escape')hideSuggestions('${slot}')"
@@ -2895,7 +2710,6 @@ function toggleFrog(id){
   saveFrogs(TODAY, frogs);
   renderFrogs();
   if(f.done) showToast('🎉 Frosch gegessen!');
-  renderFrogListInline();
 }
 
 function deleteFrog(id){
@@ -3663,8 +3477,7 @@ function showWinSugg(){
   if(!matches.length){ el.innerHTML=''; return; }
 
   el.innerHTML = matches.map(m=>{
-    const safeQ1 = q.replace(/[-.*+?^${}()|[\]\\]/g,'\\$&');
-    const hi = m.text.replace(new RegExp('('+safeQ1+')','gi'),'<mark>$1</mark>');
+    const hi = esc(m.text||m);
     return `<div class="win-sugg-item"
       onclick="selectWin('${m.text.replace(/'/g,"\'")}')">
       🏆 ${hi}
@@ -3855,56 +3668,90 @@ function thoughtToTomorrowFrog(id){
 }
 
 
-// ══════════════════════════════════════════════════════════════
-// KOLLABIERBARE SEKTIONEN
-// ══════════════════════════════════════════════════════════════
+// ═══ ADDED FEATURES ═══
 function toggleSec(sid){
-  const hdr  = document.getElementById('sh-'+sid);
-  const body = document.getElementById('sb-'+sid);
-  if(!hdr||!body) return;
-  const opening = !body.classList.contains('open');
-  body.classList.toggle('open', opening);
-  hdr.classList.toggle('open', opening);
-  // Persist
-  try{
-    const s=JSON.parse(localStorage.getItem('sec_st')||'{}');
-    s[sid]=opening;
-    localStorage.setItem('sec_st',JSON.stringify(s));
-  }catch(e){}
+  const hdr=document.getElementById('sh-'+sid);
+  const body=document.getElementById('sb-'+sid);
+  if(!hdr||!body)return;
+  const opening=!body.classList.contains('open');
+  body.classList.toggle('open',opening);
+  hdr.classList.toggle('open',opening);
+  try{const s=JSON.parse(localStorage.getItem('sec_st')||'{}');s[sid]=opening;localStorage.setItem('sec_st',JSON.stringify(s));}catch(e){}
 }
-
 function restoreSecs(){
   const def={gedanken:true,produktiv:true,wiegehts:false,koerper:false,notiz:false};
-  let saved={};
-  try{saved=JSON.parse(localStorage.getItem('sec_st')||'{}');}catch(e){}
+  let saved={};try{saved=JSON.parse(localStorage.getItem('sec_st')||'{}');}catch(e){}
   const st={...def,...saved};
   Object.entries(st).forEach(([sid,open])=>{
-    const hdr  = document.getElementById('sh-'+sid);
-    const body = document.getElementById('sb-'+sid);
-    if(!hdr||!body) return;
-    body.classList.toggle('open', open);
-    hdr.classList.toggle('open', open);
+    const hdr=document.getElementById('sh-'+sid);
+    const body=document.getElementById('sb-'+sid);
+    if(!hdr||!body)return;
+    body.classList.toggle('open',open);
+    hdr.classList.toggle('open',open);
   });
 }
-
 function renderFrogListInline(){
-  const el=document.getElementById('frogListInline');
-  if(!el) return;
+  const el=document.getElementById('frogListInline');if(!el)return;
   const frogs=getFrogs(TODAY);
-  if(!frogs.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche für heute.</div>';
-    return;
-  }
+  if(!frogs.length){el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche für heute.</div>';return;}
   const sorted=[...frogs].sort((a,b)=>a.done===b.done?a.priority-b.priority:a.done?1:-1);
-  el.innerHTML=sorted.map(f=>`
-    <div class="frog-il">
-      <div class="frog-il-check${f.done?' done':''}"
-           onclick="toggleFrog('${f.id}');renderFrogListInline()">
-        ${f.done?'✓':''}
+  el.innerHTML=sorted.map(f=>`<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+    <div onclick="toggleFrog('${f.id}');renderFrogListInline()" style="width:22px;height:22px;border-radius:50%;border:2px solid ${f.done?'var(--green)':'var(--border2)'};background:${f.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;cursor:pointer;flex-shrink:0;color:#fff">${f.done?'✓':''}</div>
+    <div style="flex:1;font-size:0.82rem;font-weight:600;${f.done?'text-decoration:line-through;color:var(--text3)':''}">${esc(f.text)}</div>
+  </div>`).join('');
+}
+function getFutureFrogs(){try{return JSON.parse(localStorage.getItem('future_frogs')||'[]');}catch(e){return[];}}
+function saveFutureFrogs(list){localStorage.setItem('future_frogs',JSON.stringify(list));}
+function addFutureFrog(){
+  const text=document.getElementById('futureFrogInput')?.value.trim();if(!text)return;
+  const date=document.getElementById('futureFrogDate')?.value;
+  const priority=parseInt(document.getElementById('futurePriority')?.value||'2');
+  const list=getFutureFrogs();
+  list.push({id:Date.now().toString(),text,priority,date,created:new Date().toISOString()});
+  list.sort((a,b)=>{if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;return a.date.localeCompare(b.date);});
+  saveFutureFrogs(list);
+  if(document.getElementById('futureFrogInput'))document.getElementById('futureFrogInput').value='';
+  if(document.getElementById('futureFrogDate'))document.getElementById('futureFrogDate').value='';
+  renderFutureFrogs();showToast('📅 Für später eingeplant!');
+}
+function deleteFutureFrog(id){saveFutureFrogs(getFutureFrogs().filter(f=>f.id!==id));renderFutureFrogs();}
+function moveFutureFrogToDay(id,toDate){
+  const list=getFutureFrogs();const frog=list.find(f=>f.id===id);if(!frog)return;
+  if(!toDate)toDate=TODAY;
+  const target=getFrogs(toDate);
+  if(target.filter(f=>!f.done).length>=3){showToast('Bereits 3 Frösche!');return;}
+  target.push({id:Date.now().toString(),text:frog.text,priority:frog.priority,dread:3,project:'',done:false,planned:toDate!==TODAY,created:new Date().toISOString()});
+  saveFrogs(toDate,target);saveFutureFrogs(list.filter(f=>f.id!==id));
+  renderFutureFrogs();renderFrogs();renderFrogListInline();
+  showToast(toDate===TODAY?'🐸 Heute aktiviert!':'🌙 Eingeplant!');
+}
+function moveFrogToDay(id,fromDate,toTarget){
+  const frogs=getFrogs(fromDate);const frog=frogs.find(f=>f.id===id);if(!frog)return;
+  const toDate=toTarget==='tomorrow'?getTomorrowKey():toTarget;
+  const target=getFrogs(toDate);
+  if(target.filter(f=>!f.done).length>=3){showToast('Bereits 3 Frösche!');return;}
+  saveFrogs(fromDate,frogs.filter(f=>f.id!==id));
+  target.push({...frog,done:false,planned:toTarget==='tomorrow',movedFrom:fromDate});
+  saveFrogs(toDate,target);renderFrogs();renderTomorrowFrogs();renderFutureFrogs();updatePlanStreak();
+  showToast('→ Verschoben!');
+}
+function renderFutureFrogs(){
+  const el=document.getElementById('futureFrogList');if(!el)return;
+  const current=getFutureFrogs();
+  if(!current.length){el.innerHTML='<div style="text-align:center;padding:0.75rem;color:var(--text3);font-size:0.8rem">📅 Noch keine zukünftigen Frösche.</div>';return;}
+  const DAY=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  el.innerHTML=current.map(f=>{
+    const dl=f.date?(()=>{const d=new Date(f.date+'T00:00:00');const diff=Math.round((d-new Date(TODAY+'T00:00:00'))/(864e5));return diff===0?'Heute':diff===1?'Morgen':diff<=7?`${DAY[d.getDay()]},${d.getDate()}.${d.getMonth()+1}.`:d.toLocaleDateString('de',{day:'2-digit',month:'2-digit'});})():'Kein Datum';
+    return `<div style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.75rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:0.45rem;border-left:3px solid var(--purple)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.84rem;font-weight:600">${esc(f.text)}</div>
+        <div style="font-size:0.68rem;color:var(--text3);margin-top:3px">📅 ${dl}</div>
       </div>
-      <div class="frog-il-txt${f.done?' done':''}">${esc(f.text)}</div>
-      <span style="color:${{1:'var(--red)',2:'var(--gold)',3:'var(--blue)'}[f.priority]||'var(--text3)'}">●</span>
-    </div>`).join('');
+      <button onclick="moveFutureFrogToDay('${f.id}','${TODAY}')" style="background:none;border:1px solid var(--gold);border-radius:4px;color:var(--gold);font-size:0.68rem;font-weight:700;cursor:pointer;padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap">→ Heute</button>
+      <button onclick="moveFutureFrogToDay('${f.id}','${getTomorrowKey()}')" style="background:none;border:1px solid var(--blue);border-radius:4px;color:var(--blue);font-size:0.68rem;font-weight:700;cursor:pointer;padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap">→ Morgen</button>
+      <button onclick="deleteFutureFrog('${f.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem">🗑</button>
+    </div>`;
+  }).join('');
 }
 
 </script>
