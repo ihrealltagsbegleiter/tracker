@@ -696,6 +696,8 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .med-del:active{color:var(--red)}
 
 .med-add-row{display:flex;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
+.med-prn-row{display:flex;align-items:center;gap:0.4rem;margin-top:0.4rem;cursor:pointer}
+.med-prn-badge{font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:3px;background:rgba(155,114,232,0.15);color:var(--purple);border:1px solid rgba(155,114,232,0.3);margin-left:0.3rem;letter-spacing:0.04em}
 .med-input{
   flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border2);
   border-radius:var(--r2);padding:0.55rem 0.8rem;color:var(--text);
@@ -1238,6 +1240,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <input class="med-input" id="medTimeInput" type="time" style="flex:0 0 90px;min-width:0"/>
           <button class="med-add-btn" onclick="addMed()">+ Hinzufügen</button>
         </div>
+        <label class="med-prn-row">
+          <input type="checkbox" id="medPrnCheck" style="accent-color:var(--purple)"/>
+          <span style="font-size:0.72rem;color:var(--text3)">Bei Bedarf (kein fester Zeitplan)</span>
+        </label>
         <div id="medSugg" class="med-sugg"></div>
       </div>
 
@@ -1362,6 +1368,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <span><span class="rc-legend-dot" style="background:var(--bg3);border:1px solid var(--border2)"></span>Verpasst</span>
           <span><span class="rc-legend-dot" style="background:transparent;border:1px dashed var(--border2)"></span>Nicht geplant</span>
         </div>
+      </div>
+      <div class="card">
+        <div class="card-title">MEDIKAMENTE – COMPLIANCE</div>
+        <div id="medComplianceChart"></div>
       </div>
     </div>
 
@@ -2237,6 +2247,69 @@ function setPeriod(n, btn){
   renderStats();
 }
 
+function renderMedComplianceChart(){
+  const el = document.getElementById('medComplianceChart');
+  if(!el) return;
+  const schedule = getMedSchedule();
+  if(!schedule.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Medikamente erfasst.</div>';
+    return;
+  }
+
+  const days = getRecentDays(statsPeriod);
+  if(!days.length){ el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Daten.</div>'; return; }
+
+  const regular = schedule.filter(m=>!m.prn);
+  const prn = schedule.filter(m=>m.prn);
+
+  let html = '';
+
+  // Regelmäßige Medikamente: Compliance-Rate
+  if(regular.length){
+    html += `<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:0.5rem">Regelmäßig</div>`;
+    regular.forEach(m=>{
+      const takenDays = days.filter(d=>(d.meds_taken||[]).includes(m.id)).length;
+      const rate = days.length ? Math.round(takenDays/days.length*100) : 0;
+      const color = rate>=80?'var(--green)':rate>=50?'var(--gold)':'var(--red)';
+      html += `<div class="mood-freq-row">
+        <div class="mood-freq-label" title="${esc(m.name)}">${esc(m.name.length>14?m.name.slice(0,13)+'…':m.name)}</div>
+        <div class="mood-freq-bar-wrap"><div class="mood-freq-bar" style="width:${rate}%;background:${color}"></div></div>
+        <div class="mood-freq-count" style="width:36px">${rate}%</div>
+      </div>`;
+    });
+  }
+
+  // Bei-Bedarf Medikamente: Häufigkeit
+  if(prn.length){
+    html += `<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--purple);margin:0.75rem 0 0.5rem">Bei Bedarf</div>`;
+    prn.forEach(m=>{
+      const takenDays = days.filter(d=>(d.meds_taken||[]).includes(m.id)).length;
+      const maxPossible = days.length;
+      const pct = maxPossible ? Math.round(takenDays/maxPossible*100) : 0;
+      html += `<div class="mood-freq-row">
+        <div class="mood-freq-label" title="${esc(m.name)}">${esc(m.name.length>14?m.name.slice(0,13)+'…':m.name)}</div>
+        <div class="mood-freq-bar-wrap"><div class="mood-freq-bar" style="width:${pct}%;background:var(--purple)"></div></div>
+        <div class="mood-freq-count" style="width:36px">${takenDays}×</div>
+      </div>`;
+    });
+    html += `<div style="font-size:0.62rem;color:var(--text3);margin-top:0.4rem">× = Einnahmetage im gewählten Zeitraum</div>`;
+  }
+
+  // Gesamt-Compliance (nur reguläre)
+  if(regular.length && days.length){
+    const totalPossible = regular.length * days.length;
+    const totalTaken = regular.reduce((s,m)=>s+days.filter(d=>(d.meds_taken||[]).includes(m.id)).length,0);
+    const overall = Math.round(totalTaken/totalPossible*100);
+    const color = overall>=80?'var(--green)':overall>=50?'var(--gold)':'var(--red)';
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;padding-top:0.6rem;border-top:1px solid var(--border)">
+      <span style="font-size:0.72rem;color:var(--text2)">Gesamt-Compliance</span>
+      <span style="font-size:1rem;font-weight:700;font-family:'Syne Mono',monospace;color:${color}">${overall}%</span>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
 function renderStats(){
   const days = getRecentDays(statsPeriod);
   renderHeatmap();
@@ -2244,6 +2317,7 @@ function renderStats(){
   renderAvgStats(days);
   renderTagStats(days);
   renderRoutineChart();
+  renderMedComplianceChart();
 }
 
 function renderHeatmap(){
@@ -3536,15 +3610,16 @@ function saveMedSchedule(list){
 function addMed(){
   const name = document.getElementById('medNameInput').value.trim();
   const time = document.getElementById('medTimeInput').value;
+  const prn = document.getElementById('medPrnCheck').checked;
   if(!name) return;
-  // Add to schedule
   const schedule = getMedSchedule();
   const id = Date.now().toString();
-  schedule.push({id, name, time});
+  schedule.push({id, name, time: prn ? '' : time, prn});
   saveMedSchedule(schedule);
   addToMedMemory(name);
   document.getElementById('medNameInput').value='';
   document.getElementById('medTimeInput').value='';
+  document.getElementById('medPrnCheck').checked=false;
   hideMedSugg();
   renderMedList();
   showToast('Medikament hinzugefügt!');
@@ -3571,15 +3646,18 @@ function renderMedList(){
   if(!el) return;
   const schedule = getMedSchedule();
   if(!schedule.length){ el.innerHTML=''; return; }
-  // Sort by time
-  const sorted = [...schedule].sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+  // Regelmäßige zuerst (nach Zeit), dann PRN
+  const regular = schedule.filter(m=>!m.prn).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+  const prn = schedule.filter(m=>m.prn);
+  const sorted = [...regular, ...prn];
   el.innerHTML = sorted.map(m=>{
     const taken = (state.meds_taken||[]).includes(m.id);
+    const prnBadge = m.prn ? `<span class="med-prn-badge">BEI BEDARF</span>` : '';
     return `<div class="med-item${taken?' taken':''}">
       <div class="med-taken" onclick="toggleMedTaken('${m.id}')">${taken?'✓':''}</div>
       <div class="med-info">
-        <div class="med-name">${esc(m.name)}</div>
-        ${m.time?`<div class="med-dose">${m.time} Uhr</div>`:''}
+        <div class="med-name">${esc(m.name)}${prnBadge}</div>
+        ${m.time?`<div class="med-dose">${m.time} Uhr</div>`:m.prn?`<div class="med-dose" style="color:var(--purple)">nach Bedarf</div>`:''}
       </div>
       <button class="med-del" onclick="deleteMedFromSchedule('${m.id}',event)">🗑</button>
     </div>`;
