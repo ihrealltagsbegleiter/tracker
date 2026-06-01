@@ -336,6 +336,28 @@ select.input{cursor:pointer}
 .empty-text{font-size:0.84rem;line-height:1.6}
 
 /* ─── TOAST ──────────────────────────────────────────────────── */
+/* ─── ONBOARDING ─────────────────────────────────────────────────── */
+.ob-overlay{position:fixed;inset:0;background:rgba(10,10,20,0.92);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(6px)}
+.ob-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:2rem 1.5rem 1.5rem;max-width:380px;width:100%;animation:obIn 0.35s ease}
+@keyframes obIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.ob-progress{display:flex;gap:6px;justify-content:center;margin-bottom:1.5rem}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all 0.3s}
+.ob-dot.active{width:20px;border-radius:3px;background:var(--gold)}
+.ob-icon{font-size:2.8rem;text-align:center;margin-bottom:1rem}
+.ob-title{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:var(--text);text-align:center;margin-bottom:0.6rem}
+.ob-text{font-size:0.83rem;color:var(--text2);text-align:center;line-height:1.65;margin-bottom:0.5rem}
+.ob-bullets{list-style:none;margin:0.75rem 0;display:flex;flex-direction:column;gap:0.5rem}
+.ob-bullets li{display:flex;align-items:flex-start;gap:0.5rem;font-size:0.8rem;color:var(--text2);line-height:1.4}
+.ob-bullets li span.ob-bullet-icon{flex-shrink:0;font-size:1rem}
+.ob-actions{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem}
+.ob-skip{background:none;border:none;color:var(--text3);font-size:0.78rem;cursor:pointer;padding:0.3rem}
+.ob-next{background:var(--gold);color:#000;border:none;border-radius:var(--r2);padding:0.6rem 1.4rem;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:background 0.15s}
+.ob-next:active{background:var(--gold2)}
+.ob-setup-row{display:flex;flex-direction:column;gap:0.5rem;margin:0.75rem 0}
+.ob-setup-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3)}
+.ob-setup-input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text);font-family:'Syne',sans-serif;font-size:0.85rem;padding:0.5rem 0.75rem}
+.ob-setup-input:focus{outline:none;border-color:var(--gold)}
+
 .toast{
   position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,8px) + 8px);
   left:50%;transform:translateX(-50%) translateY(0);
@@ -1682,7 +1704,19 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 <!-- TOAST -->
 <div class="toast hidden" id="toast"></div>
 
-<script>
+<!-- ONBOARDING -->
+<div id="onboarding" style="display:none">
+  <div class="ob-overlay">
+    <div class="ob-card">
+      <div class="ob-progress"><div class="ob-dot active" id="obDot0"></div><div class="ob-dot" id="obDot1"></div><div class="ob-dot" id="obDot2"></div></div>
+      <div id="obContent"></div>
+      <div class="ob-actions">
+        <button class="ob-skip" onclick="finishOnboarding()">Überspringen</button>
+        <button class="ob-next" id="obNextBtn" onclick="onboardingNext()">Weiter →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 function escapeRegex(s){ return s.split('').map(c=>'\\^$.|?*+()[]{}'.includes(c)?'\\'+c:c).join(''); }
 // ══════════════════════════════════════════════════════════════════
@@ -2796,8 +2830,117 @@ if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then
 // ══════════════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════════════
-init().then(()=>{
+// ══════════════════════════════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════════════════════════════
+let _obStep = 0;
+const OB_SCREENS = [
+  {
+    icon: '◎',
+    title: 'Willkommen beim Daily Tracker',
+    text: 'Dein persönlicher Tages-Begleiter für Wohlbefinden, Produktivität und Selbstwahrnehmung.',
+    bullets: [
+      {icon:'🌡', text:'Lebensgefühl, Schlaf, Energie & Schmerz täglich erfassen'},
+      {icon:'🐸', text:'Frösche: deine wichtigsten Aufgaben des Tages'},
+      {icon:'✓', text:'Routinen aufbauen und Fortschritt sichtbar machen'},
+    ]
+  },
+  {
+    icon: '📋',
+    title: 'So funktioniert\'s',
+    text: 'Täglich 2–3 Minuten reichen für aussagekräftige Muster über Wochen.',
+    bullets: [
+      {icon:'◎', text:'<b>Heute</b>: Tageswerte eintragen – alles wird automatisch gespeichert'},
+      {icon:'✦', text:'<b>Statistik & Insights</b>: Muster erkennen nach 5+ Tagen'},
+      {icon:'📋', text:'<b>Woche</b>: Wochenziel setzen & Rückblick schreiben'},
+      {icon:'📄', text:'<b>Export</b>: CSV oder PDF-Wochenbericht herunterladen'},
+    ]
+  },
+  {
+    icon: '🎯',
+    title: 'Erstes Wochenziel',
+    text: 'Was möchtest du diese Woche erreichen? (Du kannst es jederzeit ändern.)',
+    isGoalStep: true,
+  }
+];
+
+function showOnboarding(){
+  _obStep = 0;
+  document.getElementById('onboarding').style.display='block';
+  renderObStep();
+}
+
+function renderObStep(){
+  const s = OB_SCREENS[_obStep];
+  // Progress dots
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>{
+    d.classList.toggle('active', i===_obStep);
+  });
+  // Next button label
+  const isLast = _obStep === OB_SCREENS.length-1;
+  document.getElementById('obNextBtn').textContent = isLast ? 'Loslegen ✓' : 'Weiter →';
+
+  let html = `<div class="ob-icon">${s.icon}</div>
+    <div class="ob-title">${s.title}</div>
+    <div class="ob-text">${s.text}</div>`;
+
+  if(s.bullets){
+    html += '<ul class="ob-bullets">'+s.bullets.map(b=>`
+      <li><span class="ob-bullet-icon">${b.icon}</span><span>${b.text}</span></li>
+    `).join('')+'</ul>';
+  }
+
+  if(s.isGoalStep){
+    const wk = getWeekKey(TODAY);
+    const existing = getWeekGoals()[wk]?.text||'';
+    html += `<div class="ob-setup-row">
+      <div class="ob-setup-label">Mein Wochenziel</div>
+      <textarea class="ob-setup-input" id="obGoalInput" rows="3" placeholder="z.B. Jeden Tag 10 Minuten spazieren gehen…" style="resize:none">${existing}</textarea>
+    </div>`;
+  }
+
+  document.getElementById('obContent').innerHTML = html;
+
+  // Focus goal input
+  if(s.isGoalStep) setTimeout(()=>document.getElementById('obGoalInput')?.focus(),200);
+}
+
+function onboardingNext(){
+  // Speichere Wochenziel wenn auf Screen 3
+  const s = OB_SCREENS[_obStep];
+  if(s.isGoalStep){
+    const text = document.getElementById('obGoalInput')?.value?.trim();
+    if(text){
+      const wk = getWeekKey(TODAY);
+      const goals = getWeekGoals();
+      goals[wk] = {text, saved: new Date().toISOString()};
+      saveWeekGoals(goals);
+      renderWeekGoal();
+    }
+  }
+
+  _obStep++;
+  if(_obStep >= OB_SCREENS.length){
+    finishOnboarding();
+  } else {
+    renderObStep();
+  }
+}
+
+function finishOnboarding(){
+  document.getElementById('onboarding').style.display='none';
+  localStorage.setItem('onboarding_done','1');
+  showToast('Viel Erfolg! 🌟');
+}
+
+
   if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications();
+
+  // Onboarding beim ersten Start
+  if(!localStorage.getItem('onboarding_done') && allDays.length === 0){
+    setTimeout(showOnboarding, 600);
+  }
+
   // Backup reminder: show once per month
   const lastRemind = localStorage.getItem('last_backup_remind');
   const now = Date.now();
