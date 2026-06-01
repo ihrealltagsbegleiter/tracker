@@ -492,6 +492,11 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 .frog-item.done{opacity:0.55}
 .frog-item.done .frog-text{text-decoration:line-through;color:var(--text3)}
+.frog-move-row{display:flex;gap:0.4rem;margin-top:0.4rem}
+.frog-move-btn{background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text2);font-size:0.65rem;font-weight:700;cursor:pointer;padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap;transition:all 0.15s}
+.frog-move-btn:active{background:var(--gold);border-color:var(--gold);color:#000}
+.frog-move-later{border-color:var(--purple);color:var(--purple)}
+.frog-move-later:active{background:var(--purple);color:#fff}
 .frog-check{
   width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);
   flex-shrink:0;display:flex;align-items:center;justify-content:center;
@@ -2952,6 +2957,36 @@ const PRIORITY_LABELS = {1:'Kritisch',2:'Wichtig',3:'Sollte heute'};
 const PRIORITY_COLORS = {1:'var(--red)',2:'var(--gold)',3:'var(--blue)'};
 const DREAD_LABELS = {5:'😰 Sehr hoch',4:'😟 Hoch',3:'😐 Mittel',2:'🙂 Niedrig',1:'😊 Kein Problem'};
 
+function moveFrogToMorrow(id){
+  const frogs = getFrogs(TODAY);
+  const f = frogs.find(x=>x.id===id);
+  if(!f) return;
+  // Entfernen aus heute
+  saveFrogs(TODAY, frogs.filter(x=>x.id!==id));
+  // Hinzufügen zu morgen
+  const tKey = getTomorrowKey();
+  const tFrogs = getFrogs(tKey);
+  tFrogs.push({...f, id: Date.now().toString(), done:false, completedAt:null, planned:false});
+  saveFrogs(tKey, tFrogs);
+  showToast('Frosch auf morgen verschoben!');
+  renderFrogs();
+}
+
+function moveFrogToLater(id){
+  const frogs = getFrogs(TODAY);
+  const f = frogs.find(x=>x.id===id);
+  if(!f) return;
+  // Entfernen aus heute
+  saveFrogs(TODAY, frogs.filter(x=>x.id!==id));
+  // Hinzufügen zu Future Frogs
+  const future = getFutureFrogs();
+  future.push({id: Date.now().toString(), text:f.text, priority:f.priority, dread:f.dread, project:f.project||'', created:new Date().toISOString()});
+  saveFutureFrogs(future);
+  showToast('Frosch auf Später-Liste verschoben!');
+  renderFrogs();
+  renderFutureFrogs();
+}
+
 function renderFrogs(){
   const frogs = getFrogs(TODAY);
   const list = document.getElementById('frogList');
@@ -2976,6 +3011,10 @@ function renderFrogs(){
             <span class="frog-dread">${DREAD_LABELS[f.dread]}</span>
             ${f.done&&f.completedAt?`<span style="font-size:0.65rem;color:var(--green)">✓ ${new Date(f.completedAt).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}</span>`:''}
           </div>
+          ${!f.done?`<div class="frog-move-row">
+            <button class="frog-move-btn" onclick="moveFrogToMorrow('${f.id}')">→ Morgen</button>
+            <button class="frog-move-btn frog-move-later" onclick="moveFrogToLater('${f.id}')">→ Später</button>
+          </div>`:''}
         </div>
         <button class="frog-del" onclick="deleteFrog('${f.id}')">🗑</button>
       </div>`).join('');
