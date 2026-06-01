@@ -1572,6 +1572,14 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
       <div class="section-title">EXPORT</div>
 
+      <div class="settings-row" onclick="exportWeekPDF()">
+        <div class="settings-left">
+          <div class="settings-icon">📄</div>
+          <div><div class="settings-label">Wochenbericht PDF</div><div class="settings-sub">Aktuelle Woche als strukturierter Bericht</div></div>
+        </div>
+        <div class="settings-arrow">→</div>
+      </div>
+
       <div class="settings-row" onclick="exportCSV()">
         <div class="settings-left">
           <div class="settings-icon">📊</div>
@@ -2807,6 +2815,116 @@ init().then(()=>{
 // ══════════════════════════════════════════════════════════════════
 // EXPORT / IMPORT
 // ══════════════════════════════════════════════════════════════════
+
+function exportWeekPDF(){
+  const wk = getWeekKey(TODAY);
+  const monday = new Date(wk.replace('week_','')+'T12:00:00');
+  const weekDays = Array.from({length:7},(_,i)=>{
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    return d.toISOString().slice(0,10);
+  });
+
+  const wDays = weekDays.map(ds=>allDays.find(d=>d.date===ds)||{date:ds});
+  const wReviews = getWeekReviews();
+  const wReview = wReviews[wk] || {};
+  const wGoals = getWeekGoals();
+  const wGoal = wGoals[wk]?.text || '–';
+
+  const dayNames = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const sun = new Date(monday); sun.setDate(monday.getDate()+6);
+  const weekLabel = `${monday.getDate()}. ${months[monday.getMonth()]} – ${sun.getDate()}. ${months[sun.getMonth()]} ${sun.getFullYear()}`;
+
+  const validDays = wDays.filter(d=>d.wellbeing);
+  const avg = key => validDays.length ? (validDays.reduce((s,d)=>s+(d[key]||0),0)/validDays.length).toFixed(1) : '–';
+
+  const routineRows = allRoutines.map(r=>{
+    const done = weekDays.filter(ds=>routineCompletions.some(c=>c.rid===r.id&&c.date===ds)).length;
+    const planned = weekDays.filter(ds=>{ const dow=(new Date(ds+'T12:00:00').getDay()||7); return (r.days||[]).includes(dow); }).length;
+    return {name:r.name, done, planned, rate: planned>0?Math.round(done/planned*100):null};
+  }).filter(r=>r.planned>0);
+
+  const allFrogs = weekDays.flatMap(ds=>getFrogs(ds));
+  const doneFrogs = allFrogs.filter(f=>f.done).length;
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<title>Wochenbericht ${weekLabel}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Georgia, serif; color: #1a1a2e; background: #fff; padding: 2cm; font-size: 11pt; line-height: 1.5; }
+  h1 { font-family: Arial, sans-serif; font-size: 20pt; font-weight: 900; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-family: Arial, sans-serif; font-size: 10pt; color: #666; margin-bottom: 24px; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-family: Arial, sans-serif; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #888; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+  .kpi { border: 1px solid #ddd; border-radius: 6px; padding: 10px; text-align: center; }
+  .kpi-val { font-family: 'Courier New', monospace; font-size: 18pt; font-weight: 700; color: #b8860b; }
+  .kpi-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-top: 2px; }
+  .day-row { display: grid; grid-template-columns: 90px 40px 40px 40px 1fr; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 9.5pt; }
+  .day-row.header { font-family: Arial, sans-serif; font-size: 8pt; font-weight: 700; text-transform: uppercase; color: #888; border-bottom: 2px solid #ddd; }
+  .bar-wrap { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; width: 100%; }
+  .bar { height: 100%; border-radius: 3px; background: #b8860b; }
+  .routine-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #f0f0f0; font-size: 9.5pt; }
+  .routine-rate { font-family: 'Courier New', monospace; font-size: 9pt; color: #444; min-width: 80px; text-align: right; }
+  .review-box { background: #f9f9f9; border-left: 3px solid #b8860b; padding: 10px 12px; border-radius: 0 4px 4px 0; font-style: italic; font-size: 10pt; color: #333; margin-top: 6px; min-height: 30px; }
+  .goal-box { background: #fffbea; border: 1px solid #e8c84a; border-radius: 6px; padding: 10px 12px; font-size: 10pt; margin-top: 6px; }
+  .frog-item { font-size: 9.5pt; padding: 3px 0; border-bottom: 1px solid #f0f0f0; display: flex; gap: 6px; }
+  .frog-done { color: #2e7d32; } .frog-open { color: #c62828; }
+  .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8pt; color: #aaa; text-align: center; }
+  @media print { body { padding: 1.5cm; } @page { margin: 1.5cm; } }
+</style>
+</head>
+<body>
+<h1>Daily Tracker — Wochenbericht</h1>
+<div class="subtitle">${weekLabel}</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-val">${avg('wellbeing')}</div><div class="kpi-label">Ø Lebensgefühl</div></div>
+  <div class="kpi"><div class="kpi-val">${avg('sleep')}h</div><div class="kpi-label">Ø Schlaf</div></div>
+  <div class="kpi"><div class="kpi-val">${doneFrogs}/${allFrogs.length}</div><div class="kpi-label">Frösche</div></div>
+  <div class="kpi"><div class="kpi-val">${validDays.length}/7</div><div class="kpi-label">Einträge</div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Wochenziel</div>
+  <div class="goal-box">${wGoal}</div>
+</div>
+
+<div class="section">
+  <div class="section-title">Tagesverlauf</div>
+  <div class="day-row header"><span>Tag</span><span>WB</span><span>Schlaf</span><span>Energie</span><span>Verlauf &amp; Stimmung</span></div>
+  ${weekDays.map((ds,i)=>{
+    const d = wDays[i];
+    const wb = d.wellbeing||'–';
+    const sl = d.sleep?d.sleep+'h':'–';
+    const en = d.energy||'–';
+    const moods = (d.moods||[]).slice(0,3).join(', ')||'–';
+    const barW = d.wellbeing ? Math.round(d.wellbeing/10*100) : 0;
+    const dd = new Date(ds+'T12:00:00');
+    return '<div class="day-row"><span>'+dayNames[i].slice(0,2)+' '+dd.getDate()+'.'+(dd.getMonth()+1)+'.</span><span>'+wb+'</span><span>'+sl+'</span><span>'+en+'</span><div><div class="bar-wrap"><div class="bar" style="width:'+barW+'%"></div></div><div style="font-size:7.5pt;color:#888;margin-top:1px">'+moods+'</div></div></div>';
+  }).join('')}
+</div>
+
+${routineRows.length ? '<div class="section"><div class="section-title">Routinen-Compliance</div>'+routineRows.map(r=>{const color=r.rate>=80?'#2e7d32':r.rate>=50?'#b8860b':'#c62828';return '<div class="routine-row"><span>'+r.name+'</span><span class="routine-rate" style="color:'+color+'">'+r.done+'/'+r.planned+' ('+r.rate+'%)</span></div>';}).join('')+'</div>' : ''}
+
+${allFrogs.length ? '<div class="section"><div class="section-title">Frösche der Woche</div>'+weekDays.map((ds,i)=>{const frogs=getFrogs(ds);if(!frogs.length)return '';return frogs.map(f=>'<div class="frog-item"><span class="'+(f.done?'frog-done':'frog-open')+'">'+(f.done?'✓':'○')+'</span><span>'+dayNames[i].slice(0,2)+'.</span><span>'+f.text+'</span></div>').join('');}).join('')+'</div>' : ''}
+
+${wReview.good||wReview.improve||wReview.focus ? '<div class="section"><div class="section-title">Wochenrückblick</div>'+(wReview.good?'<div style="font-size:8pt;font-weight:700;color:#888;margin-bottom:2px">WAS LIEF GUT?</div><div class="review-box">'+wReview.good+'</div>':'')+(wReview.improve?'<div style="font-size:8pt;font-weight:700;color:#888;margin:8px 0 2px">WAS VERBESSERN?</div><div class="review-box">'+wReview.improve+'</div>':'')+(wReview.focus?'<div style="font-size:8pt;font-weight:700;color:#888;margin:8px 0 2px">FOKUS NÄCHSTE WOCHE</div><div class="review-box">'+wReview.focus+'</div>':'')+'</div>' : ''}
+
+<div class="footer">Daily Tracker · Erstellt am ${new Date().toLocaleDateString('de',{day:'2-digit',month:'2-digit',year:'numeric'})} · Vertraulich</div>
+</body></html>`;
+
+  const win = window.open('','_blank','width=900,height=700');
+  if(!win){ showToast('Bitte Popup-Blocker deaktivieren'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => { win.focus(); setTimeout(()=>win.print(),400); };
+  showToast('PDF-Vorschau wird geöffnet…');
+}
+
 function exportCSV(){
   if(!allDays.length){ showToast('Keine Daten zum Exportieren'); return; }
   const cols = ['date','wellbeing','sleep','hrv','energy','pain','pain_tags','ern','neg','akt','note','painNote','meals_fruehstueck','meals_mittagessen','meals_abendessen','meals_snacks'];
