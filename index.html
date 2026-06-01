@@ -1021,7 +1021,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
       <!-- Wochenziel Banner -->
-      <div class="week-goal-banner" id="weekGoalBanner" style="display:none" onclick="showView('woche', document.querySelector('.nav-btn[onclick*=woche]'))">
+      <div class="week-goal-banner" id="weekGoalBanner" style="display:none" onclick="document.querySelectorAll('.nav-btn').forEach((b,i)=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes('woche')){showView('woche',b);}})"  >
         <span class="week-goal-banner-icon">🎯</span>
         <span class="week-goal-banner-text" id="weekGoalBannerText"></span>
         <span class="week-goal-banner-arrow">›</span>
@@ -1781,6 +1781,7 @@ async function init(){
   renderInsights();
   renderWeekReview();
   renderWeekGoal();
+  setTimeout(renderWeekGoal, 500); // Retry für PWA-Start
   renderFutureFrogs();
 }
 
