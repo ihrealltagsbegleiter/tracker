@@ -589,6 +589,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 .frog-stat-num{font-family:'Syne Mono',monospace;font-size:1.2rem;color:var(--gold)}
 .frog-stat-label{font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+.frog-dow-wrap{display:flex;gap:0.3rem;align-items:flex-end;height:80px;padding-top:0.5rem}
+.frog-dow-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.frog-dow-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.frog-dow-bar{width:100%;border-radius:3px 3px 0 0;transition:height 0.5s ease;min-height:2px}
+.frog-dow-label{font-size:0.6rem;color:var(--text3);font-family:'Syne Mono',monospace}
+.frog-dow-pct{font-size:0.58rem;color:var(--text2);font-family:'Syne Mono',monospace}
 
 .frog-quote{
   background:var(--bg3);border-left:3px solid var(--gold);
@@ -1407,6 +1413,11 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
 
       <div class="frog-stats-row" id="frogStatsRow"></div>
+
+      <div class="card" style="margin-bottom:0.75rem">
+        <div class="card-title">ERLEDIGUNGSRATE NACH WOCHENTAG</div>
+        <div id="frogWeekdayChart"></div>
+      </div>
 
       <div class="frog-add-card" id="frogAddCard">
         <div class="frog-add-title">🐸 Frosch für heute definieren</div>
@@ -3340,6 +3351,58 @@ function moveFrogToLater(id){
   renderFutureFrogs();
 }
 
+function renderFrogWeekdayChart(){
+  const el = document.getElementById('frogWeekdayChart');
+  if(!el) return;
+
+  const DOW = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  // Sammle alle Frosch-Daten aus localStorage
+  const stats = Array(7).fill(null).map(()=>({total:0, done:0}));
+
+  // Alle frogs_YYYY-MM-DD Keys scannen
+  for(let i=0; i<localStorage.length; i++){
+    const key = localStorage.key(i);
+    if(!key.startsWith('frogs_')) continue;
+    const dateStr = key.replace('frogs_','');
+    const d = new Date(dateStr+'T12:00:00');
+    if(isNaN(d.getTime())) continue;
+    const dow = (d.getDay()+6)%7; // Mo=0
+    try{
+      const frogs = JSON.parse(localStorage.getItem(key)||'[]');
+      if(!frogs.length) continue;
+      stats[dow].total += frogs.length;
+      stats[dow].done  += frogs.filter(f=>f.done).length;
+    } catch(e){}
+  }
+
+  const maxRate = Math.max(...stats.map(s=>s.total>0?s.done/s.total:0), 0.01);
+
+  if(stats.every(s=>s.total===0)){
+    el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Frosch-Daten. Fang heute an! 🐸</div>';
+    return;
+  }
+
+  const bars = stats.map((s,i)=>{
+    const rate = s.total>0 ? s.done/s.total : 0;
+    const pct = Math.round(rate*100);
+    const h = maxRate>0 ? Math.round(rate/maxRate*56) : 0; // max 56px
+    const color = rate>=0.8?'var(--green)':rate>=0.5?'var(--gold)':'var(--red)';
+    const isToday = i === (new Date(TODAY+'T12:00:00').getDay()+6)%7;
+    const borderStyle = isToday ? `border:1px solid var(--gold);border-radius:3px 3px 0 0;` : '';
+    return `<div class="frog-dow-col">
+      <div class="frog-dow-pct">${s.total>0?pct+'%':''}</div>
+      <div class="frog-dow-bar-wrap">
+        <div class="frog-dow-bar" style="height:${h}px;background:${s.total>0?color:'var(--bg3)'};${borderStyle}"></div>
+      </div>
+      <div class="frog-dow-label" style="${isToday?'color:var(--gold);font-weight:700':''}">${DOW[i]}</div>
+      <div class="frog-dow-pct" style="color:var(--text3)">${s.total>0?s.done+'/'+s.total:''}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="frog-dow-wrap">${bars}</div>
+    <div style="font-size:0.62rem;color:var(--text3);margin-top:0.4rem">Erledigte / geplante Frösche · Heute = gold markiert</div>`;
+}
+
 function renderFrogs(){
   const frogs = getFrogs(activeDate);
   const list = document.getElementById('frogList');
@@ -3388,6 +3451,7 @@ function renderFrogs(){
   document.getElementById('frogAddCard').style.opacity = activeFrogs>=3?'0.4':'1';
   renderTomorrowFrogs();
   updatePlanStreak();
+  renderFrogWeekdayChart();
 }
 
 function getFrogStreak(){
