@@ -2401,6 +2401,7 @@ function exportJSON(){
     winMemory: getWinMemory(),
     weekReviews: getWeekReviews(),
     projects: getProjects(),
+    dwGoal: localStorage.getItem('dw_goal')||'4',
   };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
@@ -2469,6 +2470,7 @@ async function performImport(encodedData){
     if(Array.isArray(data.winMemory)) localStorage.setItem('win_memory', JSON.stringify(data.winMemory));
     if(data.weekReviews) saveWeekReviews(data.weekReviews);
     if(Array.isArray(data.projects)) saveProjects(data.projects);
+    if(data.dwGoal) localStorage.setItem('dw_goal', data.dwGoal);
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
