@@ -2936,6 +2936,7 @@ function finishOnboarding(){
 }
 
 
+init().then(()=>{
   if(localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted') scheduleAllNotifications();
 
   // Onboarding beim ersten Start
