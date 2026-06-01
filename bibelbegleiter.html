@@ -284,29 +284,21 @@ let currentSituation = '';
 let activeTopic = null;
 
 // ── API ──────────────────────────────────────────────────────────────
-const WORKER_URL = 'https://bibelbegleiter-proxy.ihrealltagsbegleiter.workers.dev';
-const PROXY_URL = 'https://corsproxy.io/?https://api.anthropic.com/v1/messages';
+const API_KEY = "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";
 
 async function claudeAPI(body) {
-  // Versuche alle Endpunkte der Reihe nach
-  const endpoints = [
-    { url: WORKER_URL, headers: { 'Content-Type': 'application/json' } },
-    { url: PROXY_URL,  headers: { 'Content-Type': 'application/json' } },
-  ];
-  let lastErr = null;
-  for (const ep of endpoints) {
-    try {
-      const r = await fetch(ep.url, {
-        method: 'POST',
-        headers: ep.headers,
-        body: JSON.stringify(body)
-      });
-      if (r.ok) return r.json();
-      const e = await r.json().catch(()=>({}));
-      lastErr = new Error(e.error?.message || `Fehler ${r.status}`);
-    } catch(e) { lastErr = e; }
-  }
-  throw lastErr || new Error('Keine Verbindung möglich.');
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-iab": "true"
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error?.message || `Fehler ${r.status}`); }
+  return r.json();
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────
