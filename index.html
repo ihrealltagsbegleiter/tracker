@@ -158,6 +158,12 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
   min-width:80px;text-align:center;
 }
 .step-unit{font-size:0.72rem;color:var(--text3);text-align:center;margin-top:0.2rem}
+.sleep-quality-row{display:flex;align-items:center;gap:0.5rem;justify-content:center;padding:0.3rem 0 0.1rem;border-top:1px solid var(--border);margin-top:0.4rem}
+.sleep-quality-label{font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;white-space:nowrap}
+.sleep-stars{display:flex;gap:2px}
+.sleep-star{font-size:1.3rem;color:var(--border2);cursor:pointer;transition:color 0.15s;line-height:1}
+.sleep-star.active{color:var(--gold)}
+.sleep-quality-text{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace;min-width:60px}
 
 /* ─── PAIN SCALE ─────────────────────────────────────────────── */
 .pain-dots{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;padding:0.4rem 0}
@@ -1024,6 +1030,17 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
           <button class="step-btn" onclick="adjustVal('sleep',0.5)">+</button>
         </div>
+        <div class="sleep-quality-row">
+          <div class="sleep-quality-label">Schlafqualität</div>
+          <div class="sleep-stars" id="sleepStars">
+            <span class="sleep-star" onclick="setSleepQuality(1)" title="Sehr schlecht">★</span>
+            <span class="sleep-star" onclick="setSleepQuality(2)" title="Schlecht">★</span>
+            <span class="sleep-star" onclick="setSleepQuality(3)" title="Okay">★</span>
+            <span class="sleep-star" onclick="setSleepQuality(4)" title="Gut">★</span>
+            <span class="sleep-star" onclick="setSleepQuality(5)" title="Sehr gut">★</span>
+          </div>
+          <div class="sleep-quality-text" id="sleepQualityText">—</div>
+        </div>
       </div>
 
       <!-- HRV & Energie -->
@@ -1648,7 +1665,7 @@ function dbDelete(store,key){
 const TODAY = new Date().toISOString().slice(0,10);
 let activeDate = TODAY; // aktuell bearbeitetes Datum (kann von TODAY abweichen)
 let state = {
-  wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0,
+  wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0, sleepQuality: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
   deepWork: 0,
   wins: [],
@@ -1707,6 +1724,7 @@ async function init(){
     }
   }
   buildPainDots();
+  renderSleepQuality();
   buildTagGrid('ernTag', [], 'ern');
   buildTagGrid('painTag', [], 'pain');
   buildMoodGrid();
@@ -1741,7 +1759,19 @@ function updateWellbeing(v){
   scheduleAutoSave();
 }
 
-const LIMITS = {sleep:[2,14,0.5],hrv:[10,200,1],energy:[1,10,1]};
+const SLEEP_QUALITY_LABELS = ['','Sehr schlecht','Schlecht','Okay','Gut','Sehr gut'];
+function setSleepQuality(v){
+  state.sleepQuality = state.sleepQuality === v ? 0 : v; // toggle
+  renderSleepQuality();
+  scheduleAutoSave();
+}
+function renderSleepQuality(){
+  const q = state.sleepQuality || 0;
+  document.querySelectorAll('.sleep-star').forEach((s,i)=>{
+    s.classList.toggle('active', i < q);
+  });
+  document.getElementById('sleepQualityText').textContent = q ? SLEEP_QUALITY_LABELS[q] : '—';
+}
 function adjustVal(key, delta){
   const [min,max] = LIMITS[key];
   const decimals = key==='sleep'?1:0;
@@ -1866,7 +1896,7 @@ async function navigateDate(delta){
 async function loadDateData(){
   // State zurücksetzen
   state = {
-    wellbeing:5, sleep:7.0, hrv:55, energy:7, pain:0,
+    wellbeing:5, sleep:7.0, hrv:55, energy:7, pain:0, sleepQuality:0,
     ern:[], neg:[], akt:[], pain_tags:[], moods:[], note:'', painNote:'',
     deepWork:0, wins:[], thoughts:[], meds_taken:[], meals:{}, gratitude:['','',''],
     date: activeDate
@@ -1886,6 +1916,7 @@ async function loadDateData(){
   document.getElementById('noteText').value = state.note||'';
   document.getElementById('painNote').value = state.painNote||'';
   buildPainDots();
+  renderSleepQuality();
   buildTagGrid('ernTag', [], 'ern');
   buildTagGrid('painTag', [], 'pain');
   buildTagGrid('negTag', [], 'neg');
@@ -2270,6 +2301,7 @@ function renderAvgStats(days){
   const avg = k => (days.reduce((s,d)=>s+(d[k]||0),0)/days.length).toFixed(1);
   const stats = [
     {icon:'🌙',name:'Schlaf',val:avg('sleep')+' h',bar:parseFloat(avg('sleep'))/10},
+    {icon:'⭐',name:'Schlafqualität',val:avg('sleepQuality')+'/5',bar:parseFloat(avg('sleepQuality'))/5},
     {icon:'❤️',name:'HRV',val:avg('hrv')+' ms',bar:parseFloat(avg('hrv'))/100},
     {icon:'⚡',name:'Energie',val:avg('energy')+'/10',bar:parseFloat(avg('energy'))/10},
     {icon:'😌',name:'Lebensgefühl',val:avg('wellbeing')+'/10',bar:parseFloat(avg('wellbeing'))/10},
@@ -2357,7 +2389,8 @@ function renderInsights(){
 
   // Numerical correlations
   [
-    {key:'sleep',label:'Schlaf',icon:'🌙'},
+    {key:'sleep',label:'Schlaf (h)',icon:'🌙'},
+    {key:'sleepQuality',label:'Schlafqualität',icon:'⭐'},
     {key:'hrv',label:'HRV',icon:'❤️'},
     {key:'energy',label:'Energie',icon:'⚡'},
   ].forEach(({key,label,icon})=>{
@@ -4114,7 +4147,7 @@ async function runAiDayReview(){
 
 HEUTE (${TODAY}):
 - Lebensgefühl: ${todayEntry.wellbeing||'–'}/10
-- Schlaf: ${todayEntry.sleep||'–'} h
+- Schlaf: ${todayEntry.sleep||'–'} h · Qualität: ${'⭐'.repeat(todayEntry.sleepQuality||0)||'–'}
 - HRV: ${todayEntry.hrv||'–'} ms
 - Energie: ${todayEntry.energy||'–'}/10
 - Schmerz: ${todayEntry.pain||0}/10 ${todayEntry.pain_tags?.length ? '('+todayEntry.pain_tags.join(', ')+')' : ''}
