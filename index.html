@@ -739,6 +739,26 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 }
 
 /* ─── WOCHENRÜCKBLICK ────────────────────────────────────────── */
+/* ─── WOCHENZIEL ─────────────────────────────────────────────────── */
+.week-goal-card{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--gold);border-radius:var(--r);padding:1rem;margin-bottom:0.75rem}
+.week-goal-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem}
+.week-goal-icon{font-size:1rem}
+.week-goal-title{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold)}
+.week-goal-label{font-size:0.65rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-left:auto}
+.week-goal-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text);font-family:'Lora',serif;font-size:0.85rem;padding:0.6rem 0.75rem;resize:none;line-height:1.5}
+.week-goal-input:focus{outline:none;border-color:var(--gold)}
+.week-goal-input::placeholder{color:var(--text3);font-style:italic}
+.week-goal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem}
+.week-goal-hint{font-size:0.65rem;color:var(--text3)}
+.week-goal-save-btn{background:var(--gold);color:#000;border:none;border-radius:6px;padding:0.3rem 0.9rem;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;transition:background 0.15s}
+.week-goal-save-btn:active{background:var(--gold2)}
+.week-goal-save-btn.saved{background:var(--green);color:#fff}
+.week-goal-banner{display:flex;align-items:center;gap:0.6rem;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.3);border-radius:var(--r2);padding:0.55rem 0.75rem;margin-bottom:0.75rem;cursor:pointer;transition:background 0.15s}
+.week-goal-banner:active{background:rgba(212,168,67,0.15)}
+.week-goal-banner-icon{font-size:0.9rem;flex-shrink:0}
+.week-goal-banner-text{font-size:0.78rem;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Lora',serif;font-style:italic}
+.week-goal-banner-arrow{color:var(--gold);font-size:0.85rem;flex-shrink:0}
+
 .review-card{
   background:linear-gradient(135deg,#0e1520 0%,#12192a 100%);
   border:1px solid #1e3050;border-radius:var(--r);padding:1rem;margin-bottom:0.75rem;
@@ -1000,7 +1020,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
-      <!-- Wellbeing -->
+      <!-- Wochenziel Banner -->
+      <div class="week-goal-banner" id="weekGoalBanner" style="display:none" onclick="showView('woche', document.querySelector('.nav-btn[onclick*=woche]'))">
+        <span class="week-goal-banner-icon">🎯</span>
+        <span class="week-goal-banner-text" id="weekGoalBannerText"></span>
+        <span class="week-goal-banner-arrow">›</span>
+      </div>
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
         <div class="wellbeing-display">
@@ -1460,6 +1485,21 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
     <!-- VIEW: WOCHENRÜCKBLICK -->
     <div class="view" id="view-woche">
+
+      <!-- WOCHENZIEL -->
+      <div class="week-goal-card" id="weekGoalCard">
+        <div class="week-goal-header">
+          <span class="week-goal-icon">🎯</span>
+          <span class="week-goal-title">WOCHENZIEL</span>
+          <span class="week-goal-label" id="weekGoalWeekLabel"></span>
+        </div>
+        <textarea class="week-goal-input" id="weekGoalInput" placeholder="Was ist mein wichtigstes Ziel diese Woche?…" rows="2" oninput="scheduleGoalSave()"></textarea>
+        <div class="week-goal-footer">
+          <span class="week-goal-hint" id="weekGoalStatus">Noch nicht gesetzt</span>
+          <button class="week-goal-save-btn" id="weekGoalSaveBtn" onclick="saveWeekGoal()">Speichern</button>
+        </div>
+      </div>
+
       <div class="review-card" id="reviewCard">
         <div class="review-header">
           <span class="review-title">📋 Wochenrückblick</span>
@@ -1740,6 +1780,7 @@ async function init(){
   renderFrogs();
   renderInsights();
   renderWeekReview();
+  renderWeekGoal();
   renderFutureFrogs();
 }
 
@@ -2445,7 +2486,7 @@ function showView(name, btn){
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
   if(name==='froesche'){ renderFrogs(); populateProjectSelects(); }
-  if(name==='woche') renderWeekReview();
+  if(name==='woche'){ renderWeekReview(); renderWeekGoal(); }
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
 }
@@ -3600,6 +3641,58 @@ function getISOWeek(d){
   return 1+Math.round(((date-week1)/86400000-3+(week1.getDay()||7))/7);
 }
 
+// ══════════════════════════════════════════════════════════════════
+// WOCHENZIEL
+// ══════════════════════════════════════════════════════════════════
+function getWeekGoals(){ try{ return JSON.parse(localStorage.getItem('week_goals')||'{}'); }catch(e){ return {}; } }
+function saveWeekGoals(g){ localStorage.setItem('week_goals', JSON.stringify(g)); }
+
+let _goalSaveTimer = null;
+function scheduleGoalSave(){
+  clearTimeout(_goalSaveTimer);
+  _goalSaveTimer = setTimeout(saveWeekGoal, 1500);
+}
+
+function saveWeekGoal(){
+  clearTimeout(_goalSaveTimer);
+  const wk = getWeekKey(TODAY);
+  const goals = getWeekGoals();
+  const text = document.getElementById('weekGoalInput').value.trim();
+  goals[wk] = { text, saved: new Date().toISOString() };
+  saveWeekGoals(goals);
+  const btn = document.getElementById('weekGoalSaveBtn');
+  btn.textContent = '✓ Gespeichert'; btn.classList.add('saved');
+  setTimeout(()=>{ btn.textContent='Speichern'; btn.classList.remove('saved'); }, 2000);
+  renderWeekGoal();
+}
+
+function renderWeekGoal(){
+  const wk = getWeekKey(TODAY);
+  const goals = getWeekGoals();
+  const cur = goals[wk];
+  const input = document.getElementById('weekGoalInput');
+  const status = document.getElementById('weekGoalStatus');
+  const label = document.getElementById('weekGoalWeekLabel');
+  const banner = document.getElementById('weekGoalBanner');
+  const bannerText = document.getElementById('weekGoalBannerText');
+
+  if(label) label.textContent = getCurrentWeekLabel();
+  if(input) input.value = cur?.text || '';
+  if(status) status.textContent = cur?.saved
+    ? '✓ Gespeichert · ' + new Date(cur.saved).toLocaleDateString('de',{day:'2-digit',month:'2-digit'})
+    : 'Noch nicht gesetzt';
+
+  // Banner auf Heute-View
+  if(banner && bannerText){
+    if(cur?.text){
+      bannerText.textContent = cur.text;
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+}
+
 function renderWeekReview(){
   const wk = getWeekKey(TODAY);
   const reviews = getWeekReviews();
@@ -4148,6 +4241,7 @@ async function runAiDayReview(){
 HEUTE (${TODAY}):
 - Lebensgefühl: ${todayEntry.wellbeing||'–'}/10
 - Schlaf: ${todayEntry.sleep||'–'} h · Qualität: ${'⭐'.repeat(todayEntry.sleepQuality||0)||'–'}
+- Wochenziel: ${(()=>{ try{ const g=JSON.parse(localStorage?.getItem?.('week_goals')||'{}'); const wk=Object.keys(g).sort().pop(); return g[wk]?.text||'–'; }catch(e){return '–';} })()}
 - HRV: ${todayEntry.hrv||'–'} ms
 - Energie: ${todayEntry.energy||'–'}/10
 - Schmerz: ${todayEntry.pain||0}/10 ${todayEntry.pain_tags?.length ? '('+todayEntry.pain_tags.join(', ')+')' : ''}
