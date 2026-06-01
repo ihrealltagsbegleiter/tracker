@@ -284,20 +284,10 @@ let currentSituation = '';
 let activeTopic = null;
 
 // ── API ──────────────────────────────────────────────────────────────
-// CORS-Proxy für GitHub Pages (cors-anywhere public instance als Fallback,
-// primär direkter Aufruf – funktioniert in modernen Browsern via pre-flight)
+const PROXY_URL = 'https://bibelbegleiter-proxy.ihrealltagsbegleiter.workers.dev';
+
 async function claudeAPI(body) {
-  // Direkter Aufruf (funktioniert auf HTTPS-Seiten wenn CORS erlaubt)
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-iab': 'true' },
-      body: JSON.stringify(body)
-    });
-    if (r.ok) return r.json();
-  } catch {}
-  // Proxy-Fallback
-  const r = await fetch('https://corsproxy.io/?https://api.anthropic.com/v1/messages', {
+  const r = await fetch(PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
