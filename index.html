@@ -1580,10 +1580,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div class="settings-arrow">→</div>
       </div>
 
-      <div class="settings-row" onclick="exportCSV()">
+      <div class="settings-row" onclick="openCSVExportDialog()">
         <div class="settings-left">
           <div class="settings-icon">📊</div>
-          <div><div class="settings-label">CSV exportieren</div><div class="settings-sub">Alle Tage als Tabelle (Excel-kompatibel)</div></div>
+          <div><div class="settings-label">CSV exportieren</div><div class="settings-sub">Tageswerte, Frösche oder Routinen · Zeitraum wählbar</div></div>
         </div>
         <div class="settings-arrow">→</div>
       </div>
@@ -2925,26 +2925,172 @@ ${wReview.good||wReview.improve||wReview.focus ? '<div class="section"><div clas
   showToast('PDF-Vorschau wird geöffnet…');
 }
 
-function exportCSV(){
-  if(!allDays.length){ showToast('Keine Daten zum Exportieren'); return; }
-  const cols = ['date','wellbeing','sleep','hrv','energy','pain','pain_tags','ern','neg','akt','note','painNote','meals_fruehstueck','meals_mittagessen','meals_abendessen','meals_snacks'];
-  const header = cols.join(';');
-  const rows = allDays.sort((a,b)=>a.date.localeCompare(b.date)).map(d =>
-    cols.map(c => {
-      let v = d[c];
-      // Handle nested meals object
-      if(c.startsWith('meals_')){ const slot=c.replace('meals_',''); v=(d.meals||{})[slot]||[]; }
-      if(Array.isArray(v)) return '"'+v.join(', ')+'"';
-      if(typeof v === 'string' && (v.includes(';')||v.includes('"')||v.includes('\n')))
-        return '"'+v.replace(/"/g,'""')+'"';
-      return v ?? '';
-    }).join(';')
-  );
-  const csv = [header, ...rows].join('\n');
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
-  downloadBlob(blob, 'tracker_export_'+TODAY+'.csv');
-  showToast('CSV exportiert!');
+function openCSVExportDialog(){
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">CSV exportieren</div>
+    <div class="modal-sub">Kategorie und Zeitraum wählen</div>
+
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.4rem">Kategorie</div>
+    <div style="display:flex;flex-direction:column;gap:0.35rem;margin-bottom:1rem">
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="days" checked style="accent-color:var(--gold)"/> Tageswerte (Wellbeing, Schlaf, Stimmung…)</label>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="frogs" style="accent-color:var(--gold)"/> Frösche (alle Aufgaben)</label>
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="routines" style="accent-color:var(--gold)"/> Routinen-Compliance</label>
+    </div>
+
+    <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.4rem">Zeitraum</div>
+    <select class="input" id="csvPeriod">
+      <option value="0">Alle Daten</option>
+      <option value="7">Letzte 7 Tage</option>
+      <option value="14">Letzte 14 Tage</option>
+      <option value="30">Letzte 30 Tage</option>
+      <option value="90">Letzte 90 Tage</option>
+      <option value="365">Letztes Jahr</option>
+    </select>
+
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="btn-primary" onclick="runCSVExport()">Exportieren</button>
+      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>
+  `;
+  document.getElementById('modal').style.display='flex';
 }
+
+function runCSVExport(){
+  const cat = document.querySelector('input[name="csvCat"]:checked')?.value || 'days';
+  const period = parseInt(document.getElementById('csvPeriod').value);
+  closeModal();
+
+  if(cat === 'days') exportCSVDays(period);
+  else if(cat === 'frogs') exportCSVFrogs(period);
+  else if(cat === 'routines') exportCSVRoutines(period);
+}
+
+function filterByPeriod(days, period){
+  if(!period) return days;
+  const cutoff = new Date(TODAY);
+  cutoff.setDate(cutoff.getDate() - period + 1);
+  const cutoffStr = cutoff.toISOString().slice(0,10);
+  return days.filter(d=>d.date >= cutoffStr);
+}
+
+function exportCSVDays(period){
+  const days = filterByPeriod([...allDays].sort((a,b)=>a.date.localeCompare(b.date)), period);
+  if(!days.length){ showToast('Keine Daten im gewählten Zeitraum'); return; }
+
+  const cols = [
+    'Datum','Lebensgefühl','Schlaf_h','Schlafqualität','HRV','Energie','Schmerz',
+    'Schmerzstellen','Ernährung','Negatives','Aktivität','Stimmungen',
+    'DeepWork_h','Gewinne','Notiz','Schmerz_Notiz',
+    'Frühstück','Mittagessen','Abendessen','Snacks'
+  ];
+  const rows = days.map(d=>[
+    d.date,
+    d.wellbeing||'',
+    d.sleep||'',
+    d.sleepQuality||'',
+    d.hrv||'',
+    d.energy||'',
+    d.pain||'',
+    csvArr(d.pain_tags),
+    csvArr(d.ern),
+    csvArr(d.neg),
+    csvArr(getEffectiveAkt(d)),
+    csvArr(d.moods),
+    d.deepWork||'',
+    csvArr(d.wins?.map?.(w=>w.text||w)),
+    csvStr(d.note),
+    csvStr(d.painNote),
+    csvArr((d.meals||{}).fruehstueck),
+    csvArr((d.meals||{}).mittagessen),
+    csvArr((d.meals||{}).abendessen),
+    csvArr((d.meals||{}).snacks),
+  ].map(v=>v??'').join(';'));
+
+  downloadCSV([cols.join(';'), ...rows], `tracker_tage_${periodLabel(period)}_${TODAY}.csv`);
+  showToast('Tageswerte exportiert!');
+}
+
+function exportCSVFrogs(period){
+  const cutoff = period ? new Date(TODAY) : null;
+  if(cutoff) cutoff.setDate(cutoff.getDate() - period + 1);
+  const cutoffStr = cutoff?.toISOString().slice(0,10);
+
+  const rows = [];
+  const cur = new Date(TODAY);
+  for(let i=0; i<(period||365); i++){
+    const ds = cur.toISOString().slice(0,10);
+    if(cutoffStr && ds < cutoffStr) break;
+    const frogs = getFrogs(ds);
+    frogs.forEach(f=>{
+      rows.push([
+        ds,
+        csvStr(f.text),
+        ['','Kritisch','Wichtig','Sollte heute'][f.priority]||'',
+        ['','Sehr hoch','Hoch','Mittel','Niedrig'][f.dread]||'',
+        f.done?'Ja':'Nein',
+        f.completedAt ? new Date(f.completedAt).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'}) : '',
+        csvStr(f.project||''),
+      ].join(';'));
+    });
+    cur.setDate(cur.getDate()-1);
+  }
+
+  if(!rows.length){ showToast('Keine Frösche im gewählten Zeitraum'); return; }
+  const header = 'Datum;Aufgabe;Priorität;Dread;Erledigt;Uhrzeit;Projekt';
+  downloadCSV([header, ...rows.reverse()], `tracker_froesche_${periodLabel(period)}_${TODAY}.csv`);
+  showToast(`${rows.length} Frösche exportiert!`);
+}
+
+function exportCSVRoutines(period){
+  if(!allRoutines.length){ showToast('Keine Routinen vorhanden'); return; }
+  const cutoff = period ? new Date(TODAY) : null;
+  if(cutoff) cutoff.setDate(cutoff.getDate() - period + 1);
+  const cutoffStr = cutoff?.toISOString().slice(0,10) || '2000-01-01';
+
+  // Eine Zeile pro Routine pro Tag
+  const rows = [];
+  const cur = new Date(TODAY);
+  for(let i=0; i<(period||365); i++){
+    const ds = cur.toISOString().slice(0,10);
+    if(ds < cutoffStr) break;
+    const dow = new Date(ds+'T12:00:00').getDay()||7;
+    allRoutines.forEach(r=>{
+      const planned = (r.days||[]).includes(dow);
+      const done = routineCompletions.some(c=>c.rid===r.id&&c.date===ds);
+      if(planned || done){
+        rows.push([
+          ds,
+          csvStr(r.name),
+          r.cat||'',
+          planned?'Ja':'Nein',
+          done?'Ja':'Nein',
+        ].join(';'));
+      }
+    });
+    cur.setDate(cur.getDate()-1);
+  }
+
+  if(!rows.length){ showToast('Keine Routinen-Daten im Zeitraum'); return; }
+  const header = 'Datum;Routine;Kategorie;Geplant;Erledigt';
+  downloadCSV([header, ...rows.reverse()], `tracker_routinen_${periodLabel(period)}_${TODAY}.csv`);
+  showToast('Routinen exportiert!');
+}
+
+function csvStr(v){ 
+  if(!v) return '';
+  const s = String(v);
+  if(s.includes(';')||s.includes('"')||s.includes('\n')) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function csvArr(a){ return csvStr(Array.isArray(a)?a.join(', '):''); }
+function periodLabel(p){ return p?`letzte${p}T`:'alle'; }
+function downloadCSV(lines, filename){
+  const blob = new Blob(['\uFEFF'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  downloadBlob(blob, filename);
+}
+
+// Legacy (für JSON-Export Kompatibilität)
+function exportCSV(){ openCSVExportDialog(); }
 
 function exportJSON(){
   // Collect all frog entries (last 365 days)
