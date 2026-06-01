@@ -989,6 +989,34 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .frog-il-txt { flex:1;font-size:0.82rem;font-weight:600 }
 .frog-il-txt.done { text-decoration:line-through;color:var(--text3) }
 
+
+/* ─── ZUKÜNFTIGE FRÖSCHE ────────────────────────────────────── */
+.future-frog-item{
+  display:flex;align-items:flex-start;gap:0.6rem;
+  padding:0.75rem;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r2);margin-bottom:0.45rem;
+  border-left:3px solid var(--purple);
+}
+.future-frog-body{flex:1;min-width:0}
+.future-frog-text{font-size:0.84rem;font-weight:600;color:var(--text)}
+.future-frog-meta{font-size:0.68rem;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+.future-frog-date{
+  font-family:'Syne Mono',monospace;font-size:0.68rem;
+  color:var(--purple);background:rgba(155,114,232,0.12);
+  border:1px solid rgba(155,114,232,0.25);
+  padding:0.1rem 0.45rem;border-radius:3px;cursor:pointer;
+}
+.future-frog-actions{display:flex;gap:0.3rem;flex-shrink:0;align-items:flex-start;margin-top:2px}
+.frog-move-btn{
+  background:none;border:1px solid var(--border2);border-radius:4px;
+  color:var(--text3);font-size:0.68rem;font-weight:700;cursor:pointer;
+  padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap;
+  transition:all 0.12s;
+}
+.frog-move-btn:active{background:var(--bg2)}
+.frog-move-btn.today{border-color:var(--gold);color:var(--gold)}
+.frog-move-btn.tomorrow{border-color:var(--blue);color:var(--blue)}
+
 </style>
 </head>
 <body>
@@ -1510,6 +1538,33 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
 
+      <div class="section-title" style="padding-top:0.5rem">ZUKÜNFTIGE FRÖSCHE</div>
+      <div style="font-size:0.75rem;color:var(--text3);margin-bottom:0.75rem;line-height:1.5">
+        Ideen für später sammeln – einem Tag zuordnen wenn du bereit bist.
+      </div>
+      <div id="futureFrogList"></div>
+
+      <!-- Zukünftigen Frosch hinzufügen -->
+      <div class="frog-add-card" style="border-color:rgba(155,114,232,0.3)">
+        <div class="frog-add-title" style="color:var(--purple)">📅 Frosch für später</div>
+        <input class="frog-input" id="futureFrogInput" placeholder="Aufgabe für einen zukünftigen Tag…" maxlength="200" onkeydown="if(event.key==='Enter')addFutureFrog()"/>
+        <div class="frog-options-row" style="margin-top:0.5rem">
+          <div style="flex:1;min-width:120px">
+            <div class="frog-opt-label">Priorität</div>
+            <select class="frog-select" id="futurePriority">
+              <option value="1">🔴 Kritisch</option>
+              <option value="2" selected>🟡 Wichtig</option>
+              <option value="3">🔵 Sollte bald</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:120px">
+            <div class="frog-opt-label">Geplant für</div>
+            <input type="date" class="frog-select" id="futureFrogDate" style="cursor:pointer"/>
+          </div>
+        </div>
+        <button class="frog-submit" style="background:var(--purple);margin-top:0.5rem" onclick="addFutureFrog()">Für später einplanen</button>
+      </div>
+
       <div style="font-size:0.7rem;color:var(--text3);line-height:1.7;padding:0.5rem 0 1rem">
         <strong style="color:var(--text2)">Best Practice:</strong><br>
         · Max. 3 Frösche pro Tag<br>
@@ -1810,6 +1865,7 @@ async function init(){
   renderFrogs();
   renderInsights();
   renderWeekReview();
+  renderFutureFrogs();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2306,7 +2362,7 @@ function showView(name, btn){
   if(name==='routinen') renderRoutines();
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
-  if(name==='froesche'){ renderFrogs(); populateProjectSelects(); }
+  if(name==='froesche'){ renderFrogs(); populateProjectSelects(); renderFutureFrogs(); const fd=document.getElementById('futureFrogDate'); if(fd&&!fd.value){const t=new Date(TODAY);t.setDate(t.getDate()+2);fd.value=t.toISOString().slice(0,10);} }
   if(name==='woche') renderWeekReview();
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
@@ -2413,6 +2469,7 @@ function exportJSON(){
     weekReviews: getWeekReviews(),
     projects: getProjects(),
     dwGoal: localStorage.getItem('dw_goal')||'4',
+    futureFrogs: getFutureFrogs(),
   };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   downloadBlob(blob, 'tracker_backup_'+TODAY+'.json');
@@ -2482,6 +2539,7 @@ async function performImport(encodedData){
     if(data.weekReviews) saveWeekReviews(data.weekReviews);
     if(Array.isArray(data.projects)) saveProjects(data.projects);
     if(data.dwGoal) localStorage.setItem('dw_goal', data.dwGoal);
+    if(Array.isArray(data.futureFrogs)) saveFutureFrogs(data.futureFrogs);
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
@@ -2933,6 +2991,7 @@ function renderFrogs(){
             ${f.done&&f.completedAt?`<span style="font-size:0.65rem;color:var(--green)">✓ ${new Date(f.completedAt).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}</span>`:''}
           </div>
         </div>
+        ${!f.done?`<button class="frog-move-btn tomorrow" onclick="moveFrogToDay('${f.id}',TODAY,'tomorrow')" title="Auf morgen verschieben">→ Morgen</button>`:''}
         <button class="frog-del" onclick="deleteFrog('${f.id}')">🗑</button>
       </div>`).join('');
   }
@@ -3905,6 +3964,191 @@ function renderFrogListInline(){
       <div class="frog-il-txt${f.done?' done':''}">${esc(f.text)}</div>
       <span style="color:${{1:'var(--red)',2:'var(--gold)',3:'var(--blue)'}[f.priority]||'var(--text3)'}">●</span>
     </div>`).join('');
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// FRÖSCHE VERSCHIEBEN + ZUKÜNFTIGE FRÖSCHE
+// ══════════════════════════════════════════════════════════════════
+
+// Move a frog from one day to another
+function moveFrogToDay(id, fromDate, toTarget){
+  const frogs = getFrogs(fromDate);
+  const frog = frogs.find(f=>f.id===id);
+  if(!frog) return;
+
+  let toDate;
+  if(toTarget === 'tomorrow'){
+    toDate = getTomorrowKey();
+  } else {
+    toDate = toTarget; // specific date string
+  }
+
+  const targetFrogs = getFrogs(toDate);
+  if(targetFrogs.filter(f=>!f.done).length >= 3){
+    showToast('Bereits 3 Frösche an diesem Tag!');
+    return;
+  }
+
+  // Remove from source
+  saveFrogs(fromDate, frogs.filter(f=>f.id!==id));
+  // Add to target
+  targetFrogs.push({...frog, done:false, planned: toTarget==='tomorrow', movedFrom:fromDate});
+  saveFrogs(toDate, targetFrogs);
+
+  renderFrogs();
+  renderTomorrowFrogs();
+  renderFutureFrogs();
+  updatePlanStreak();
+  showToast(toTarget==='tomorrow'?'→ Auf morgen verschoben!':'→ Verschoben!');
+}
+
+// Future frogs stored in localStorage
+function getFutureFrogs(){
+  try{ return JSON.parse(localStorage.getItem('future_frogs')||'[]'); }
+  catch(e){ return []; }
+}
+function saveFutureFrogs(list){
+  localStorage.setItem('future_frogs', JSON.stringify(list));
+}
+
+function addFutureFrog(){
+  const text = document.getElementById('futureFrogInput').value.trim();
+  if(!text) return;
+  const date = document.getElementById('futureFrogDate').value; // optional
+  const priority = parseInt(document.getElementById('futurePriority').value);
+  const list = getFutureFrogs();
+  list.push({
+    id: Date.now().toString(),
+    text, priority, date,
+    created: new Date().toISOString()
+  });
+  // Sort by date if set
+  list.sort((a,b)=>{
+    if(!a.date && !b.date) return 0;
+    if(!a.date) return 1;
+    if(!b.date) return -1;
+    return a.date.localeCompare(b.date);
+  });
+  saveFutureFrogs(list);
+  document.getElementById('futureFrogInput').value='';
+  document.getElementById('futureFrogDate').value='';
+  renderFutureFrogs();
+  showToast('📅 Für später eingeplant!');
+}
+
+function deleteFutureFrog(id){
+  saveFutureFrogs(getFutureFrogs().filter(f=>f.id!==id));
+  renderFutureFrogs();
+}
+
+function moveFutureFrogToDay(id, toDate){
+  const list = getFutureFrogs();
+  const frog = list.find(f=>f.id===id);
+  if(!frog) return;
+
+  if(!toDate) toDate = TODAY;
+  const target = getFrogs(toDate);
+  if(target.filter(f=>!f.done).length >= 3){
+    showToast('Bereits 3 Frösche an diesem Tag!');
+    return;
+  }
+  target.push({
+    id: Date.now().toString(),
+    text: frog.text,
+    priority: frog.priority,
+    dread: 3,
+    project: '',
+    done: false,
+    planned: toDate !== TODAY,
+    created: new Date().toISOString()
+  });
+  saveFrogs(toDate, target);
+  saveFutureFrogs(list.filter(f=>f.id!==id));
+  renderFutureFrogs();
+  renderFrogs();
+  renderTomorrowFrogs();
+  renderFrogListInline();
+  showToast(toDate===TODAY?'🐸 Heute aktiviert!':'🌙 Eingeplant!');
+}
+
+function renderFutureFrogs(){
+  const el = document.getElementById('futureFrogList');
+  if(!el) return;
+  const list = getFutureFrogs();
+
+  // Auto-move frogs whose date has passed to today's backlog
+  const today = TODAY;
+  const overdue = list.filter(f=>f.date && f.date <= today);
+  if(overdue.length){
+    overdue.forEach(f=>{
+      const target = getFrogs(today);
+      if(target.filter(x=>!x.done).length < 3){
+        target.push({id:Date.now().toString()+f.id,text:f.text,priority:f.priority,dread:3,project:'',done:false,created:new Date().toISOString()});
+        saveFrogs(today,target);
+      }
+    });
+    saveFutureFrogs(list.filter(f=>!overdue.find(o=>o.id===f.id)));
+    renderFrogs();
+    renderFrogListInline();
+  }
+
+  const current = getFutureFrogs();
+  if(!current.length){
+    el.innerHTML='<div class="frog-empty" style="padding:1rem 0"><span class="frog-empty-icon" style="font-size:1.5rem">📅</span>Noch keine zukünftigen Frösche.</div>';
+    return;
+  }
+
+  const DAY_NAMES=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  el.innerHTML = current.map(f=>{
+    const dateLabel = f.date ? (() => {
+      const d = new Date(f.date+'T00:00:00');
+      const diff = Math.round((d-new Date(today+'T00:00:00'))/(1000*60*60*24));
+      if(diff===0) return 'Heute';
+      if(diff===1) return 'Morgen';
+      if(diff<=7) return `${DAY_NAMES[d.getDay()]}, ${d.getDate()}.${d.getMonth()+1}.`;
+      return d.toLocaleDateString('de',{day:'2-digit',month:'2-digit'});
+    })() : 'Kein Datum';
+
+    return `<div class="future-frog-item">
+      <div class="future-frog-body">
+        <div class="future-frog-text">${esc(f.text)}</div>
+        <div class="future-frog-meta">
+          <span>${['','🔴','🟡','🔵'][f.priority]||''} ${PRIORITY_LABELS[f.priority]||''}</span>
+          <span class="future-frog-date" onclick="setFutureFrogDate('${f.id}')" title="Datum ändern">📅 ${dateLabel}</span>
+        </div>
+      </div>
+      <div class="future-frog-actions">
+        <button class="frog-move-btn today" onclick="moveFutureFrogToDay('${f.id}','${today}')" title="Heute aktivieren">→ Heute</button>
+        <button class="frog-move-btn tomorrow" onclick="moveFutureFrogToDay('${f.id}','${getTomorrowKey()}')" title="Für morgen">→ Morgen</button>
+        <button class="frog-del" onclick="deleteFutureFrog('${f.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setFutureFrogDate(id){
+  const list = getFutureFrogs();
+  const frog = list.find(f=>f.id===id);
+  if(!frog) return;
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title">Datum ändern</div>
+    <div class="modal-sub">${esc(frog.text)}</div>
+    <input class="input" type="date" id="newFrogDate" value="${frog.date||''}"/>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveFutureFrogDate('${id}')">Speichern</button>
+      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+}
+function saveFutureFrogDate(id){
+  const list = getFutureFrogs();
+  const frog = list.find(f=>f.id===id);
+  if(frog){ frog.date = document.getElementById('newFrogDate').value; }
+  list.sort((a,b)=>{ if(!a.date&&!b.date) return 0; if(!a.date) return 1; if(!b.date) return -1; return a.date.localeCompare(b.date); });
+  saveFutureFrogs(list);
+  closeModal();
+  renderFutureFrogs();
 }
 
 </script>
