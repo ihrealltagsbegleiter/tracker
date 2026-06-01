@@ -1419,7 +1419,12 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <!-- VIEW: FRÖSCHE -->
     <div class="view" id="view-froesche">
 
-      <div style="text-align:right;margin-bottom:0.5rem"><button class="tag-edit-btn" onclick="manageProjects()">⊞ Projekte</button></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <div style="font-size:0.72rem;color:var(--text3)">Projekte gruppierten Frösche</div>
+        <button onclick="manageProjects()" style="display:flex;align-items:center;gap:0.4rem;background:var(--purple);border:none;border-radius:20px;color:#fff;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;padding:0.35rem 0.85rem;cursor:pointer;letter-spacing:0.03em">
+          ⊞ Projekte verwalten
+        </button>
+      </div>
       <div class="frog-quote">
         „Iss den Frosch als erstes am Morgen – dann kann dir den Rest des Tages nichts Schlimmeres passieren." – Mark Twain
       </div>
@@ -1450,7 +1455,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           </div>
         </div>
         <div style="margin-bottom:0.5rem">
-          <div class="frog-opt-label">Projekt (optional)</div>
+          <div class="frog-opt-label" style="display:flex;align-items:center;justify-content:space-between">
+            Projekt (optional)
+            <button onclick="manageProjects()" style="background:none;border:none;color:var(--purple);font-size:0.7rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;padding:0">+ Neu</button>
+          </div>
           <select class="project-select" id="frogProject">
             <option value="">– Kein Projekt –</option>
           </select>
@@ -1490,7 +1498,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
             </div>
           </div>
           <div style="margin-bottom:0.5rem">
-            <div class="frog-opt-label">Projekt (optional)</div>
+            <div class="frog-opt-label" style="display:flex;align-items:center;justify-content:space-between">
+              Projekt (optional)
+              <button onclick="manageProjects()" style="background:none;border:none;color:var(--purple);font-size:0.7rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;padding:0">+ Neu</button>
+            </div>
             <select class="project-select" id="tomorrowProject">
               <option value="">– Kein Projekt –</option>
             </select>
