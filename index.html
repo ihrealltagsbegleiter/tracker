@@ -1748,6 +1748,7 @@ function dbDelete(store,key){
 const TODAY = new Date().toISOString().slice(0,10);
 let activeDate = TODAY; // aktuell bearbeitetes Datum (kann von TODAY abweichen)
 let state = {
+  date: TODAY,
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0, sleepQuality: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
   deepWork: 0,
@@ -2057,16 +2058,21 @@ function scheduleAutoSave(){
   _autoSaveTimer = setTimeout(()=>autoSave(), 1200);
 }
 async function autoSave(){
-  state.note = document.getElementById('noteText').value;
-  state.painNote = document.getElementById('painNote').value;
-  state.date = activeDate;
-  await dbPut('days', state);
-  allDays = await dbGetAll('days');
-  updateStreak();
-  const btn = document.getElementById('saveBtn');
-  btn.textContent = '✓ Auto-gespeichert';
-  btn.classList.add('saved');
-  setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = activeDate===TODAY?'Aktualisieren':'Eintrag speichern'; },1800);
+  if(!activeDate){ return; }
+  try {
+    state.note = document.getElementById('noteText')?.value || state.note;
+    state.painNote = document.getElementById('painNote')?.value || state.painNote;
+    state.date = activeDate;
+    await dbPut('days', state);
+    allDays = await dbGetAll('days');
+    updateStreak();
+    const btn = document.getElementById('saveBtn');
+    if(btn){
+      btn.textContent = '✓ Auto-gespeichert';
+      btn.classList.add('saved');
+      setTimeout(()=>{ btn.classList.remove('saved'); btn.textContent = activeDate===TODAY?'Aktualisieren':'Eintrag speichern'; },1800);
+    }
+  } catch(e){ console.error('autoSave Fehler:', e); }
 }
 
 async function saveToday(){
