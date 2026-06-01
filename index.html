@@ -1418,32 +1418,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     </div>
 
 
-    <!-- VIEW: WOCHENRÜCKBLICK -->
-    <div class="view" id="view-woche">
-      <div class="review-card" id="reviewCard">
-        <div class="review-header">
-          <span class="review-title">📋 Wochenrückblick</span>
-          <span class="review-week" id="reviewWeekLabel"></span>
-        </div>
-        <div class="review-stats-grid" id="reviewStatsGrid"></div>
-        <div class="review-section">
-          <div class="review-section-label">✅ Was lief diese Woche gut?</div>
-          <textarea class="review-textarea" id="reviewGood" placeholder="Was bin ich stolz auf? Was hat geklappt?…"></textarea>
-        </div>
-        <div class="review-section">
-          <div class="review-section-label">🔧 Was möchte ich verbessern?</div>
-          <textarea class="review-textarea" id="reviewImprove" placeholder="Was hat mich gebremst? Was ändern?…"></textarea>
-        </div>
-        <div class="review-section">
-          <div class="review-section-label">🎯 Fokus nächste Woche</div>
-          <textarea class="review-textarea" id="reviewFocus" placeholder="Was ist mein wichtigstes Ziel für nächste Woche?…"></textarea>
-        </div>
-        <button class="review-save-btn" id="reviewSaveBtn" onclick="saveWeekReview()">Rückblick speichern</button>
-      </div>
-      <div class="section-title">FRÜHERE RÜCKBLICKE</div>
-      <div id="reviewHistory"></div>
-    </div>
-
     <!-- VIEW: FRÖSCHE -->
     <div class="view" id="view-froesche">
 
@@ -1572,6 +1546,32 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         · Am Vorabend planen = 2× höhere Umsetzungsrate<br>
         · Keine kleinen Tasks vor dem ersten Frosch
       </div>
+    </div>
+
+    <!-- VIEW: WOCHENRÜCKBLICK -->
+    <div class="view" id="view-woche">
+      <div class="review-card" id="reviewCard">
+        <div class="review-header">
+          <span class="review-title">📋 Wochenrückblick</span>
+          <span class="review-week" id="reviewWeekLabel"></span>
+        </div>
+        <div class="review-stats-grid" id="reviewStatsGrid"></div>
+        <div class="review-section">
+          <div class="review-section-label">✅ Was lief diese Woche gut?</div>
+          <textarea class="review-textarea" id="reviewGood" placeholder="Was bin ich stolz auf? Was hat geklappt?…"></textarea>
+        </div>
+        <div class="review-section">
+          <div class="review-section-label">🔧 Was möchte ich verbessern?</div>
+          <textarea class="review-textarea" id="reviewImprove" placeholder="Was hat mich gebremst? Was ändern?…"></textarea>
+        </div>
+        <div class="review-section">
+          <div class="review-section-label">🎯 Fokus nächste Woche</div>
+          <textarea class="review-textarea" id="reviewFocus" placeholder="Was ist mein wichtigstes Ziel für nächste Woche?…"></textarea>
+        </div>
+        <button class="review-save-btn" id="reviewSaveBtn" onclick="saveWeekReview()">Rückblick speichern</button>
+      </div>
+      <div class="section-title">FRÜHERE RÜCKBLICKE</div>
+      <div id="reviewHistory"></div>
     </div>
 
     <!-- VIEW: EINSTELLUNGEN & EXPORT -->
