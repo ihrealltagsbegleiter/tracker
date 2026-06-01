@@ -285,26 +285,28 @@ let activeTopic = null;
 
 // ── API ──────────────────────────────────────────────────────────────
 const WORKER_URL = 'https://bibelbegleiter-proxy.ihrealltagsbegleiter.workers.dev';
-const FALLBACK_URL = 'https://corsproxy.io/?https://api.anthropic.com/v1/messages';
+const PROXY_URL = 'https://corsproxy.io/?https://api.anthropic.com/v1/messages';
 
 async function claudeAPI(body) {
-  // Primär: eigener Cloudflare Worker
-  try {
-    const r = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (r.ok) return r.json();
-  } catch {}
-  // Fallback: corsproxy.io
-  const r = await fetch(FALLBACK_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error?.message || `Fehler ${r.status}`); }
-  return r.json();
+  // Versuche alle Endpunkte der Reihe nach
+  const endpoints = [
+    { url: WORKER_URL, headers: { 'Content-Type': 'application/json' } },
+    { url: PROXY_URL,  headers: { 'Content-Type': 'application/json' } },
+  ];
+  let lastErr = null;
+  for (const ep of endpoints) {
+    try {
+      const r = await fetch(ep.url, {
+        method: 'POST',
+        headers: ep.headers,
+        body: JSON.stringify(body)
+      });
+      if (r.ok) return r.json();
+      const e = await r.json().catch(()=>({}));
+      lastErr = new Error(e.error?.message || `Fehler ${r.status}`);
+    } catch(e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Keine Verbindung möglich.');
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────
