@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v11.3 build:20260531204311 -->
+<!-- v12.1 build:1780337826 SW-DISABLED 20260531204311 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8"/>
@@ -2411,12 +2411,11 @@ function closeModal(){ document.getElementById('modal').style.display='none'; }
 // ══════════════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ══════════════════════════════════════════════════════════════════
+// Unregister ALL service workers to prevent caching issues
 if('serviceWorker' in navigator){
-  // Unregister all old SWs first to clear broken caches
   navigator.serviceWorker.getRegistrations().then(regs=>{
     regs.forEach(r=>r.unregister());
-  }).catch(()=>{}).finally(()=>{
-    navigator.serviceWorker.register('/tracker/sw.js').catch(()=>{});
+    console.log('Unregistered', regs.length, 'service workers');
   });
 }
 
