@@ -679,6 +679,41 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .rc-legend{display:flex;gap:0.9rem;margin-top:0.6rem;font-size:0.65rem;color:var(--text3);align-items:center;flex-wrap:wrap}
 .rc-legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
 
+/* ─── ROUTINE WOCHENTAGE ────────────────────────────────────── */
+.wd-row{display:flex;gap:0.3rem;justify-content:space-between;margin:0.4rem 0 0.6rem}
+.wd-btn{
+  flex:1;height:36px;border-radius:6px;border:1.5px solid var(--border2);
+  background:var(--bg3);color:var(--text3);font-size:0.72rem;font-weight:700;
+  cursor:pointer;transition:all 0.12s;font-family:'Syne',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+}
+.wd-btn.active{background:var(--gold);border-color:var(--gold);color:#000}
+.wd-btn:active{transform:scale(0.93)}
+
+.freq-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem}
+.freq-label{font-size:0.72rem;color:var(--text3);white-space:nowrap}
+.freq-select{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:0.5rem 0.7rem;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;cursor:pointer;
+}
+
+.routine-item.not-today{opacity:0.38;border-style:dashed}
+.routine-item.not-today .routine-check{border-color:var(--border)}
+.routine-freq-badge{
+  font-size:0.62rem;color:var(--text3);font-family:'Syne Mono',monospace;
+  margin-top:2px;
+}
+
+.plan-streak-badge{
+  display:flex;align-items:center;gap:0.3rem;
+  background:rgba(91,141,238,0.1);border:1px solid rgba(91,141,238,0.25);
+  padding:0.3rem 0.6rem;border-radius:20px;
+  font-size:0.72rem;font-weight:700;color:#5b8dee;letter-spacing:0.02em;
+  margin-left:0.4rem;
+}
+.header-badges{display:flex;align-items:center;gap:0.3rem}
+
 </style>
 </head>
 <body>
