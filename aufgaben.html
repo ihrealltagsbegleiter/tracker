@@ -2637,20 +2637,20 @@ function renderImpactTab() {
         padding: 10px 14px 8px;
       ">
         <span style="
-          font-family:'DM Mono',monospace;
+          font-family:monospace;
           font-size:1rem;
           color:${color};
           letter-spacing:0.05em;
         ">${stars}</span>
         <span style="
-          font-family:'DM Mono',monospace;
+          font-family:monospace;
           font-size:0.68rem;
           letter-spacing:0.08em;
           text-transform:uppercase;
           color:${color};
         ">${IMPACT_LABELS[imp]}</span>
         <span style="
-          font-family:'DM Mono',monospace;
+          font-family:monospace;
           font-size:0.65rem;
           color:var(--muted);
           margin-left:auto;
@@ -2673,7 +2673,7 @@ function renderImpactTab() {
       if (q > 0) {
         html += `<div style="padding: 2px 14px 4px;">
           <span style="
-            font-family:'DM Mono',monospace;
+            font-family:monospace;
             font-size:0.62rem;
             letter-spacing:0.06em;
             text-transform:uppercase;
@@ -2702,7 +2702,7 @@ function renderImpactTab() {
               <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">
                 ${due ? `<span class="due-tag ${due.cls}">📅 ${due.label}</span>` : ''}
                 ${t.projectId ? (() => { const p = projects.find(x=>x.id===t.projectId); return p ? `<span class="tag" style="border-color:${p.color};color:${p.color};font-size:0.65rem;padding:1px 6px;">📁 ${escHtml(p.name)}</span>` : ''; })() : ''}
-                ${t.horizon ? `<span class="tag tag-horizon-${t.horizon}" style="font-size:0.65rem;padding:1px 6px;">${{today:'Heute',week:'Woche',month:'Monat',later:'Später',maybe:'Vielleicht'}[t.horizon]||''}</span>` : '<span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">Eingang</span>'}
+                ${t.horizon ? `<span class="tag tag-horizon-${t.horizon}" style="font-size:0.65rem;padding:1px 6px;">${{today:'Heute',week:'Woche',month:'Monat',later:'Später',maybe:'Vielleicht'}[t.horizon]||''}</span>` : '<span style="font-family:monospace;font-size:0.65rem;color:var(--muted);">Eingang</span>'}
               </div>
               ${exp ? `<div class="task-actions" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
                 <button class="task-action-btn" onclick="openEditModal('${t.id}',event)">✏️ Bearbeiten</button>
@@ -2812,7 +2812,7 @@ function renderFrogsTab() {
       <div class="frog-sync-note">✓ Automatisch mit Tracker synchronisiert</div>
       <div style="margin-top:6px;">
         <a href="${trackerUrl}" target="_blank" style="
-          font-family:'DM Mono',monospace;font-size:0.68rem;
+          font-family:monospace;font-size:0.68rem;
           color:#4caf82;text-decoration:none;
           border:1px solid rgba(76,175,130,0.4);
           border-radius:6px;padding:3px 10px;
@@ -2907,7 +2907,7 @@ init();
       autocorrect="off"
     />
     <div class="quick-impact-row" style="align-items:center;gap:4px;">
-      <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">Impact:</span>
+      <span style="font-family:monospace;font-size:0.65rem;color:var(--muted);">Impact:</span>
       <div class="star-picker" id="quick-stars">
         <button class="star-btn lit" data-val="1" onclick="setQuickImpact(1)">★</button>
         <button class="star-btn lit" data-val="2" onclick="setQuickImpact(2)">★</button>
