@@ -852,6 +852,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
 }
 .sort-btn:hover { color: var(--text); border-color: var(--muted); }
 .sort-btn.active { border-color: var(--accent); color: var(--accent); }
+.icon-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,169,110,0.12); }
 .sort-menu {
   position: fixed;
   background: var(--surface);
@@ -1103,7 +1104,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="topbar-actions">
       <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
       <div style="display:flex;align-items:center;gap:4px;position:relative;">
-        <button class="sort-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern" style="padding:7px 11px;font-size:0.85rem;">⚙</button>
+        <button class="icon-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern">⚙</button>
         <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">× Filter</span>
         <div class="filter-panel" id="filter-panel">
           <div class="filter-panel-title">
@@ -1152,9 +1153,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
             <div class="filter-pills" id="fp-project"></div>
           </div>
         </div>
-        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung" style="padding:7px 11px;font-size:0.85rem;">
-          <span id="sort-btn-label">↕</span>
-        </button>
+        <button class="icon-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung"><span id="sort-btn-label">↕</span></button>
         <div class="sort-menu" id="sort-menu">
           <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
           <div class="sort-menu-item" data-key="impact"    onclick="setSortKey('impact')">   <span class="sort-icon">★</span> Impact           <span class="sort-menu-dir" id="dir-impact"    onclick="toggleSortDir('impact',event)">↓</span></div>
@@ -3345,6 +3344,7 @@ function updateSortUI() {
   if (!btn || !lbl) return;
   const isDefault = currentSort.key === 'urgency' && currentSort.dir === 'desc';
   btn.classList.toggle('active', !isDefault);
+  btn.style.color = isDefault ? '' : 'var(--accent)';
   lbl.textContent = isDefault ? '↕' : (currentSort.dir === 'asc' ? '↑' : '↓');
 
   // Update menu items
