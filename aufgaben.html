@@ -1115,15 +1115,15 @@ input[type=date]::-webkit-calendar-picker-indicator {
   <div class="topbar">
     <div class="topbar-title">Aufgaben</div>
     <div class="topbar-actions">
-      <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
-      <div style="display:flex;align-items:center;gap:4px;position:relative;">
-        <button class="icon-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern">⚙</button>
-        <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">× Filter</span>
-        <button class="icon-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung"><span id="sort-btn-label">↕</span></button>
-        <button class="icon-btn" id="focus-btn" onclick="toggleFocusMode()" title="Fokus-Modus">◎</button>
+      <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);align-self:center;"></span>
+      <div style="display:flex;align-items:center;gap:3px;position:relative;">
+        <button class="icon-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern" style="padding:7px 9px;">⚙</button>
+        <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">×</span>
+        <button class="icon-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortieren" style="padding:7px 9px;"><span id="sort-btn-label">↕</span></button>
+        <button class="icon-btn" id="focus-btn" onclick="toggleFocusMode()" title="Fokus" style="padding:7px 9px;">◎</button>
+        <button class="icon-btn" onclick="openReviewModal()" style="padding:7px 9px;" title="Review">↻</button>
+        <button class="icon-btn primary" id="main-add-btn" onclick="openAddModal()" style="padding:7px 12px;">+</button>
       </div>
-      <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
-      <button class="icon-btn primary" id="main-add-btn" onclick="openAddModal()">+ Neu</button>
     </div>
   </div>
 
