@@ -1284,8 +1284,6 @@ input[type=date]::-webkit-calendar-picker-indicator {
         <div class="pill" data-val="it">📲 IT-Entwicklung</div>
         <div class="pill" data-val="pc">💻 Am PC</div>
         <div class="pill" data-val="talk">💬 Absprache</div>
-        <div class="pill" data-val="pc">💻 Am PC</div>
-        <div class="pill" data-val="it">📲 IT-Entwicklung</div>
       </div>
     </div>
 
@@ -2903,6 +2901,25 @@ function setDread(val) {
 function syncFrogToTracker() {}
 function removeFrogFromTracker() {}
 
+
+// ── INLINE PROJECT CREATION ──
+let _inlineReturnToTask = false;
+let _inlineTaskSnapshot = null;
+
+function openInlineProjectModal() {
+  _inlineReturnToTask = true;
+  _inlineTaskSnapshot = {
+    title:     document.getElementById('f-title').value,
+    note:      document.getElementById('f-note').value,
+    due:       document.getElementById('f-due').value,
+    projectId: document.getElementById('f-project').value,
+    horizon:   fHorizon, impact: fImpact, eisen: fEisen,
+    context:   fContext, recur:  fRecur,
+  };
+  closeModal();
+  setTimeout(() => openProjectModal(null), 120);
+}
+
 </script>
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
@@ -2943,8 +2960,6 @@ function removeFrogFromTracker() {}
       <span class="filter-pill" data-val="it" onclick="toggleFilter('context','it')">📲 IT-Entwicklung</span>
       <span class="filter-pill" data-val="pc" onclick="toggleFilter('context','pc')">💻 Am PC</span>
       <span class="filter-pill" data-val="talk" onclick="toggleFilter('context','talk')">💬 Absprache</span>
-      <span class="filter-pill" data-val="pc" onclick="toggleFilter('context','pc')">💻 Am PC</span>
-      <span class="filter-pill" data-val="it" onclick="toggleFilter('context','it')">📲 IT-Entwicklung</span>
     </div>
   </div>
   <div class="filter-section">
