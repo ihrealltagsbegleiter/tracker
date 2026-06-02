@@ -428,6 +428,43 @@ input[type=date]::-webkit-calendar-picker-indicator {
   word-break: break-word;
 }
 
+/* ── HORIZON PICKER ── */
+.horizon-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.horizon-pick-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.horizon-pick-btn {
+  font-size: 0.75rem;
+  font-family: 'DM Mono', monospace;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.horizon-pick-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.horizon-pick-btn.active {
+  background: rgba(200,169,110,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 500;
+}
+
 @media (min-width: 600px) {
   .modal { border-radius: var(--r-lg); margin: auto; }
   .modal-overlay { align-items: center; }
@@ -816,10 +853,21 @@ function taskCard(task, isRecurring = false) {
 
   let actions = '';
   if (expanded) {
+    const horizonBtns = [
+      { val: 'today', label: 'Heute',    active: task.horizon === 'today' },
+      { val: 'week',  label: 'Woche',    active: task.horizon === 'week'  },
+      { val: 'month', label: 'Monat',    active: task.horizon === 'month' },
+      { val: 'later', label: 'Später',   active: task.horizon === 'later' },
+      { val: 'maybe', label: 'Vielleicht', active: task.horizon === 'maybe' },
+    ].map(h => `<button class="horizon-pick-btn${h.active ? ' active' : ''}" onclick="setHorizonDirect('${task.id}','${h.val}',event)">${h.label}</button>`).join('');
+
     actions = `<div class="task-actions">
       <button class="task-action-btn" onclick="openEditModal('${task.id}',event)">✏️ Bearbeiten</button>
-      <button class="task-action-btn" onclick="moveTask('${task.id}',event)">→ Verschieben</button>
       <button class="task-action-btn del" onclick="deleteTask('${task.id}',event)">🗑 Löschen</button>
+    </div>
+    <div class="horizon-picker">
+      <span class="horizon-pick-label">→</span>
+      ${horizonBtns}
     </div>`;
   }
 
@@ -893,18 +941,15 @@ function deleteTask(id, e) {
   showToast('🗑 Gelöscht');
 }
 
-function moveTask(id, e) {
+function setHorizonDirect(id, horizon, e) {
   e.stopPropagation();
   const task = tasks.find(t => t.id === id);
   if (!task) return;
-  const horizons = ['today','week','month','later','maybe'];
-  const labels   = ['Heute','Diese Woche','Diesen Monat','Irgendwann','Vielleicht nie'];
-  const cur = horizons.indexOf(task.horizon);
-  const next = (cur + 1) % horizons.length;
-  task.horizon = horizons[next];
+  task.horizon = horizon;
   save(tasks);
   render();
-  showToast(`→ Verschoben nach: ${labels[next]}`);
+  const labels = { today: 'Heute', week: 'Diese Woche', month: 'Diesen Monat', later: 'Irgendwann', maybe: 'Vielleicht nie' };
+  showToast(`→ ${labels[horizon]}`);
 }
 
 // ── TABS ──
