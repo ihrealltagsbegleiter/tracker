@@ -2667,8 +2667,8 @@ function saveQuickTask() {
   showToast('⚡ Im Eingang');
 }
 
-// quick-input listener attached lazily on first open (element is after 
-<script>
+// quick-input listener attached lazily on first open (element is after </body> injection)
+
 // ── FOCUS MODE ──
 let focusMode = false;
 
@@ -2682,7 +2682,6 @@ function toggleFocusMode() {
   }
   showToast(focusMode ? '◎ Fokus-Modus aktiv' : '◎ Fokus-Modus aus');
 }
-</script>
 </body> injection)
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
