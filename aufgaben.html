@@ -2773,6 +2773,88 @@ function applyFilters(tasks) {
   });
 }
 
+
+// ── SORT ──
+const SORT_LABELS = {
+  urgency:'⚡ Dringlichkeit', impact:'★ Impact', due:'📅 Fälligkeit',
+  eisen:'Q Eisenhower', created:'🕐 Erstellt', title:'A Alphabetisch', project:'📁 Projekt'
+};
+const SORT_DEFAULT_DIR = {
+  urgency:'desc', impact:'desc', due:'asc', eisen:'asc', created:'desc', title:'asc', project:'asc'
+};
+let currentSort = { key:'urgency', dir:'desc' };
+
+function toggleSortMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('sort-menu');
+  const btn  = document.getElementById('sort-btn');
+  const rect = btn.getBoundingClientRect();
+  menu.style.top   = (rect.bottom + 6) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.classList.toggle('open');
+}
+
+function setSortKey(key) {
+  if (currentSort.key === key) currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  else { currentSort.key = key; currentSort.dir = SORT_DEFAULT_DIR[key] || 'asc'; }
+  updateSortUI();
+  document.getElementById('sort-menu').classList.remove('open');
+  render();
+}
+
+function toggleSortDir(key, e) {
+  e.stopPropagation();
+  if (currentSort.key === key) currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  else { currentSort.key = key; currentSort.dir = SORT_DEFAULT_DIR[key] || 'asc'; }
+  updateSortUI();
+  render();
+}
+
+function updateSortUI() {
+  const btn = document.getElementById('sort-btn');
+  const lbl = document.getElementById('sort-btn-label');
+  if (!btn || !lbl) return;
+  const isDefault = currentSort.key === 'urgency' && currentSort.dir === 'desc';
+  btn.classList.toggle('active', !isDefault);
+  btn.style.color = isDefault ? '' : 'var(--accent)';
+  lbl.textContent = isDefault ? '↕' : (currentSort.dir === 'asc' ? '↑' : '↓');
+  document.querySelectorAll('.sort-menu-item').forEach(el => {
+    const k = el.dataset.key;
+    el.classList.toggle('selected', k === currentSort.key);
+    const dirEl = document.getElementById('dir-' + k);
+    if (dirEl) dirEl.textContent = (k === currentSort.key ? currentSort.dir : SORT_DEFAULT_DIR[k]||'asc') === 'asc' ? '↑' : '↓';
+  });
+}
+
+function applySortOrder(tasks) {
+  const { key, dir } = currentSort;
+  const mul = dir === 'asc' ? 1 : -1;
+  return [...tasks].sort((a, b) => {
+    let va, vb;
+    switch(key) {
+      case 'urgency': {
+        const uOrd = { overdue:0, today:1, soon:2, ok:3 };
+        va = uOrd[urgency(a)] ?? 3; vb = uOrd[urgency(b)] ?? 3;
+        if (va !== vb) return (va - vb) * mul;
+        return (parseInt(b.impact)||3) - (parseInt(a.impact)||3);
+      }
+      case 'impact':  return ((parseInt(a.impact)||3) - (parseInt(b.impact)||3)) * mul;
+      case 'due':
+        if (a.due && b.due) return a.due.localeCompare(b.due) * mul;
+        return a.due ? -mul : b.due ? mul : 0;
+      case 'eisen':   return ((a.eisen||9) - (b.eisen||9)) * mul;
+      case 'created': return (a.created||'').localeCompare(b.created||'') * mul;
+      case 'title':   return (a.title||'').localeCompare(b.title||'','de') * mul;
+      case 'project': {
+        const pa = projects.find(p=>p.id===a.projectId)?.name||'zzz';
+        const pb = projects.find(p=>p.id===b.projectId)?.name||'zzz';
+        return pa.localeCompare(pb,'de') * mul;
+      }
+      default: return 0;
+    }
+  });
+}
+
 </script>
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
