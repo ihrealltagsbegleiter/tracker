@@ -2699,7 +2699,6 @@ async function sbLoadLog() {
 }
 
 // ── SUPABASE SYNC ──
-let syncDebounce = {};
 
 function sbUpsertAll(table, items) {
   clearTimeout(syncDebounce[table]);
@@ -2797,21 +2796,6 @@ async function sbDelete(table, id) {
 }
 
 // ── STATE ──
-let tasks    = load();
-let projects = loadProjects();
-let logEntries = loadLog();
-let currentTab = 'inbox';
-let currentProjectFilter = null;
-let editingId = null;
-let editingProjectId = null;
-let expandedIds = new Set();
-
-// Pill state
-let fHorizon = 'today';
-let fImpact  = 3;    // 1–5 stars
-let fEisen   = null; // 1–4 Eisenhower quadrant, null = not set
-let fContext = null;
-let fRecur   = 'none';
 
 // ── DATE UTILS ──
 function todayStr() {
@@ -3478,8 +3462,6 @@ function reviewReschedule(id) {
 
 // ── PROJECTS ──
 
-let fpStatus = 'active';
-let fpColor  = '#c8a96e';
 
 function populateProjectSelect() {
   const sel = document.getElementById('f-project');
@@ -3656,7 +3638,6 @@ function renderProjectTaskList(p) {
 
 
 // ── WAITING ──
-let waitingTaskId = null;
 
 function openWaitModal(id, e) {
   e.stopPropagation();
@@ -3789,8 +3770,6 @@ function renderWaitingTab() {
 
 
 // ── QUICK CAPTURE ──
-let quickOpen = false;
-let quickImpact = 3;
 
 function toggleQuick() {
   quickOpen ? closeQuick() : openQuick();
@@ -3866,7 +3845,6 @@ function saveQuickTask() {
 // quick-input listener attached lazily on first open (element is after </body> injection)
 
 // ── FOCUS MODE ──
-let focusMode = false;
 
 function toggleFocusMode() {
   focusMode = !focusMode;
@@ -3882,8 +3860,6 @@ function toggleFocusMode() {
 
 
 // ── FILTER ──
-let activeFilters = { impact: [], eisen: [], context: [], type: [] };
-let filterProjectId = null;
 
 function toggleFilterPanel(e) {
   e.stopPropagation();
@@ -3976,7 +3952,6 @@ function applyFilters(tasks) {
 };
   urgency:'desc', impact:'desc', due:'asc', eisen:'asc', created:'desc', title:'asc', project:'asc'
 };
-let currentSort = { key:'urgency', dir:'desc' };
 
 function toggleSortMenu(e) {
   e.stopPropagation();
@@ -4064,7 +4039,6 @@ window.addEventListener('online',  () => { setSyncStatus('syncing'); sbLoadAll()
 window.addEventListener('offline', () => setSyncStatus('offline'));
 
 // ── FROG FIELDS ──
-let fDread = 3;
 
 function initFrogField(isFrog, dread) {
   const cb = document.getElementById('f-frog');
@@ -4092,8 +4066,6 @@ function removeFrogFromTracker() {}
 
 
 // ── INLINE PROJECT CREATION ──
-let _inlineReturnToTask = false;
-let _inlineTaskSnapshot = null;
 
 function openInlineProjectModal() {
   _inlineReturnToTask = true;
@@ -4164,7 +4136,6 @@ function appendLog({ task, type }) {
 }
 
 // ── LOG TAB ──
-let logFilter = { period: '30', projectId: '', horizon: '', frog: '' };
 
 function renderLogTab() {
   const list = document.getElementById('task-list');
