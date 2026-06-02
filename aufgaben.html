@@ -853,12 +853,12 @@ input[type=date]::-webkit-calendar-picker-indicator {
 .sort-btn:hover { color: var(--text); border-color: var(--muted); }
 .sort-btn.active { border-color: var(--accent); color: var(--accent); }
 .sort-menu {
-  position: absolute; top: calc(100% + 6px); right: 0;
+  position: fixed;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  min-width: 200px;
-  z-index: 200;
+  min-width: 210px;
+  z-index: 500;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   overflow: hidden;
   display: none;
@@ -3175,7 +3175,12 @@ let currentSort = { key: 'urgency', dir: 'desc' };
 
 function toggleSortMenu(e) {
   e.stopPropagation();
-  document.getElementById('sort-menu').classList.toggle('open');
+  const menu = document.getElementById('sort-menu');
+  const btn  = document.getElementById('sort-btn');
+  const rect = btn.getBoundingClientRect();
+  menu.style.top   = (rect.bottom + 6) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.classList.toggle('open');
 }
 document.addEventListener('click', () => {
   document.getElementById('sort-menu')?.classList.remove('open');
