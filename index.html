@@ -1902,6 +1902,11 @@ function renderSleepQuality(){
   });
   document.getElementById('sleepQualityText').textContent = q ? SLEEP_QUALITY_LABELS[q] : '—';
 }
+const LIMITS = {
+  sleep:  [0, 14],
+  hrv:    [0, 200],
+  energy: [0, 10]
+};
 function adjustVal(key, delta){
   const [min,max] = LIMITS[key];
   const decimals = key==='sleep'?1:0;
@@ -5010,4 +5015,5 @@ Gib 2-3 konkrete Beobachtungen und einen Handlungsvorschlag für morgen.`;
 </script>
 </body>
 </html>
+
 
