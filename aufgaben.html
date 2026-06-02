@@ -1020,6 +1020,18 @@ input[type=date]::-webkit-calendar-picker-indicator {
         <select id="f-project" style="flex:1;">
           <option value="">Kein Projekt</option>
         </select>
+        <button type="button" onclick="openInlineProjectModal()" style="
+          flex-shrink:0;
+          padding:8px 12px;
+          background:var(--surface2);
+          border:1px solid var(--border);
+          border-radius:var(--r);
+          color:var(--accent);
+          font-size:0.85rem;
+          cursor:pointer;
+          white-space:nowrap;
+          transition:all 0.15s;
+        " title="Neues Projekt anlegen">+ Projekt</button>
       </div>
     </div>
 
@@ -2327,6 +2339,84 @@ function renderMatrixTab() {
 
   list.innerHTML = html;
 }
+
+
+// ── INLINE PROJECT CREATION (aus Aufgaben-Modal heraus) ──
+function openInlineProjectModal() {
+  // Merken welche Task-Modal-Werte gerade drin sind
+  _inlineReturnToTask = true;
+  _inlineTaskSnapshot = {
+    title:     document.getElementById('f-title').value,
+    note:      document.getElementById('f-note').value,
+    due:       document.getElementById('f-due').value,
+    projectId: document.getElementById('f-project').value,
+    horizon:   fHorizon,
+    impact:    fImpact,
+    eisen:     fEisen,
+    context:   fContext,
+    recur:     fRecur,
+  };
+  // Task-Modal kurz schließen, Projekt-Modal öffnen
+  closeModal();
+  setTimeout(() => openProjectModal(null), 120);
+}
+
+let _inlineReturnToTask = false;
+let _inlineTaskSnapshot = null;
+
+// Patch saveProject: nach dem Speichern ggf. zurück ins Task-Modal
+const _origSaveProject = saveProject;
+saveProject = function() {
+  const name = document.getElementById('fp-name').value.trim();
+  if (!name) { showToast('⚠️ Projektname fehlt'); return; }
+
+  // Neues Projekt anlegen
+  const newId = 'P' + Date.now();
+  if (editingProjectId) {
+    const p = projects.find(x => x.id === editingProjectId);
+    if (p) { p.name = name; p.desc = document.getElementById('fp-desc').value.trim(); p.status = fpStatus; p.color = fpColor; }
+    showToast('✏️ Projekt gespeichert');
+    saveProjects(projects);
+    closeProjectModal();
+    render();
+  } else {
+    const proj = { id: newId, name, desc: document.getElementById('fp-desc').value.trim(), status: fpStatus, color: fpColor, created: todayStr() };
+    projects.push(proj);
+    showToast('✓ Projekt angelegt');
+    saveProjects(projects);
+    closeProjectModal();
+
+    if (_inlineReturnToTask && _inlineTaskSnapshot) {
+      // Zurück ins Task-Modal, neues Projekt vorselektiert
+      setTimeout(() => {
+        const snap = _inlineTaskSnapshot;
+        _inlineReturnToTask = false;
+        _inlineTaskSnapshot = null;
+
+        // Modal öffnen
+        document.getElementById('modal-title').textContent = editingId ? 'Aufgabe bearbeiten' : 'Neue Aufgabe';
+        document.getElementById('f-title').value = snap.title;
+        document.getElementById('f-note').value  = snap.note;
+        document.getElementById('f-due').value   = snap.due;
+        populateProjectSelect();
+        document.getElementById('f-project').value = newId; // neues Projekt vorselektiert
+        setHorizonPill(snap.horizon || 'today');
+        setImpact(snap.impact || 3);
+        fEisen = snap.eisen;
+        document.querySelectorAll('#eisen-pills .eisen-pill').forEach(b => {
+          b.className = 'eisen-pill';
+          if (fEisen && parseInt(b.dataset.val) === fEisen) b.classList.add('sel-' + fEisen);
+        });
+        setContextPill(snap.context);
+        setRecurPill(snap.recur || 'none');
+        openModal();
+        showToast('📁 Projekt ausgewählt');
+      }, 150);
+    } else {
+      render();
+    }
+  }
+};
 
 // ── TOAST ──
 function showToast(msg) {
