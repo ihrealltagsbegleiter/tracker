@@ -108,15 +108,6 @@ body{font-family:'Syne',sans-serif;color:var(--text);overscroll-behavior:none}
 }
 .card-title{font-size:0.78rem;font-weight:700;color:var(--text2);letter-spacing:0.04em;margin-bottom:0.75rem}
 
-/* ─── TODAY: WELLBEING SLIDER ────────────────────────────────── */
-.wellbeing-display{
-  text-align:center;padding:1.2rem 0 0.5rem;
-}
-.wellbeing-number{
-  font-family:'Lora',serif;font-size:4rem;font-weight:400;
-  line-height:1;color:var(--gold);transition:color 0.3s;
-}
-.wellbeing-label{font-size:0.72rem;color:var(--text3);margin-top:0.4rem;letter-spacing:0.08em;text-transform:uppercase}
 .slider-wrap{padding:0.5rem 0 0.25rem}
 input[type=range]{
   width:100%;height:6px;-webkit-appearance:none;appearance:none;
@@ -740,18 +731,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
-      <div class="card">
-        <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
-        <div class="wellbeing-display">
-          <div class="wellbeing-number" id="wellbeingNum">5</div>
-          <div class="wellbeing-label" id="wellbeingLabel">Neutral</div>
-        </div>
-        <div class="slider-wrap">
-          <input type="range" min="1" max="10" value="5" id="wellbeingSlider" oninput="updateWellbeing(this.value)"/>
-          <div class="slider-labels"><span>1 – Sehr schlecht</span><span>10 – Ausgezeichnet</span></div>
-        </div>
-      </div>
-
 
       <!-- Stimmung -->
       <div class="card">
@@ -982,8 +961,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
       <div class="card">
         <div class="card-title">LEBENSGEFÜHL – VERLAUF</div>
-        <div class="chart-wrap" id="wellbeingChart"></div>
-      </div>
+</div>
       <div class="card">
         <div class="card-title">DURCHSCHNITTE</div>
         <div id="avgStats"></div>
@@ -1216,7 +1194,7 @@ const TODAY = new Date().toISOString().slice(0,10);
 let activeDate = TODAY; // aktuell bearbeitetes Datum (kann von TODAY abweichen)
 let state = {
   date: TODAY,
-  wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0, sleepQuality: 0,
+  sleep: 7.0, hrv: 55, energy: 7, pain: 0, sleepQuality: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
   gratitude: ['','',''],  meds_taken: [],
   meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
@@ -1242,9 +1220,7 @@ async function init(){
   if(todayData){
     state = {...state, ...todayData};
     // restore slider
-    document.getElementById('wellbeingSlider').value = state.wellbeing;
-    updateWellbeing(state.wellbeing);
-    document.getElementById('sleepVal').textContent = state.sleep.toFixed(1);
+        document.getElementById('sleepVal').textContent = state.sleep.toFixed(1);
     document.getElementById('hrvVal').textContent = state.hrv;
     document.getElementById('energyVal').textContent = state.energy;
     document.getElementById('noteText').value = state.note||'';
@@ -1286,18 +1262,6 @@ async function init(){
 // ══════════════════════════════════════════════════════════════════
 // TODAY
 // ══════════════════════════════════════════════════════════════════
-const WELLBEING_LABELS = ['','Sehr schlecht','Schlecht','Ziemlich schlecht','Unterdurchschnittlich','Neutral','Ganz gut','Gut','Sehr gut','Ausgezeichnet','Fantastisch'];
-function updateWellbeing(v){
-  v = parseInt(v);
-  state.wellbeing = v;
-  const el = document.getElementById('wellbeingNum');
-  el.textContent = v;
-  document.getElementById('wellbeingLabel').textContent = WELLBEING_LABELS[v]||'';
-  // Color
-  const h = v<=3?0:v<=5?30:v<=7?60:120;
-  el.style.color = `hsl(${h},70%,${v<=3?50:55}%)`;
-  scheduleAutoSave();
-}
 
 const SLEEP_QUALITY_LABELS = ['','Sehr schlecht','Schlecht','Okay','Gut','Sehr gut'];
 function setSleepQuality(v){
@@ -1474,7 +1438,7 @@ async function navigateDate(delta){
 async function loadDateData(){
   // State zurücksetzen
   state = {
-    wellbeing:5, sleep:7.0, hrv:55, energy:7, pain:0, sleepQuality:0,
+    sleep:7.0, hrv:55, energy:7, pain:0, sleepQuality:0,
     ern:[], neg:[], akt:[], pain_tags:[], moods:[], note:'', painNote:'',
     meds_taken:[], meals:{}, gratitude:['','',''],
     date: activeDate
@@ -1486,8 +1450,6 @@ async function loadDateData(){
   }
 
   // UI wiederherstellen
-  document.getElementById('wellbeingSlider').value = state.wellbeing;
-  updateWellbeing(state.wellbeing);
   document.getElementById('sleepVal').textContent = state.sleep.toFixed(1);
   document.getElementById('hrvVal').textContent = state.hrv;
   document.getElementById('energyVal').textContent = state.energy;
@@ -1818,7 +1780,6 @@ function renderMedComplianceChart(){
 function renderStats(){
   const days = getRecentDays(statsPeriod);
   renderHeatmap();
-  renderWellbeingChart(days);
   renderAvgStats(days);
   renderTagStats(days);
   renderRoutineChart();
@@ -1831,7 +1792,6 @@ function renderHeatmap(){
 
   // Build lookup: date string → wellbeing value
   const lookup = {};
-  allDays.forEach(d=>{ if(d.wellbeing) lookup[d.date]=d.wellbeing; });
 
   // Show last 53 weeks (371 days) = GitHub-style
   const today = new Date(TODAY);
@@ -1901,7 +1861,7 @@ function renderHeatmap(){
     <span>Wenig</span>
     ${[0,3,5,7,9,10].map(v=>`<div class="hm-cell" style="background:${color(v||undefined)};${!v?'border:1px solid var(--border)':''}"></div>`).join('')}
     <span>Viel</span>
-    <span style="margin-left:auto;color:var(--text3)">Ø ${allDays.length?((allDays.reduce((s,d)=>s+(d.wellbeing||0),0)/allDays.filter(d=>d.wellbeing).length)||0).toFixed(1):'-'}/10 gesamt</span>
+    
   </div>`;
 
   el.innerHTML = monthHtml + `<div class="heatmap-outer">${dayHtml}${gridHtml}</div>` + legendHtml;
@@ -1913,31 +1873,6 @@ function getRecentDays(n){
   return allDays.filter(d=>d.date>=cutoffStr).sort((a,b)=>a.date.localeCompare(b.date));
 }
 
-function renderWellbeingChart(days){
-  const el = document.getElementById('wellbeingChart');
-  if(days.length < 2){ el.innerHTML='<div class="empty" style="padding:1.5rem"><span class="empty-icon">∿</span><div class="empty-text">Mehr Tage braucht es für einen Verlauf.</div></div>'; return; }
-  const W=el.clientWidth||300, H=100;
-  const vals = days.map(d=>d.wellbeing||5);
-  const min=Math.max(1,Math.min(...vals)-1), max=Math.min(10,Math.max(...vals)+1);
-  const xStep = (W-20)/(days.length-1);
-  const yScale = (H-20)/(max-min);
-  const pts = vals.map((v,i)=>[(10+i*xStep).toFixed(1), (H-10-(v-min)*yScale).toFixed(1)]);
-  const path = 'M'+pts.map(p=>p.join(',')).join(' L');
-  const area = path+` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
-  el.innerHTML = `
-    <svg class="chart-svg" height="${H}" viewBox="0 0 ${W} ${H}">
-      <defs>
-        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#d4a843" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="#d4a843" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      <path d="${area}" fill="url(#wg)"/>
-      <path d="${path}" fill="none" stroke="#d4a843" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      ${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#d4a843"/>`).join('')}
-      ${pts.map((p,i)=>i%Math.ceil(pts.length/5)===0?`<text x="${p[0]}" y="${H}" font-size="8" fill="#4a5268" text-anchor="middle" font-family="Syne Mono">${days[i].date.slice(5)}</text>`:'').join('')}
-    </svg>`;
-}
 
 function renderAvgStats(days){
   if(!days.length){ document.getElementById('avgStats').innerHTML='<div class="empty" style="padding:1rem 0"><div class="empty-text">Noch keine Daten.</div></div>'; return; }
@@ -1947,7 +1882,6 @@ function renderAvgStats(days){
     {icon:'⭐',name:'Schlafqualität',val:avg('sleepQuality')+'/5',bar:parseFloat(avg('sleepQuality'))/5},
     {icon:'❤️',name:'HRV',val:avg('hrv')+' ms',bar:parseFloat(avg('hrv'))/100},
     {icon:'⚡',name:'Energie',val:avg('energy')+'/10',bar:parseFloat(avg('energy'))/10},
-    {icon:'😌',name:'Lebensgefühl',val:avg('wellbeing')+'/10',bar:parseFloat(avg('wellbeing'))/10},
     {icon:'💢',name:'Schmerz Ø',val:avg('pain')+'/10',bar:parseFloat(avg('pain'))/10},
   ];
   document.getElementById('avgStats').innerHTML = stats.map(s=>`
@@ -2128,7 +2062,6 @@ function renderInsights(){
     return;
   }
 
-  const wbVals = days.map(d=>d.wellbeing||5);
   const correlate = (vals) => {
     if(vals.length<5) return null;
     const n=vals.length;
@@ -2405,7 +2338,6 @@ function exportCSVDays(period){
   ];
   const rows = days.map(d=>[
     d.date,
-    d.wellbeing||'',
     d.sleep||'',
     d.sleepQuality||'',
     d.hrv||'',
@@ -3292,13 +3224,11 @@ async function runAiDayReview(){
   // Build context from today + last 7 days
   const recentDays = getRecentDays(7);
   const todayEntry = {...state};
-  const avgWb = recentDays.length ? (recentDays.reduce((s,d)=>s+(d.wellbeing||5),0)/recentDays.length).toFixed(1) : '–';
   const avgSleep = recentDays.length ? (recentDays.reduce((s,d)=>s+(d.sleep||0),0)/recentDays.length).toFixed(1) : '–';
 
   const prompt = `Du bist ein einfühlsamer Gesundheits- und Produktivitätscoach. Analysiere diesen Tageseintrag und gib eine persönliche, konkrete Auswertung auf Deutsch. Sei ehrlich, konstruktiv und warmherzig. Max. 120 Wörter.
 
 HEUTE (${TODAY}):
-- Lebensgefühl: ${todayEntry.wellbeing||'–'}/10
 - Schlaf: ${todayEntry.sleep||'–'} h · Qualität: ${'⭐'.repeat(todayEntry.sleepQuality||0)||'–'}
 - Wochenziel: ${(()=>{ try{ const g=JSON.parse(localStorage?.getItem?.('week_goals')||'{}'); const wk=Object.keys(g).sort().pop(); return g[wk]?.text||'–'; }catch(e){return '–';} })()}
 - HRV: ${todayEntry.hrv||'–'} ms
