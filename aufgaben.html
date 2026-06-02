@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0f0e0c"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Aufgaben"/>
+<title>Aufgaben · IAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #0f0e0c;
+  --surface:   #1a1916;
+  --surface2:  #23221e;
+  --border:    #2e2c27;
+  --text:      #e8e4d9;
+  --muted:     #6b6760;
+  --accent:    #c8a96e;
+  --accent2:   #7c9e6f;
+  --danger:    #c46b5a;
+  --warn:      #c49a4a;
+  --today:     #5a8fa0;
+  --r:         10px;
+  --r-lg:      16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; flex-direction: column; min-height: 100dvh; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.topbar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.topbar-actions { display: flex; gap: 8px; }
+
+.icon-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 1rem;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.icon-btn:active { transform: scale(0.96); }
+.icon-btn.primary { background: var(--accent); color: #0f0e0c; border-color: var(--accent); font-weight: 500; }
+
+/* ── NAV TABS ── */
+.nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--bg);
+  position: sticky; top: 57px; z-index: 99;
+}
+.nav::-webkit-scrollbar { display: none; }
+
+.nav-tab {
+  flex: none;
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+  user-select: none;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab .badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface2);
+  border-radius: 20px;
+  font-size: 0.7rem;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  margin-left: 5px;
+  color: var(--text);
+}
+.nav-tab.active .badge { background: var(--accent); color: #0f0e0c; }
+
+/* ── MAIN CONTENT ── */
+.content { flex: 1; padding: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; margin-top: 20px;
+}
+.section-header:first-child { margin-top: 0; }
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ── TASK CARD ── */
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.task-card:active { transform: scale(0.99); }
+.task-card.urgency-overdue { border-left: 3px solid var(--danger); }
+.task-card.urgency-today   { border-left: 3px solid var(--today); }
+.task-card.urgency-soon    { border-left: 3px solid var(--warn); }
+.task-card.urgency-ok      { border-left: 3px solid var(--border); }
+
+.task-top { display: flex; align-items: flex-start; gap: 12px; }
+
+.task-check {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  margin-top: 1px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.task-check:hover { border-color: var(--accent); }
+.task-check.done { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+
+.task-body { flex: 1; min-width: 0; }
+
+.task-title {
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.task-title.done-text { text-decoration: line-through; color: var(--muted); }
+
+.task-meta {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 6px; margin-top: 6px;
+}
+
+.tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.tag-horizon-today  { color: var(--today);  border-color: var(--today);  background: rgba(90,143,160,0.1); }
+.tag-horizon-week   { color: var(--accent); border-color: var(--accent); background: rgba(200,169,110,0.1); }
+.tag-horizon-month  { color: var(--accent2);border-color: var(--accent2);background: rgba(124,158,111,0.1); }
+.tag-horizon-later  { color: var(--muted);  border-color: var(--border); background: transparent; }
+.tag-horizon-maybe  { color: var(--muted);  border-color: var(--border); background: transparent; font-style: italic; }
+
+.tag-impact-high    { color: var(--danger); border-color: var(--danger); background: rgba(196,107,90,0.1); }
+.tag-impact-medium  { color: var(--warn);   border-color: var(--warn);   background: rgba(196,154,74,0.1); }
+.tag-impact-low     { color: var(--muted);  border-color: var(--border); background: transparent; }
+
+.tag-context { color: var(--muted); border-color: var(--border); background: var(--surface2); }
+.tag-recurring { color: var(--accent2); border-color: var(--accent2); background: rgba(124,158,111,0.1); }
+
+.due-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  display: flex; align-items: center; gap: 4px;
+}
+.due-overdue { color: var(--danger); }
+.due-today   { color: var(--today); }
+.due-soon    { color: var(--warn); }
+.due-ok      { color: var(--muted); }
+
+.task-actions {
+  display: flex; gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.task-action-btn {
+  font-size: 0.75rem;
+  font-family: 'DM Mono', monospace;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.task-action-btn:hover { color: var(--text); border-color: var(--muted); }
+.task-action-btn.del:hover { color: var(--danger); border-color: var(--danger); }
+
+/* ── RECURRING BADGE ── */
+.recurring-dot {
+  position: absolute; top: 10px; right: 10px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent2);
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+.empty-text { font-size: 0.9rem; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  width: 100%; max-width: 760px; margin: 0 auto;
+  padding: 24px 20px 32px;
+  transform: translateY(20px);
+  transition: transform 0.25s;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: var(--accent);
+}
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input[type=text], input[type=date], textarea, select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+}
+textarea { resize: vertical; min-height: 70px; }
+select option { background: var(--surface2); }
+
+input[type=date]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  cursor: pointer;
+}
+
+/* pill-select for horizon, impact, context */
+.pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.pill.selected { border-color: var(--accent); color: var(--accent); background: rgba(200,169,110,0.12); }
+.pill.selected.green { border-color: var(--accent2); color: var(--accent2); background: rgba(124,158,111,0.12); }
+.pill.selected.red   { border-color: var(--danger);  color: var(--danger);  background: rgba(196,107,90,0.12); }
+.pill.selected.blue  { border-color: var(--today);   color: var(--today);   background: rgba(90,143,160,0.12); }
+
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+.btn {
+  flex: 1; padding: 12px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-cancel { background: var(--surface2); color: var(--muted); }
+.btn-save   { background: var(--accent); color: #0f0e0c; border-color: var(--accent); }
+.btn:active { transform: scale(0.97); }
+
+/* ── REVIEW MODE ── */
+.review-header {
+  background: linear-gradient(135deg, rgba(200,169,110,0.08), rgba(124,158,111,0.05));
+  border: 1px solid rgba(200,169,110,0.2);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.review-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.review-header p { font-size: 0.83rem; color: var(--muted); }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── RECURRING CONFIG ── */
+.recur-row { display: flex; gap: 8px; align-items: center; }
+.recur-row input[type=number] {
+  width: 70px;
+  text-align: center;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  color: var(--text);
+  z-index: 999;
+  transition: transform 0.25s;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* expanded card detail */
+.task-note {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+@media (min-width: 600px) {
+  .modal { border-radius: var(--r-lg); margin: auto; }
+  .modal-overlay { align-items: center; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">Aufgaben</div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
+      <button class="icon-btn primary" onclick="openAddModal()">+ Neu</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="nav-tab active" data-tab="inbox" onclick="switchTab('inbox')">
+      Eingang <span class="badge" id="badge-inbox">0</span>
+    </div>
+    <div class="nav-tab" data-tab="today" onclick="switchTab('today')">
+      Heute <span class="badge" id="badge-today">0</span>
+    </div>
+    <div class="nav-tab" data-tab="week" onclick="switchTab('week')">
+      Woche <span class="badge" id="badge-week">0</span>
+    </div>
+    <div class="nav-tab" data-tab="month" onclick="switchTab('month')">
+      Monat <span class="badge" id="badge-month">0</span>
+    </div>
+    <div class="nav-tab" data-tab="later" onclick="switchTab('later')">
+      Irgendwann <span class="badge" id="badge-later">0</span>
+    </div>
+    <div class="nav-tab" data-tab="maybe" onclick="switchTab('maybe')">
+      Vielleicht <span class="badge" id="badge-maybe">0</span>
+    </div>
+    <div class="nav-tab" data-tab="recurring" onclick="switchTab('recurring')">
+      Regelmäßig <span class="badge" id="badge-recurring">0</span>
+    </div>
+  </div>
+
+  <!-- STATS (only on inbox/today) -->
+  <div class="content">
+    <div class="stats-bar" id="stats-bar" style="display:none;">
+      <div class="stat-box">
+        <div class="stat-num" id="stat-overdue">0</div>
+        <div class="stat-lbl">Überfällig</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-today-count">0</div>
+        <div class="stat-lbl">Heute fällig</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-high-impact">0</div>
+        <div class="stat-lbl">Hoher Impact</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-lbl">Gesamt offen</div>
+      </div>
+    </div>
+
+    <div id="task-list"></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-title" id="modal-title">Neue Aufgabe</div>
+
+    <div class="field">
+      <label>Aufgabe (Verb + konkretes Ziel)</label>
+      <input type="text" id="f-title" placeholder="z.B. Steuerberater anrufen wegen Q2" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>Notiz / Details</label>
+      <textarea id="f-note" placeholder="Optional: Kontext, Links, Unterlagen…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Zeithorizont</label>
+      <div class="pill-group" id="horizon-pills">
+        <div class="pill selected blue" data-val="today">Heute</div>
+        <div class="pill" data-val="week">Diese Woche</div>
+        <div class="pill" data-val="month">Diesen Monat</div>
+        <div class="pill" data-val="later">Irgendwann</div>
+        <div class="pill" data-val="maybe">Vielleicht nie</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Fälligkeitsdatum (spätestens)</label>
+      <input type="date" id="f-due"/>
+    </div>
+
+    <div class="field">
+      <label>Impact</label>
+      <div class="pill-group" id="impact-pills">
+        <div class="pill selected red" data-val="high">🔴 Hoch</div>
+        <div class="pill" data-val="medium">🟡 Mittel</div>
+        <div class="pill" data-val="low">⚪ Niedrig</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Kontext / Energie</label>
+      <div class="pill-group" id="context-pills">
+        <div class="pill" data-val="focus">🧠 Fokus</div>
+        <div class="pill" data-val="quick">⚡ 2 Min</div>
+        <div class="pill" data-val="phone">📞 Telefonieren</div>
+        <div class="pill" data-val="mobile">🚶 Unterwegs</div>
+        <div class="pill" data-val="team">👥 Mit Team</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Projekt (optional)</label>
+      <input type="text" id="f-project" placeholder="z.B. DATEV-Einführung" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>Wiederholen?</label>
+      <div class="pill-group" id="recur-pills">
+        <div class="pill selected" data-val="none">Nein</div>
+        <div class="pill" data-val="daily">Täglich</div>
+        <div class="pill" data-val="weekly">Wöchentlich</div>
+        <div class="pill" data-val="monthly">Monatlich</div>
+        <div class="pill" data-val="custom">Individuell</div>
+      </div>
+    </div>
+
+    <div class="field" id="recur-custom-field" style="display:none;">
+      <label>Alle X Tage</label>
+      <input type="number" id="f-recur-days" min="1" max="365" value="7" style="max-width:100px;"/>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-save" onclick="saveTask()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div class="modal-overlay" id="review-overlay" onclick="handleReviewOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title">Wöchentlicher Review</div>
+    <div class="review-header">
+      <h2>Inbox leeren · Horizonte prüfen · System vertrauen</h2>
+      <p>Gehe jede Aufgabe durch. Ist sie noch relevant? Stimmt der Horizont? Hat sie den richtigen Impact?</p>
+    </div>
+    <div id="review-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-save" onclick="closeReviewModal()">Review abschließen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ── STORAGE ──
+const STORE_KEY = 'iab_tasks_v2';
+const DONE_KEY  = 'iab_done_v2';
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
+}
+function save(tasks) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(tasks));
+}
+function loadDone() {
+  try { return JSON.parse(localStorage.getItem(DONE_KEY) || '{}'); } catch { return {}; }
+}
+function saveDone(d) {
+  localStorage.setItem(DONE_KEY, JSON.stringify(d));
+}
+
+// ── STATE ──
+let tasks = load();
+let currentTab = 'inbox';
+let editingId = null;
+let expandedIds = new Set();
+
+// Pill state
+let fHorizon = 'today';
+let fImpact  = 'high';
+let fContext = null;
+let fRecur   = 'none';
+
+// ── DATE UTILS ──
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+function diffDays(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((d - t) / 86400000);
+}
+function urgency(task) {
+  const d = diffDays(task.due);
+  if (d === null) return 'ok';
+  if (d < 0)  return 'overdue';
+  if (d === 0) return 'today';
+  if (d <= 3)  return 'soon';
+  return 'ok';
+}
+function fmtDue(task) {
+  const d = diffDays(task.due);
+  if (d === null) return null;
+  if (d < 0)  return { label: `${Math.abs(d)}T überfällig`, cls: 'due-overdue' };
+  if (d === 0) return { label: 'Heute fällig', cls: 'due-today' };
+  if (d === 1) return { label: 'Morgen fällig', cls: 'due-soon' };
+  if (d <= 3)  return { label: `in ${d} Tagen`, cls: 'due-soon' };
+  return { label: task.due.split('-').reverse().join('.'), cls: 'due-ok' };
+}
+
+// ── RECURRING LOGIC ──
+function isRecurringDueToday(task) {
+  if (!task.recurring || task.recurring === 'none') return false;
+  const done = loadDone();
+  const today = todayStr();
+  const lastDone = done[task.id];
+  if (!lastDone) return true;
+  if (task.recurring === 'daily') return lastDone < today;
+  if (task.recurring === 'weekly') {
+    const d = new Date(lastDone + 'T00:00:00');
+    const t = new Date(); t.setHours(0,0,0,0);
+    return (t - d) >= 7 * 86400000;
+  }
+  if (task.recurring === 'monthly') {
+    const d = new Date(lastDone + 'T00:00:00');
+    const t = new Date(); t.setHours(0,0,0,0);
+    return (t - d) >= 30 * 86400000;
+  }
+  if (task.recurring === 'custom') {
+    const days = task.recurDays || 7;
+    const d = new Date(lastDone + 'T00:00:00');
+    const t = new Date(); t.setHours(0,0,0,0);
+    return (t - d) >= days * 86400000;
+  }
+  return true;
+}
+
+function recurLabel(task) {
+  if (task.recurring === 'daily')   return '↻ täglich';
+  if (task.recurring === 'weekly')  return '↻ wöchentlich';
+  if (task.recurring === 'monthly') return '↻ monatlich';
+  if (task.recurring === 'custom')  return `↻ alle ${task.recurDays||7}T`;
+  return '';
+}
+
+// ── TAB FILTERING ──
+function getTabTasks(tab) {
+  if (tab === 'recurring') {
+    return tasks.filter(t => t.recurring && t.recurring !== 'none' && isRecurringDueToday(t));
+  }
+  // Exclude recurring tasks from regular tabs
+  const base = tasks.filter(t => !t.recurring || t.recurring === 'none');
+  if (tab === 'inbox') return base; // all non-recurring
+  return base.filter(t => t.horizon === tab);
+}
+
+// ── RENDER ──
+function render() {
+  updateBadges();
+  updateStats();
+  renderList();
+}
+
+function updateBadges() {
+  const tabs = ['inbox','today','week','month','later','maybe','recurring'];
+  tabs.forEach(tab => {
+    const el = document.getElementById('badge-' + tab);
+    if (!el) return;
+    el.textContent = getTabTasks(tab).length;
+  });
+}
+
+function updateStats() {
+  const bar = document.getElementById('stats-bar');
+  if (currentTab === 'inbox' || currentTab === 'today') {
+    bar.style.display = 'grid';
+    const nonRecur = tasks.filter(t => !t.recurring || t.recurring === 'none');
+    document.getElementById('stat-overdue').textContent =
+      nonRecur.filter(t => diffDays(t.due) !== null && diffDays(t.due) < 0).length;
+    document.getElementById('stat-today-count').textContent =
+      nonRecur.filter(t => diffDays(t.due) === 0).length;
+    document.getElementById('stat-high-impact').textContent =
+      nonRecur.filter(t => t.impact === 'high').length;
+    document.getElementById('stat-total').textContent = nonRecur.length;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function renderList() {
+  const list = document.getElementById('task-list');
+  const tabTasks = getTabTasks(currentTab);
+
+  if (tabTasks.length === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">${currentTab === 'inbox' ? '📭' : '✨'}</div>
+      <div class="empty-text">${currentTab === 'inbox' ? 'Eingang leer – gut so.' : 'Keine Aufgaben hier.'}</div>
+    </div>`;
+    return;
+  }
+
+  // Sort: overdue first, then by impact, then by due date
+  const sorted = [...tabTasks].sort((a, b) => {
+    const ua = urgency(a), ub = urgency(b);
+    const urgOrder = { overdue: 0, today: 1, soon: 2, ok: 3 };
+    if (urgOrder[ua] !== urgOrder[ub]) return urgOrder[ua] - urgOrder[ub];
+    const impOrder = { high: 0, medium: 1, low: 2 };
+    const ia = impOrder[a.impact] ?? 1, ib = impOrder[b.impact] ?? 1;
+    if (ia !== ib) return ia - ib;
+    if (a.due && b.due) return a.due.localeCompare(b.due);
+    if (a.due) return -1; if (b.due) return 1;
+    return 0;
+  });
+
+  // Group by project if multiple tasks share one
+  let html = '';
+
+  if (currentTab === 'inbox') {
+    // Show all, grouped by horizon
+    const groups = { today: [], week: [], month: [], later: [], maybe: [] };
+    const noHorizon = [];
+    sorted.forEach(t => {
+      if (groups[t.horizon]) groups[t.horizon].push(t);
+      else noHorizon.push(t);
+    });
+    const labels = { today: 'Heute', week: 'Diese Woche', month: 'Diesen Monat', later: 'Irgendwann', maybe: 'Vielleicht nie' };
+    Object.entries(groups).forEach(([h, ts]) => {
+      if (ts.length === 0) return;
+      html += `<div class="section-header"><span class="section-label">${labels[h]}</span><div class="section-line"></div></div>`;
+      ts.forEach(t => { html += taskCard(t); });
+    });
+    if (noHorizon.length) {
+      html += `<div class="section-header"><span class="section-label">Unsortiert</span><div class="section-line"></div></div>`;
+      noHorizon.forEach(t => { html += taskCard(t); });
+    }
+  } else if (currentTab === 'recurring') {
+    html += `<div class="section-header"><span class="section-label">Jetzt fällig</span><div class="section-line"></div></div>`;
+    sorted.forEach(t => { html += taskCard(t, true); });
+  } else {
+    sorted.forEach(t => { html += taskCard(t); });
+  }
+
+  list.innerHTML = html;
+}
+
+function taskCard(task, isRecurring = false) {
+  const urg = urgency(task);
+  const due = fmtDue(task);
+  const expanded = expandedIds.has(task.id);
+  const horizonLabels = { today: 'Heute', week: 'Woche', month: 'Monat', later: 'Irgendwann', maybe: 'Vielleicht' };
+  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 2 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team' };
+
+  let tags = '';
+  if (currentTab === 'inbox' && false) {
+    tags += `<span class="tag tag-horizon-${task.horizon}">${horizonLabels[task.horizon]||''}</span>`;
+  }
+  if (task.impact && task.impact !== 'low') {
+    tags += `<span class="tag tag-impact-${task.impact}">${task.impact === 'high' ? '🔴 Hoch' : '🟡 Mittel'}</span>`;
+  }
+  if (task.context) {
+    tags += `<span class="tag tag-context">${contextLabels[task.context]||task.context}</span>`;
+  }
+  if (task.project) {
+    tags += `<span class="tag tag-context">📁 ${task.project}</span>`;
+  }
+  if (task.recurring && task.recurring !== 'none') {
+    tags += `<span class="tag tag-recurring">${recurLabel(task)}</span>`;
+  }
+  if (due) {
+    tags += `<span class="due-tag ${due.cls}">📅 ${due.label}</span>`;
+  }
+
+  let actions = '';
+  if (expanded) {
+    actions = `<div class="task-actions">
+      <button class="task-action-btn" onclick="openEditModal('${task.id}',event)">✏️ Bearbeiten</button>
+      <button class="task-action-btn" onclick="moveTask('${task.id}',event)">→ Verschieben</button>
+      <button class="task-action-btn del" onclick="deleteTask('${task.id}',event)">🗑 Löschen</button>
+    </div>`;
+  }
+
+  const note = (task.note && expanded) ? `<div class="task-note">${escHtml(task.note)}</div>` : '';
+
+  return `<div class="task-card urgency-${urg}" id="card-${task.id}" onclick="toggleExpand('${task.id}',event)">
+    ${task.recurring && task.recurring !== 'none' ? '<div class="recurring-dot"></div>' : ''}
+    <div class="task-top">
+      <div class="task-check ${''}" onclick="checkTask('${task.id}',event)"></div>
+      <div class="task-body">
+        <div class="task-title">${escHtml(task.title)}</div>
+        ${note}
+        ${tags ? `<div class="task-meta">${tags}</div>` : ''}
+        ${actions}
+      </div>
+    </div>
+  </div>`;
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── INTERACTIONS ──
+function toggleExpand(id, e) {
+  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn')) return;
+  if (expandedIds.has(id)) expandedIds.delete(id);
+  else expandedIds.add(id);
+  renderList();
+}
+
+function checkTask(id, e) {
+  e.stopPropagation();
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  if (task.recurring && task.recurring !== 'none') {
+    // Mark done for today, will reappear when next due
+    const done = loadDone();
+    done[task.id] = todayStr();
+    saveDone(done);
+    expandedIds.delete(id);
+    showToast('✓ Erledigt – erscheint wieder wenn fällig');
+    render();
+    return;
+  }
+
+  // One-shot: animate then remove
+  const card = document.getElementById('card-' + id);
+  if (card) {
+    card.style.transition = 'opacity 0.3s, transform 0.3s';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(30px)';
+    setTimeout(() => {
+      tasks = tasks.filter(t => t.id !== id);
+      save(tasks);
+      expandedIds.delete(id);
+      showToast('✓ Aufgabe erledigt');
+      render();
+    }, 300);
+  }
+}
+
+function deleteTask(id, e) {
+  e.stopPropagation();
+  if (!confirm('Aufgabe wirklich löschen?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  save(tasks);
+  expandedIds.delete(id);
+  render();
+  showToast('🗑 Gelöscht');
+}
+
+function moveTask(id, e) {
+  e.stopPropagation();
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const horizons = ['today','week','month','later','maybe'];
+  const labels   = ['Heute','Diese Woche','Diesen Monat','Irgendwann','Vielleicht nie'];
+  const cur = horizons.indexOf(task.horizon);
+  const next = (cur + 1) % horizons.length;
+  task.horizon = horizons[next];
+  save(tasks);
+  render();
+  showToast(`→ Verschoben nach: ${labels[next]}`);
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  render();
+}
+
+// ── MODAL (ADD/EDIT) ──
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Neue Aufgabe';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-due').value = '';
+  document.getElementById('f-project').value = '';
+  setHorizonPill('today');
+  setImpactPill('high');
+  setContextPill(null);
+  setRecurPill('none');
+  openModal();
+}
+
+function openEditModal(id, e) {
+  e.stopPropagation();
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Aufgabe bearbeiten';
+  document.getElementById('f-title').value = task.title || '';
+  document.getElementById('f-note').value = task.note || '';
+  document.getElementById('f-due').value = task.due || '';
+  document.getElementById('f-project').value = task.project || '';
+  setHorizonPill(task.horizon || 'today');
+  setImpactPill(task.impact || 'high');
+  setContextPill(task.context || null);
+  setRecurPill(task.recurring || 'none');
+  if (task.recurring === 'custom') {
+    document.getElementById('f-recur-days').value = task.recurDays || 7;
+  }
+  openModal();
+}
+
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 300);
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function saveTask() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { showToast('⚠️ Aufgabe braucht einen Titel'); return; }
+
+  const recur = document.querySelector('#recur-pills .pill.selected')?.dataset.val || 'none';
+  const days  = parseInt(document.getElementById('f-recur-days').value) || 7;
+
+  if (editingId) {
+    const task = tasks.find(t => t.id === editingId);
+    if (task) {
+      task.title    = title;
+      task.note     = document.getElementById('f-note').value.trim();
+      task.horizon  = fHorizon;
+      task.due      = document.getElementById('f-due').value || null;
+      task.impact   = fImpact;
+      task.context  = fContext;
+      task.project  = document.getElementById('f-project').value.trim() || null;
+      task.recurring= recur;
+      task.recurDays= recur === 'custom' ? days : null;
+    }
+    showToast('✏️ Aufgabe gespeichert');
+  } else {
+    const task = {
+      id:        'T' + Date.now(),
+      title,
+      note:      document.getElementById('f-note').value.trim(),
+      horizon:   fHorizon,
+      due:       document.getElementById('f-due').value || null,
+      impact:    fImpact,
+      context:   fContext,
+      project:   document.getElementById('f-project').value.trim() || null,
+      recurring: recur,
+      recurDays: recur === 'custom' ? days : null,
+      created:   todayStr(),
+    };
+    tasks.push(task);
+    showToast('✓ Aufgabe hinzugefügt');
+  }
+
+  save(tasks);
+  closeModal();
+  render();
+}
+
+// ── PILL HELPERS ──
+function pillSetup(groupId, key, setter) {
+  document.getElementById(groupId).addEventListener('click', e => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    setter(pill.dataset.val);
+  });
+}
+
+function setHorizonPill(val) {
+  fHorizon = val;
+  document.querySelectorAll('#horizon-pills .pill').forEach(p => {
+    p.classList.toggle('selected', p.dataset.val === val);
+    if (p.dataset.val === val) {
+      p.classList.remove('green','red');
+      if (val === 'today') p.classList.add('blue');
+    }
+  });
+}
+function setImpactPill(val) {
+  fImpact = val;
+  document.querySelectorAll('#impact-pills .pill').forEach(p => {
+    p.classList.remove('selected','red','green');
+    if (p.dataset.val === val) {
+      p.classList.add('selected');
+      if (val === 'high') p.classList.add('red');
+      else if (val === 'low') p.classList.add('green');
+    }
+  });
+}
+function setContextPill(val) {
+  fContext = val;
+  document.querySelectorAll('#context-pills .pill').forEach(p => {
+    p.classList.toggle('selected', p.dataset.val === val);
+    if (p.dataset.val === val) p.classList.remove('red','green','blue');
+  });
+}
+function setRecurPill(val) {
+  fRecur = val;
+  document.querySelectorAll('#recur-pills .pill').forEach(p => {
+    p.classList.toggle('selected', p.dataset.val === val);
+    if (p.dataset.val === val) p.classList.remove('red','green','blue');
+  });
+  document.getElementById('recur-custom-field').style.display =
+    val === 'custom' ? 'block' : 'none';
+}
+
+pillSetup('horizon-pills', 'fHorizon', setHorizonPill);
+pillSetup('impact-pills',  'fImpact',  setImpactPill);
+pillSetup('context-pills', 'fContext', setContextPill);
+pillSetup('recur-pills',   'fRecur',   setRecurPill);
+
+// ── REVIEW MODAL ──
+function openReviewModal() {
+  const content = document.getElementById('review-content');
+  const overdue = tasks.filter(t => diffDays(t.due) !== null && diffDays(t.due) < 0);
+  const maybe   = tasks.filter(t => t.horizon === 'maybe');
+  const later   = tasks.filter(t => t.horizon === 'later');
+
+  let html = '';
+
+  if (overdue.length) {
+    html += `<div class="section-header"><span class="section-label" style="color:var(--danger)">⚠️ Überfällig (${overdue.length})</span><div class="section-line"></div></div>`;
+    overdue.forEach(t => {
+      html += `<div class="task-card urgency-overdue" style="margin-bottom:8px;">
+        <div class="task-top"><div class="task-body">
+          <div class="task-title">${escHtml(t.title)}</div>
+          <div class="task-meta"><span class="due-tag due-overdue">📅 ${fmtDue(t)?.label||''}</span></div>
+          <div class="task-actions">
+            <button class="task-action-btn" onclick="reviewReschedule('${t.id}')">📅 Verschieben</button>
+            <button class="task-action-btn del" onclick="reviewDelete('${t.id}')">🗑 Löschen</button>
+          </div>
+        </div></div>
+      </div>`;
+    });
+  }
+
+  if (maybe.length) {
+    html += `<div class="section-header"><span class="section-label">🤔 Vielleicht nie (${maybe.length})</span><div class="section-line"></div></div>`;
+    maybe.forEach(t => {
+      html += `<div class="task-card urgency-ok" style="margin-bottom:8px;">
+        <div class="task-top"><div class="task-body">
+          <div class="task-title">${escHtml(t.title)}</div>
+          <div class="task-actions">
+            <button class="task-action-btn" onclick="reviewActivate('${t.id}')">▶ Aktivieren</button>
+            <button class="task-action-btn del" onclick="reviewDelete('${t.id}')">🗑 Endgültig löschen</button>
+          </div>
+        </div></div>
+      </div>`;
+    });
+  }
+
+  if (later.length) {
+    html += `<div class="section-header"><span class="section-label">🗓 Irgendwann (${later.length})</span><div class="section-line"></div></div>`;
+    later.forEach(t => {
+      html += `<div class="task-card urgency-ok" style="margin-bottom:8px;">
+        <div class="task-top"><div class="task-body">
+          <div class="task-title">${escHtml(t.title)}</div>
+          <div class="task-actions">
+            <button class="task-action-btn" onclick="reviewActivate('${t.id}')">▶ Diese Woche angehen</button>
+            <button class="task-action-btn del" onclick="reviewDelete('${t.id}')">🗑 Löschen</button>
+          </div>
+        </div></div>
+      </div>`;
+    });
+  }
+
+  if (!html) {
+    html = `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">Nichts zu reviewen. System läuft sauber.</div></div>`;
+  }
+
+  content.innerHTML = html;
+  document.getElementById('review-overlay').classList.add('open');
+}
+
+function closeReviewModal() {
+  document.getElementById('review-overlay').classList.remove('open');
+  render();
+}
+function handleReviewOverlayClick(e) {
+  if (e.target === document.getElementById('review-overlay')) closeReviewModal();
+}
+function reviewDelete(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  save(tasks);
+  openReviewModal();
+}
+function reviewActivate(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.horizon = 'week'; save(tasks); }
+  openReviewModal();
+}
+function reviewReschedule(id) {
+  closeReviewModal();
+  openEditModal(id, { stopPropagation: () => {} });
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeReviewModal(); }
+  if (e.key === 'n' && !e.target.matches('input,textarea,select')) openAddModal();
+});
+
+// ── INIT ──
+render();
+</script>
+</body>
+</html>
