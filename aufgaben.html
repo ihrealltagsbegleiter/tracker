@@ -772,6 +772,67 @@ input[type=date]::-webkit-calendar-picker-indicator {
 .dread-btn.lit { opacity: 1; }
 .dread-btn:hover { transform: scale(1.2); }
 
+
+/* ── LOG TAB ── */
+.log-filter-bar {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.log-filter-select {
+  flex: 1; min-width: 120px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+}
+.log-filter-select:focus { border-color: var(--accent); }
+.log-entry {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.log-entry:last-child { border-bottom: none; }
+.log-date-col {
+  flex-shrink: 0; width: 88px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  padding-top: 2px;
+  line-height: 1.5;
+}
+.log-date-col .log-time { color: var(--muted); opacity: 0.6; }
+.log-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+.log-body { flex: 1; min-width: 0; }
+.log-title { font-size: 0.88rem; line-height: 1.35; }
+.log-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.log-day-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--accent);
+  padding: 12px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.log-day-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.log-stats-row {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin-bottom: 16px;
+}
+
 /* ── QUICK CAPTURE ── */
 .fab {
   position: fixed;
@@ -949,6 +1010,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     </div>
     <div class="nav-tab" data-tab="impact" onclick="switchTab('impact')">
       Impact
+    </div>
+    <div class="nav-tab" data-tab="log" onclick="switchTab('log')">
+      📋 Protokoll
     </div>
 
   </div>
@@ -1229,6 +1293,7 @@ const SB_HEADERS = {
 const STORE_KEY   = 'iab_tasks_v2';
 const DONE_KEY    = 'iab_done_v2';
 const PROJECT_KEY = 'iab_projects_v1';
+const LOG_KEY     = 'iab_log_v1';
 
 function load() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
@@ -1250,6 +1315,33 @@ function loadProjects() {
 function saveProjects(p) {
   localStorage.setItem(PROJECT_KEY, JSON.stringify(p));
   sbUpsertAll('projects', p);
+}
+function loadLog() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch { return []; }
+}
+function saveLog(entries) {
+  localStorage.setItem(LOG_KEY, JSON.stringify(entries));
+  // Sync zu Supabase: neueste 500 Einträge
+  sbUpsertLog(entries.slice(-500));
+}
+async function sbUpsertLog(entries) {
+  if (!navigator.onLine || !entries.length) return;
+  try {
+    const rows = entries.map(e => ({ id: e.id, data: e }));
+    await fetch(`${SB_URL}/rest/v1/log`, {
+      method: 'POST',
+      headers: SB_HEADERS,
+      body: JSON.stringify(rows)
+    });
+  } catch(e) { console.warn('Log sync error:', e); }
+}
+async function sbLoadLog() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/log?select=id,data&order=data->>completedAt.desc&limit=500`, { headers: SB_HEADERS });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows.map(r => r.data);
+  } catch { return null; }
 }
 
 // ── SUPABASE SYNC ──
@@ -1288,14 +1380,15 @@ function sbUpsertDone(doneObj) {
 
 async function sbLoadAll() {
   try {
-    const [tRes, pRes, dRes] = await Promise.all([
+    const [tRes, pRes, dRes, lRes] = await Promise.all([
       fetch(`${SB_URL}/rest/v1/tasks?select=id,data,updated_at&order=updated_at.desc`, { headers: SB_HEADERS }),
       fetch(`${SB_URL}/rest/v1/projects?select=id,data,updated_at&order=updated_at.desc`, { headers: SB_HEADERS }),
-      fetch(`${SB_URL}/rest/v1/done_log?select=id,data`, { headers: SB_HEADERS })
+      fetch(`${SB_URL}/rest/v1/done_log?select=id,data`, { headers: SB_HEADERS }),
+      fetch(`${SB_URL}/rest/v1/log?select=id,data&order=data->>completedAt.desc&limit=500`, { headers: SB_HEADERS })
     ]);
     if (!tRes.ok || !pRes.ok || !dRes.ok) return false;
 
-    const [tRows, pRows, dRows] = await Promise.all([tRes.json(), pRes.json(), dRes.json()]);
+    const [tRows, pRows, dRows, lRows] = await Promise.all([tRes.json(), pRes.json(), dRes.json(), lRes.ok ? lRes.json() : Promise.resolve([])]);
 
     const remoteTasks    = tRows.map(r => r.data);
     const remoteProjects = pRows.map(r => r.data);
@@ -1323,7 +1416,15 @@ async function sbLoadAll() {
     localStorage.setItem(PROJECT_KEY, JSON.stringify(mergedProjects));
     localStorage.setItem(DONE_KEY, JSON.stringify(mergedDone));
 
-    return { tasks: mergedTasks, projects: mergedProjects, done: mergedDone };
+    const remoteLog     = lRows.map(r => r.data);
+    const localLog      = loadLog();
+    const logMap        = {};
+    localLog.forEach(e => logMap[e.id] = e);
+    remoteLog.forEach(e => logMap[e.id] = e);
+    const mergedLog = Object.values(logMap).sort((a,b) => a.completedAt.localeCompare(b.completedAt));
+    localStorage.setItem(LOG_KEY, JSON.stringify(mergedLog));
+
+    return { tasks: mergedTasks, projects: mergedProjects, done: mergedDone, log: mergedLog };
   } catch(e) {
     console.warn('Remote load failed, using local:', e);
     return false;
@@ -1344,6 +1445,7 @@ async function sbDelete(table, id) {
 // ── STATE ──
 let tasks    = load();
 let projects = loadProjects();
+let logEntries = loadLog();
 let currentTab = 'inbox';
 let currentProjectFilter = null;
 let editingId = null;
@@ -1531,7 +1633,7 @@ function updateBadges() {
 
 function updateStats() {
   const bar = document.getElementById('stats-bar');
-  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix' || currentTab === 'impact' || currentTab === 'frogs') {
+  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix' || currentTab === 'impact' || currentTab === 'frogs' || currentTab === 'log') {
     bar.style.display = 'grid';
     const nonRecur = tasks.filter(t => !t.recurring || t.recurring === 'none');
     document.getElementById('stat-overdue').textContent =
@@ -1553,6 +1655,7 @@ function renderList() {
   if (currentTab === 'overdue') { renderOverdueTab(); return; }
   if (currentTab === 'impact') { renderImpactTab(); return; }
   if (currentTab === 'frogs') { renderFrogsTab(); return; }
+  if (currentTab === 'log') { renderLogTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -1695,10 +1798,10 @@ function checkTask(id, e) {
   if (!task) return;
 
   if (task.recurring && task.recurring !== 'none') {
-    // Mark done for today, will reappear when next due
     const done = loadDone();
     done[task.id] = todayStr();
     saveDone(done);
+    appendLog({ task, type: 'recurring' });
     expandedIds.delete(id);
     showToast('✓ Erledigt – erscheint wieder wenn fällig');
     render();
@@ -1713,7 +1816,7 @@ function checkTask(id, e) {
     card.style.transform = 'translateX(30px)';
     setTimeout(() => {
       const doneTask = tasks.find(t => t.id === id);
-
+      if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
       expandedIds.delete(id);
@@ -2863,6 +2966,141 @@ function renderFrogsTab() {
   list.innerHTML = html;
 }
 
+
+// ── LOG ──
+function appendLog({ task, type }) {
+  const entry = {
+    id:          'L' + Date.now(),
+    taskId:      task.id,
+    title:       task.title,
+    horizon:     task.horizon || null,
+    projectId:   task.projectId || null,
+    impact:      task.impact || null,
+    eisen:       task.eisen || null,
+    frog:        task.frog || false,
+    type,                              // 'oneshot' | 'recurring'
+    completedAt: new Date().toISOString(),
+  };
+  logEntries.push(entry);
+  saveLog(logEntries);
+}
+
+// Log-Filter State
+let logFilter = { period: '30', projectId: '', horizon: '', frog: '' };
+
+function renderLogTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  // Filter-Bar HTML (nur einmal rendern oder neu aufbauen)
+  const projectOptions = projects.map(p =>
+    `<option value="${p.id}"${logFilter.projectId===p.id?' selected':''}>${escHtml(p.name)}</option>`
+  ).join('');
+
+  const filterBar = `<div class="log-filter-bar">
+    <select class="log-filter-select" onchange="logFilter.period=this.value;renderLogTab()">
+      <option value="7"${logFilter.period==='7'?' selected':''}>Letzte 7 Tage</option>
+      <option value="30"${logFilter.period==='30'?' selected':''}>Letzte 30 Tage</option>
+      <option value="90"${logFilter.period==='90'?' selected':''}>Letzte 90 Tage</option>
+      <option value="365"${logFilter.period==='365'?' selected':''}>Letztes Jahr</option>
+      <option value="all"${logFilter.period==='all'?' selected':''}>Alles</option>
+    </select>
+    <select class="log-filter-select" onchange="logFilter.projectId=this.value;renderLogTab()">
+      <option value="">Alle Projekte</option>
+      ${projectOptions}
+    </select>
+    <select class="log-filter-select" onchange="logFilter.horizon=this.value;renderLogTab()">
+      <option value="">Alle Horizonte</option>
+      <option value="today"${logFilter.horizon==='today'?' selected':''}>Heute</option>
+      <option value="week"${logFilter.horizon==='week'?' selected':''}>Woche</option>
+      <option value="month"${logFilter.horizon==='month'?' selected':''}>Monat</option>
+      <option value="later"${logFilter.horizon==='later'?' selected':''}>Irgendwann</option>
+    </select>
+    <select class="log-filter-select" onchange="logFilter.frog=this.value;renderLogTab()">
+      <option value="">Alle Typen</option>
+      <option value="frog"${logFilter.frog==='frog'?' selected':''}>🐸 Nur Frösche</option>
+      <option value="recurring"${logFilter.frog==='recurring'?' selected':''}>↻ Nur Wiederkehrend</option>
+    </select>
+  </div>`;
+
+  // Filtern
+  const now = new Date();
+  let filtered = [...logEntries].reverse(); // neueste zuerst
+
+  if (logFilter.period !== 'all') {
+    const cutoff = new Date(now.getTime() - parseInt(logFilter.period) * 86400000);
+    filtered = filtered.filter(e => new Date(e.completedAt) >= cutoff);
+  }
+  if (logFilter.projectId) filtered = filtered.filter(e => e.projectId === logFilter.projectId);
+  if (logFilter.horizon)   filtered = filtered.filter(e => e.horizon === logFilter.horizon);
+  if (logFilter.frog === 'frog')      filtered = filtered.filter(e => e.frog);
+  if (logFilter.frog === 'recurring') filtered = filtered.filter(e => e.type === 'recurring');
+
+  if (filtered.length === 0) {
+    list.innerHTML = filterBar + `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Keine erledigten Aufgaben im gewählten Zeitraum.</div></div>`;
+    return;
+  }
+
+  // Stats
+  const total    = filtered.length;
+  const frogs    = filtered.filter(e => e.frog).length;
+  const recurring = filtered.filter(e => e.type === 'recurring').length;
+  const statsHtml = `<div class="log-stats-row">
+    <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Erledigt</div></div>
+    <div class="stat-box"><div class="stat-num">${frogs}</div><div class="stat-lbl">🐸 Frösche</div></div>
+    <div class="stat-box"><div class="stat-num">${recurring}</div><div class="stat-lbl">↻ Wiederkehrend</div></div>
+  </div>`;
+
+  // Nach Tag gruppieren
+  const byDay = {};
+  filtered.forEach(e => {
+    const day = e.completedAt.split('T')[0];
+    if (!byDay[day]) byDay[day] = [];
+    byDay[day].push(e);
+  });
+
+  const horizonLabels = { today:'Heute', week:'Woche', month:'Monat', later:'Irgendwann', maybe:'Vielleicht', inbox:'Eingang' };
+  const IMPACT_STARS  = { 5:'★★★★★', 4:'★★★★☆', 3:'★★★☆☆', 2:'★★☆☆☆', 1:'★☆☆☆☆' };
+
+  let html = filterBar + statsHtml;
+
+  Object.entries(byDay).forEach(([day, entries]) => {
+    const d = new Date(day + 'T12:00:00');
+    const dayLabel = d.toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+    html += `<div class="log-day-header">
+      <span>${dayLabel}</span>
+      <span class="log-day-count">${entries.length} Aufgabe${entries.length > 1 ? 'n' : ''}</span>
+    </div>`;
+
+    entries.forEach(e => {
+      const t = new Date(e.completedAt);
+      const timeStr = t.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+      const proj = e.projectId ? projects.find(p => p.id === e.projectId) : null;
+      const icon = e.frog ? '🐸' : e.type === 'recurring' ? '↻' : '✓';
+
+      let metaTags = '';
+      if (e.horizon) metaTags += `<span class="tag tag-horizon-${e.horizon}" style="font-size:0.62rem;padding:1px 6px;">${horizonLabels[e.horizon]||''}</span>`;
+      if (e.impact)  metaTags += `<span class="tag tag-impact-${parseInt(e.impact)||3}" style="font-size:0.62rem;padding:1px 5px;">${IMPACT_STARS[parseInt(e.impact)]||''}</span>`;
+      if (proj)      metaTags += `<span class="tag" style="font-size:0.62rem;padding:1px 6px;border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
+      if (e.eisen)   metaTags += `<span class="tag tag-eisen-${e.eisen}" style="font-size:0.62rem;padding:1px 5px;">Q${['','I','II','III','IV'][e.eisen]||''}</span>`;
+
+      html += `<div class="log-entry">
+        <div class="log-date-col">
+          <div>${day.split('-').reverse().join('.')}</div>
+          <div class="log-time">${timeStr}</div>
+        </div>
+        <div class="log-icon">${icon}</div>
+        <div class="log-body">
+          <div class="log-title">${escHtml(e.title)}</div>
+          ${metaTags ? `<div class="log-meta">${metaTags}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  });
+
+  list.innerHTML = html;
+}
+
 // ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -2900,8 +3138,9 @@ async function init() {
   setSyncStatus('syncing');
   const remote = await sbLoadAll();
   if (remote) {
-    tasks    = remote.tasks;
-    projects = remote.projects;
+    tasks      = remote.tasks;
+    projects   = remote.projects;
+    if (remote.log) logEntries = remote.log;
     setSyncStatus('ok');
   } else {
     setSyncStatus(navigator.onLine ? 'error' : 'offline');
