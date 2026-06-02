@@ -908,6 +908,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="nav-tab" data-tab="matrix" onclick="switchTab('matrix')">
       Matrix
     </div>
+    <div class="nav-tab" data-tab="impact" onclick="switchTab('impact')">
+      Impact
+    </div>
   </div>
 
   <!-- STATS (only on inbox/today) -->
@@ -1401,7 +1404,7 @@ function updateBadges() {
 
 function updateStats() {
   const bar = document.getElementById('stats-bar');
-  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix') {
+  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix' || currentTab === 'impact') {
     bar.style.display = 'grid';
     const nonRecur = tasks.filter(t => !t.recurring || t.recurring === 'none');
     document.getElementById('stat-overdue').textContent =
@@ -1421,6 +1424,7 @@ function renderList() {
   if (currentTab === 'waiting') { renderWaitingTab(); return; }
   if (currentTab === 'matrix') { renderMatrixTab(); return; }
   if (currentTab === 'overdue') { renderOverdueTab(); return; }
+  if (currentTab === 'impact') { renderImpactTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -2489,6 +2493,147 @@ function renderOverdueTab() {
     </div>`;
     g.tasks.forEach(t => { html += taskCard(t); });
   });
+
+  list.innerHTML = html;
+}
+
+
+// ── IMPACT TAB ──
+function renderImpactTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  const active = tasks.filter(t =>
+    !t.waiting &&
+    (!t.recurring || t.recurring === 'none')
+  );
+
+  if (active.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">★</div><div class="empty-text">Keine Aufgaben vorhanden.</div></div>`;
+    return;
+  }
+
+  // Gruppieren nach Impact-Stufe 5→1, dann ungrouped
+  const EISEN_SHORT = { 1: 'QI · Sofort', 2: 'QII · Planen', 3: 'QIII · Delegieren', 4: 'QIV · Eliminieren' };
+  const impactColors = { 5:'var(--danger)', 4:'var(--warn)', 3:'var(--accent)', 2:'var(--muted)', 1:'#3a3835' };
+  const impactBg     = { 5:'rgba(196,107,90,0.06)', 4:'rgba(196,154,74,0.05)', 3:'rgba(200,169,110,0.05)', 2:'transparent', 1:'transparent' };
+
+  let html = '';
+
+  for (let imp = 5; imp >= 1; imp--) {
+    const group = active
+      .filter(t => (parseInt(t.impact) || 3) === imp)
+      .sort((a, b) => {
+        // Überfällige zuerst
+        const ua = urgency(a), ub = urgency(b);
+        const uOrd = { overdue:0, today:1, soon:2, ok:3 };
+        if (uOrd[ua] !== uOrd[ub]) return uOrd[ua] - uOrd[ub];
+        // Dann nach Eisenhower
+        return (a.eisen || 9) - (b.eisen || 9);
+      });
+
+    if (group.length === 0) continue;
+
+    const stars = '★'.repeat(imp) + '☆'.repeat(5 - imp);
+    const color = impactColors[imp];
+    const bg    = impactBg[imp];
+
+    html += `<div style="
+      border-left: 3px solid ${color};
+      background: ${bg};
+      border-radius: 0 var(--r-lg) var(--r-lg) 0;
+      margin-bottom: 6px;
+      padding: 0;
+    ">
+      <div style="
+        display:flex; align-items:center; gap:10px;
+        padding: 10px 14px 8px;
+      ">
+        <span style="
+          font-family:'DM Mono',monospace;
+          font-size:1rem;
+          color:${color};
+          letter-spacing:0.05em;
+        ">${stars}</span>
+        <span style="
+          font-family:'DM Mono',monospace;
+          font-size:0.68rem;
+          letter-spacing:0.08em;
+          text-transform:uppercase;
+          color:${color};
+        ">${IMPACT_LABELS[imp]}</span>
+        <span style="
+          font-family:'DM Mono',monospace;
+          font-size:0.65rem;
+          color:var(--muted);
+          margin-left:auto;
+        ">${group.length} Aufgabe${group.length > 1 ? 'n' : ''}</span>
+      </div>`;
+
+    // Sub-Gruppen nach Eisenhower innerhalb des Impact-Levels
+    const byEisen = {};
+    group.forEach(t => {
+      const key = t.eisen || 0;
+      if (!byEisen[key]) byEisen[key] = [];
+      byEisen[key].push(t);
+    });
+
+    // Reihenfolge: Q1, Q2, Q3, Q4, kein Quadrant
+    [1, 2, 3, 4, 0].forEach(q => {
+      const qTasks = byEisen[q];
+      if (!qTasks || qTasks.length === 0) return;
+
+      if (q > 0) {
+        html += `<div style="padding: 2px 14px 4px;">
+          <span style="
+            font-family:'DM Mono',monospace;
+            font-size:0.62rem;
+            letter-spacing:0.06em;
+            text-transform:uppercase;
+            color:var(--muted);
+            border-left: 2px solid var(--border);
+            padding-left: 6px;
+          ">${EISEN_SHORT[q] || ''}</span>
+        </div>`;
+      }
+
+      html += `<div style="padding: 0 14px 8px;">`;
+      qTasks.forEach(t => {
+        const urg = urgency(t);
+        const due = fmtDue(t);
+        const exp = expandedIds.has(t.id);
+
+        html += `<div style="
+          padding: 8px 0;
+          border-bottom: 1px solid var(--border);
+          cursor:pointer;
+        " onclick="toggleExpand('${t.id}',event)">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <div class="task-check" onclick="checkTask('${t.id}',event)" style="flex-shrink:0;margin-top:1px;"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.9rem;line-height:1.35;">${escHtml(t.title)}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">
+                ${due ? `<span class="due-tag ${due.cls}">📅 ${due.label}</span>` : ''}
+                ${t.projectId ? (() => { const p = projects.find(x=>x.id===t.projectId); return p ? `<span class="tag" style="border-color:${p.color};color:${p.color};font-size:0.65rem;padding:1px 6px;">📁 ${escHtml(p.name)}</span>` : ''; })() : ''}
+                ${t.horizon ? `<span class="tag tag-horizon-${t.horizon}" style="font-size:0.65rem;padding:1px 6px;">${{today:'Heute',week:'Woche',month:'Monat',later:'Später',maybe:'Vielleicht'}[t.horizon]||''}</span>` : '<span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">Eingang</span>'}
+              </div>
+              ${exp ? `<div class="task-actions" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+                <button class="task-action-btn" onclick="openEditModal('${t.id}',event)">✏️ Bearbeiten</button>
+                <button class="task-action-btn del" onclick="deleteTask('${t.id}',event)">🗑 Löschen</button>
+              </div>
+              <div class="horizon-picker" style="margin-top:6px;">
+                <span class="horizon-pick-label">→</span>
+                ${['today','week','month','later','maybe'].map(h=>`<button class="horizon-pick-btn${t.horizon===h?' active':''}" onclick="setHorizonDirect('${t.id}','${h}',event)">${{today:'Heute',week:'Woche',month:'Monat',later:'Später',maybe:'Vielleicht'}[h]}</button>`).join('')}
+              </div>` : ''}
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+
+    html += `</div>`;
+  }
 
   list.innerHTML = html;
 }
