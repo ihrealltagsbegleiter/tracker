@@ -971,6 +971,19 @@ input[type=date]::-webkit-calendar-picker-indicator {
 }
 .filter-active-bar.visible { display: inline-block; }
 
+
+/* ── FOCUS MODE ── */
+.focus-mode .task-meta { display: none !important; }
+.focus-mode .task-note  { display: none !important; }
+.focus-mode .recurring-dot { display: none !important; }
+.focus-mode .task-card { padding: 12px 16px; }
+.focus-mode .task-title { font-size: 1rem; }
+#focus-btn.active {
+  background: rgba(200,169,110,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ── QUICK CAPTURE ── */
 .fab {
   position: fixed;
@@ -1108,6 +1121,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
         <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">× Filter</span>
         <button class="icon-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung"><span id="sort-btn-label">↕</span></button>
       </div>
+      <button class="icon-btn" id="focus-btn" onclick="toggleFocusMode()" title="Fokus-Modus (Tags ausblenden)">◎</button>
       <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
       <button class="icon-btn primary" id="main-add-btn" onclick="openAddModal()">+ Neu</button>
     </div>
@@ -2653,7 +2667,23 @@ function saveQuickTask() {
   showToast('⚡ Im Eingang');
 }
 
-// quick-input listener attached lazily on first open (element is after </body> injection)
+// quick-input listener attached lazily on first open (element is after 
+<script>
+// ── FOCUS MODE ──
+let focusMode = false;
+
+function toggleFocusMode() {
+  focusMode = !focusMode;
+  document.body.classList.toggle('focus-mode', focusMode);
+  const btn = document.getElementById('focus-btn');
+  if (btn) {
+    btn.classList.toggle('active', focusMode);
+    btn.title = focusMode ? 'Fokus-Modus aktiv – klicken zum Beenden' : 'Fokus-Modus (Tags ausblenden)';
+  }
+  showToast(focusMode ? '◎ Fokus-Modus aktiv' : '◎ Fokus-Modus aus');
+}
+</script>
+</body> injection)
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
 <div class="filter-panel" id="filter-panel">
