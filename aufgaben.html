@@ -2857,6 +2857,47 @@ function applySortOrder(tasks) {
   });
 }
 
+
+// ── SYNC STATUS ──
+function setSyncStatus(status) {
+  let el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = { syncing:'⟳ Sync…', ok:'✓ Sync', offline:'⚡ Offline', error:'⚠ Sync-Fehler' };
+  const col = { syncing:'var(--muted)', ok:'var(--accent2)', offline:'var(--warn)', error:'var(--danger)' };
+  el.textContent = map[status] || '';
+  el.style.color = col[status] || 'var(--muted)';
+}
+
+window.addEventListener('online',  () => { setSyncStatus('syncing'); sbLoadAll().then(d => { if(d){tasks=d.tasks;projects=d.projects;if(d.log)logEntries=d.log;render();} setSyncStatus('ok'); }); });
+window.addEventListener('offline', () => setSyncStatus('offline'));
+
+// ── FROG FIELDS ──
+let fDread = 3;
+
+function initFrogField(isFrog, dread) {
+  const cb = document.getElementById('f-frog');
+  if (cb) cb.checked = isFrog;
+  fDread = dread || 3;
+  const row = document.getElementById('frog-dread-row');
+  if (row) row.style.display = isFrog ? 'flex' : 'none';
+  setDread(fDread);
+}
+
+document.getElementById('f-frog')?.addEventListener('change', e => {
+  const row = document.getElementById('frog-dread-row');
+  if (row) row.style.display = e.target.checked ? 'flex' : 'none';
+});
+
+function setDread(val) {
+  fDread = val;
+  document.querySelectorAll('#dread-picker .dread-btn').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.val) <= val);
+  });
+}
+
+function syncFrogToTracker() {}
+function removeFrogFromTracker() {}
+
 </script>
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
