@@ -525,152 +525,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 /* ─── SCHMERZ-TAGS ──────────────────────────────────────────── */
 .pain-tags-wrap{margin-top:0.6rem}
 
-/* ─── FRÖSCHE (EAT THE FROG) ────────────────────────────────── */
-.frog-section{padding-bottom:0.25rem}
-.frog-item{
-  display:flex;align-items:flex-start;gap:0.7rem;
-  padding:0.8rem;background:var(--bg3);border:1px solid var(--border);
-  border-radius:var(--r2);margin-bottom:0.5rem;transition:border-color 0.15s;
-  position:relative;overflow:hidden;
-}
-.frog-item::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:var(--frog-color,var(--gold));border-radius:2px 0 0 2px;
-}
-.frog-item.done{opacity:0.55}
-.frog-item.done .frog-text{text-decoration:line-through;color:var(--text3)}
-.frog-move-row{display:flex;gap:0.4rem;margin-top:0.4rem}
-.frog-move-btn{background:none;border:1px solid var(--border2);border-radius:4px;color:var(--text2);font-size:0.65rem;font-weight:700;cursor:pointer;padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap;transition:all 0.15s}
-.frog-move-btn:active{background:var(--gold);border-color:var(--gold);color:#000}
-.frog-move-later{border-color:var(--purple);color:var(--purple)}
-.frog-move-later:active{background:var(--purple);color:#fff}
-.frog-check{
-  width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);
-  flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  font-size:0.85rem;cursor:pointer;transition:all 0.15s;margin-top:1px;
-}
-.frog-item.done .frog-check{background:var(--green);border-color:var(--green);color:#fff}
-.frog-body{flex:1;min-width:0}
-.frog-text{font-size:0.86rem;font-weight:600;line-height:1.4;word-break:break-word}
-.frog-meta{display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem;flex-wrap:wrap}
-.frog-priority{
-  font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
-  padding:0.15rem 0.45rem;border-radius:3px;
-}
-.frog-priority.p1{background:rgba(224,85,85,0.15);color:var(--red)}
-.frog-priority.p2{background:rgba(212,168,67,0.15);color:var(--gold)}
-.frog-priority.p3{background:rgba(91,141,238,0.15);color:var(--blue)}
-.frog-dread{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace}
-.frog-del{
-  background:none;border:none;color:var(--text3);cursor:pointer;
-  font-size:0.9rem;padding:0.1rem 0.2rem;flex-shrink:0;
-  transition:color 0.1s;
-}
-.frog-del:active{color:var(--red)}
-
-.frog-add-card{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--r);padding:1rem;margin-bottom:0.75rem;
-}
-.frog-add-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.75rem}
-.frog-input{
-  width:100%;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:0.7rem 0.9rem;color:var(--text);
-  font-family:'Syne',sans-serif;font-size:0.86rem;outline:none;
-  -webkit-appearance:none;margin-bottom:0.5rem;
-}
-.frog-input:focus{border-color:var(--gold)}
-.frog-input::placeholder{color:var(--text3)}
-.frog-options-row{display:flex;gap:0.5rem;margin-bottom:0.6rem;flex-wrap:wrap}
-.frog-opt-label{font-size:0.68rem;color:var(--text3);margin-bottom:0.25rem;letter-spacing:0.05em;text-transform:uppercase}
-.frog-select{
-  flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:0.55rem 0.75rem;color:var(--text);
-  font-family:'Syne',sans-serif;font-size:0.8rem;outline:none;cursor:pointer;
-}
-.frog-submit{
-  width:100%;padding:0.8rem;background:var(--gold);color:#000;
-  border:none;border-radius:var(--r2);font-family:'Syne',sans-serif;
-  font-size:0.84rem;font-weight:800;cursor:pointer;letter-spacing:0.04em;
-  text-transform:uppercase;transition:all 0.15s;
-}
-.frog-submit:active{transform:scale(0.98)}
-
-.frog-empty{
-  text-align:center;padding:1.5rem;color:var(--text3);
-  font-size:0.82rem;line-height:1.6;
-}
-.frog-empty-icon{font-size:2rem;display:block;margin-bottom:0.5rem}
-
-.frog-stats-row{
-  display:flex;gap:0.5rem;margin-bottom:0.75rem;
-}
-.frog-stat{
-  flex:1;background:var(--bg3);border:1px solid var(--border);
-  border-radius:var(--r2);padding:0.6rem;text-align:center;
-}
-.frog-stat-num{font-family:'Syne Mono',monospace;font-size:1.2rem;color:var(--gold)}
-.frog-stat-label{font-size:0.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
-.frog-dow-wrap{display:flex;gap:0.3rem;align-items:flex-end;height:80px;padding-top:0.5rem}
-.frog-dow-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-.frog-dow-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
-.frog-dow-bar{width:100%;border-radius:3px 3px 0 0;transition:height 0.5s ease;min-height:2px}
-.frog-dow-label{font-size:0.6rem;color:var(--text3);font-family:'Syne Mono',monospace}
-.frog-dow-pct{font-size:0.58rem;color:var(--text2);font-family:'Syne Mono',monospace}
-
-.frog-quote{
-  background:var(--bg3);border-left:3px solid var(--gold);
-  border-radius:0 var(--r2) var(--r2) 0;
-  padding:0.7rem 0.9rem;margin-bottom:0.75rem;
-  font-family:'Lora',serif;font-size:0.8rem;font-style:italic;
-  color:var(--text2);line-height:1.5;
-}
-
-
-/* ─── VORABEND-PLANUNG ──────────────────────────────────────── */
-.tomorrow-card{
-  background:linear-gradient(135deg,#0e1520 0%,#111a2a 100%);
-  border:1px solid #1e3050;border-radius:var(--r);
-  padding:1rem;margin-bottom:0.75rem;
-}
-.tomorrow-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
-.tomorrow-title{font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#5b8dee}
-.tomorrow-streak{
-  display:flex;align-items:center;gap:0.3rem;
-  background:rgba(91,141,238,0.12);border:1px solid rgba(91,141,238,0.25);
-  padding:0.25rem 0.6rem;border-radius:20px;
-  font-size:0.72rem;font-weight:700;color:#5b8dee;font-family:'Syne Mono',monospace;
-}
-.frog-planned{
-  background:rgba(91,141,238,0.07);border:1px solid rgba(91,141,238,0.2);
-  border-radius:var(--r2);padding:0.7rem;margin-bottom:0.4rem;
-  display:flex;align-items:flex-start;gap:0.6rem;
-}
-.frog-planned-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
-.frog-planned-body{flex:1;min-width:0}
-.frog-planned-text{font-size:0.84rem;font-weight:600;color:var(--text)}
-.frog-planned-meta{font-size:0.68rem;color:var(--text3);margin-top:2px}
-.frog-planned-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem;padding:0.1rem;flex-shrink:0}
-.frog-planned-del:active{color:var(--red)}
-
-.plan-done-badge{
-  display:flex;align-items:center;gap:0.5rem;
-  background:rgba(76,175,130,0.1);border:1px solid rgba(76,175,130,0.25);
-  border-radius:var(--r2);padding:0.7rem 0.9rem;
-  font-size:0.8rem;color:var(--green);font-weight:600;
-}
-
-/* Header Vorabend-Streak Badge */
-.plan-streak-badge{
-  display:flex;align-items:center;gap:0.3rem;
-  background:rgba(91,141,238,0.1);border:1px solid rgba(91,141,238,0.25);
-  padding:0.3rem 0.6rem;border-radius:20px;
-  font-size:0.72rem;font-weight:700;color:#5b8dee;letter-spacing:0.02em;
-  margin-left:0.4rem;
-}
-.header-badges{display:flex;align-items:center;gap:0.3rem}
-
-
 /* ─── DANKBARKEITS-JOURNAL ──────────────────────────────────── */
 .gratitude-item{
   display:flex;align-items:flex-start;gap:0.6rem;
@@ -751,292 +605,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .med-sugg-item:last-child{border-bottom:none}
 .med-sugg-item:active{background:var(--bg3)}
 
-
-/* ─── DEEP WORK ─────────────────────────────────────────────── */
-.deep-work-wrap{padding:0.4rem 0}
-.deep-work-row{display:flex;align-items:center;gap:0.75rem}
-.deep-work-blocks{display:flex;gap:0.3rem;flex-wrap:wrap;flex:1}
-.dw-block{
-  width:32px;height:32px;border-radius:6px;border:1.5px solid var(--border2);
-  background:var(--bg3);cursor:pointer;transition:all 0.12s;
-  display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--text3);
-}
-.dw-block.active{background:var(--blue);border-color:var(--blue);color:#fff}
-.dw-block:active{transform:scale(0.92)}
-.dw-total{font-family:'Syne Mono',monospace;font-size:1.1rem;color:var(--blue);min-width:40px;text-align:right}
-.dw-unit{font-size:0.65rem;color:var(--text3);text-align:right;margin-top:1px}
-.dw-goal-row{display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem}
-.dw-goal-label{font-size:0.68rem;color:var(--text3)}
-.dw-progress{flex:1;height:4px;background:var(--bg3);border-radius:2px;margin:0 0.6rem;overflow:hidden}
-.dw-progress-fill{height:100%;border-radius:2px;background:var(--blue);transition:width 0.4s ease}
-
-/* ─── PROJEKT-TAGS AN FRÖSCHE ────────────────────────────────── */
-.frog-project{
-  font-size:0.65rem;font-weight:700;letter-spacing:0.05em;
-  padding:0.15rem 0.5rem;border-radius:3px;
-  background:rgba(155,114,232,0.15);color:var(--purple);border:1px solid rgba(155,114,232,0.25);
-}
-.project-select{
-  flex:1;min-width:100px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:0.55rem 0.75rem;color:var(--text);
-  font-family:'Syne',sans-serif;font-size:0.8rem;outline:none;cursor:pointer;
-}
-
-/* ─── WOCHENRÜCKBLICK ────────────────────────────────────────── */
-/* ─── WOCHENZIEL ─────────────────────────────────────────────────── */
-.week-goal-card{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--gold);border-radius:var(--r);padding:1rem;margin-bottom:0.75rem}
-.week-goal-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem}
-.week-goal-icon{font-size:1rem}
-.week-goal-title{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold)}
-.week-goal-label{font-size:0.65rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-left:auto}
-.week-goal-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text);font-family:'Lora',serif;font-size:0.85rem;padding:0.6rem 0.75rem;resize:none;line-height:1.5}
-.week-goal-input:focus{outline:none;border-color:var(--gold)}
-.week-goal-input::placeholder{color:var(--text3);font-style:italic}
-.week-goal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem}
-.week-goal-hint{font-size:0.65rem;color:var(--text3)}
-.week-goal-save-btn{background:var(--gold);color:#000;border:none;border-radius:6px;padding:0.3rem 0.9rem;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;transition:background 0.15s}
-.week-goal-save-btn:active{background:var(--gold2)}
-.week-goal-save-btn.saved{background:var(--green);color:#fff}
-.week-goal-banner{display:flex;align-items:center;gap:0.6rem;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.3);border-radius:var(--r2);padding:0.55rem 0.75rem;margin-bottom:0.75rem;cursor:pointer;transition:background 0.15s}
-.week-goal-banner:active{background:rgba(212,168,67,0.15)}
-.week-goal-banner-icon{font-size:0.9rem;flex-shrink:0}
-.week-goal-banner-text{font-size:0.78rem;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Lora',serif;font-style:italic}
-.week-goal-banner-arrow{color:var(--gold);font-size:0.85rem;flex-shrink:0}
-
-.review-card{
-  background:linear-gradient(135deg,#0e1520 0%,#12192a 100%);
-  border:1px solid #1e3050;border-radius:var(--r);padding:1rem;margin-bottom:0.75rem;
-}
-.review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.review-title{font-size:0.78rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--purple)}
-.review-week{font-family:'Syne Mono',monospace;font-size:0.68rem;color:var(--text3)}
-.review-section{margin-bottom:0.9rem}
-.review-section-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--text3);margin-bottom:0.4rem}
-.review-textarea{
-  width:100%;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:0.65rem 0.85rem;color:var(--text);
-  font-family:'Lora',serif;font-size:0.84rem;font-style:italic;
-  line-height:1.6;resize:none;outline:none;-webkit-appearance:none;min-height:70px;
-}
-.review-textarea:focus{border-color:var(--purple)}
-.review-textarea::placeholder{color:var(--text3);font-style:italic}
-.review-save-btn{
-  width:100%;padding:0.75rem;background:var(--purple);color:#fff;
-  border:none;border-radius:var(--r2);font-family:'Syne',sans-serif;
-  font-size:0.84rem;font-weight:800;cursor:pointer;letter-spacing:0.04em;
-  text-transform:uppercase;transition:all 0.15s;margin-top:0.25rem;
-}
-.review-save-btn:active{transform:scale(0.98)}
-.review-save-btn.saved{background:var(--green)}
-.review-stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-bottom:0.9rem}
-.review-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:0.55rem;text-align:center}
-.review-stat-num{font-family:'Syne Mono',monospace;font-size:1rem;color:var(--purple)}
-.review-stat-lbl{font-size:0.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px}
-.review-past{margin-top:0.75rem}
-.review-past-item{
-  padding:0.65rem;background:var(--bg3);border-radius:var(--r2);margin-bottom:0.4rem;
-  border-left:3px solid var(--purple);cursor:pointer;
-}
-.review-past-week{font-size:0.68rem;color:var(--text3);font-family:'Syne Mono',monospace;margin-bottom:0.3rem}
-.review-past-preview{font-size:0.78rem;color:var(--text2);font-family:'Lora',serif;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-
-/* ─── ROUTINE WOCHENTAGE ────────────────────────────────────── */
-.wd-row{display:flex;gap:0.3rem;justify-content:space-between;margin:0.4rem 0 0.6rem}
-.wd-btn{
-  flex:1;height:36px;border-radius:6px;border:1.5px solid var(--border2);
-  background:var(--bg3);color:var(--text3);font-size:0.72rem;font-weight:700;
-  cursor:pointer;transition:all 0.12s;font-family:'Syne',sans-serif;
-  display:flex;align-items:center;justify-content:center;
-}
-.wd-btn.active{background:var(--gold);border-color:var(--gold);color:#000}
-.wd-btn:active{transform:scale(0.93)}
-
-.freq-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem}
-.freq-label{font-size:0.72rem;color:var(--text3);white-space:nowrap}
-.freq-select{
-  flex:1;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:0.5rem 0.7rem;color:var(--text);
-  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;cursor:pointer;
-}
-
-/* Routine item: grey out if not scheduled today */
-.routine-item.not-today{opacity:0.38;border-style:dashed}
-.routine-item.not-today .routine-check{border-color:var(--border)}
-.routine-freq-badge{
-  font-size:0.62rem;color:var(--text3);font-family:'Syne Mono',monospace;
-  margin-top:2px;
-}
-
-
-/* ─── ROUTINE COMPLETION CHART ──────────────────────────────── */
-.routine-chart-wrap{overflow-x:auto;padding-bottom:0.25rem}
-.routine-chart-wrap::-webkit-scrollbar{height:3px}
-.routine-chart-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-
-.rc-table{border-collapse:collapse;width:100%;min-width:280px}
-.rc-name{
-  font-size:0.72rem;font-weight:600;color:var(--text2);
-  padding:0.2rem 0.5rem 0.2rem 0;white-space:nowrap;
-  max-width:110px;overflow:hidden;text-overflow:ellipsis;
-}
-.rc-cell{
-  width:22px;height:22px;border-radius:4px;cursor:default;
-  transition:transform 0.1s;position:relative;
-}
-.rc-cell.done{background:var(--gold)}
-.rc-cell.missed{background:var(--bg3);border:1px solid var(--border)}
-.rc-cell.not-scheduled{background:transparent}
-.rc-cell.today{border:2px solid var(--gold)!important;box-shadow:0 0 6px rgba(212,168,67,0.3)}
-.rc-day-label{
-  font-size:0.58rem;color:var(--text3);font-family:'Syne Mono',monospace;
-  text-align:center;padding:0.2rem 0;
-}
-.rc-pct{
-  font-family:'Syne Mono',monospace;font-size:0.68rem;
-  text-align:right;padding-left:0.4rem;white-space:nowrap;
-}
-.rc-pct.high{color:var(--green)}
-.rc-pct.mid{color:var(--gold)}
-.rc-pct.low{color:var(--red)}
-
-.rc-legend{display:flex;gap:0.9rem;margin-top:0.6rem;font-size:0.65rem;color:var(--text3);align-items:center;flex-wrap:wrap}
-.rc-legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
-
-
-/* ─── ERFOLGE ───────────────────────────────────────────────── */
-.win-entry{
-  display:flex;align-items:center;gap:0.5rem;
-  padding:0.45rem 0.65rem;background:var(--bg3);
-  border:1px solid var(--border);border-radius:20px;
-  animation:fadeIn 0.15s ease;
-  flex-shrink:0;
-}
-.win-entry-icon{font-size:0.85rem}
-.win-entry-text{font-size:0.8rem;font-weight:500;color:var(--text)}
-.win-entry-del{
-  background:none;border:none;color:var(--text3);
-  cursor:pointer;font-size:0.75rem;padding:0 0.1rem;line-height:1;
-}
-.win-entry-del:active{color:var(--red)}
-.win-list{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.55rem;min-height:0}
-.win-add-row{display:flex;gap:0.4rem;align-items:center}
-.win-input{
-  flex:1;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:20px;padding:0.5rem 0.85rem;color:var(--text);
-  font-family:'Syne',sans-serif;font-size:0.82rem;outline:none;-webkit-appearance:none;
-}
-.win-input:focus{border-color:var(--green)}
-.win-input::placeholder{color:var(--text3)}
-.win-add-btn{
-  width:34px;height:34px;border-radius:50%;background:var(--green);
-  border:none;color:#fff;font-size:1.2rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  transition:transform 0.1s;
-}
-.win-add-btn:active{transform:scale(0.9)}
-.win-sugg{
-  background:var(--bg2);border:1px solid var(--border2);
-  border-radius:var(--r2);margin-top:0.3rem;overflow:hidden;
-  max-height:150px;overflow-y:auto;
-}
-.win-sugg:empty{display:none}
-.win-sugg-item{
-  padding:0.55rem 0.85rem;font-size:0.8rem;color:var(--text2);
-  cursor:pointer;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:0.5rem;
-}
-.win-sugg-item:last-child{border-bottom:none}
-.win-sugg-item:active{background:var(--bg3)}
-.win-sugg-item mark{background:none;color:var(--green);font-weight:700}
-.win-count-badge{
-  font-family:'Syne Mono',monospace;font-size:0.65rem;
-  color:var(--text3);background:var(--bg3);border:1px solid var(--border);
-  padding:0.1rem 0.4rem;border-radius:10px;margin-left:auto;flex-shrink:0;
-}
-
-
-/* ─── GEDANKEN / BRAIN DUMP ─────────────────────────────────── */
-.thought-item{
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:var(--r2);padding:0.75rem;margin-bottom:0.5rem;
-  animation:fadeIn 0.15s ease;position:relative;
-  border-left:3px solid var(--border2);
-}
-.thought-item.type-do{border-left-color:var(--red)}
-.thought-item.type-clarify{border-left-color:var(--gold)}
-.thought-item.type-release{border-left-color:var(--blue)}
-.thought-item.type-dump{border-left-color:var(--border2)}
-
-.thought-top{display:flex;align-items:flex-start;gap:0.5rem}
-.thought-text{flex:1;font-size:0.84rem;line-height:1.5;color:var(--text);word-break:break-word}
-.thought-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem;padding:0.1rem;flex-shrink:0}
-.thought-del:active{color:var(--red)}
-
-.thought-meta{display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
-.thought-type-badge{
-  font-size:0.62rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;
-  padding:0.15rem 0.5rem;border-radius:3px;cursor:pointer;
-}
-.thought-type-badge.type-do{background:rgba(224,85,85,0.15);color:var(--red)}
-.thought-type-badge.type-clarify{background:rgba(212,168,67,0.15);color:var(--gold)}
-.thought-type-badge.type-release{background:rgba(91,141,238,0.15);color:var(--blue)}
-.thought-type-badge.type-dump{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
-
-.thought-next{
-  flex:1;background:transparent;border:none;border-bottom:1px solid var(--border2);
-  color:var(--text2);font-family:'Syne',sans-serif;font-size:0.75rem;
-  outline:none;padding:0.2rem 0.1rem;min-width:80px;
-}
-.thought-next:focus{border-bottom-color:var(--gold)}
-.thought-next::placeholder{color:var(--text3)}
-
-.thought-add-area{
-  width:100%;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:0.7rem 0.9rem;color:var(--text);
-  font-family:'Syne',sans-serif;font-size:0.84rem;line-height:1.5;
-  resize:none;outline:none;-webkit-appearance:none;min-height:56px;
-}
-.thought-add-area:focus{border-color:var(--purple)}
-.thought-add-area::placeholder{color:var(--text3)}
-
-.thought-toolbar{display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
-.thought-type-btn{
-  padding:0.3rem 0.65rem;border-radius:20px;border:1px solid var(--border2);
-  background:var(--bg3);color:var(--text3);font-size:0.72rem;font-weight:700;
-  cursor:pointer;transition:all 0.12s;font-family:'Syne',sans-serif;
-}
-.thought-type-btn.active.type-do{background:var(--red);border-color:var(--red);color:#fff}
-.thought-type-btn.active.type-clarify{background:var(--gold);border-color:var(--gold);color:#000}
-.thought-type-btn.active.type-release{background:var(--blue);border-color:var(--blue);color:#fff}
-.thought-type-btn.active.type-dump{background:var(--purple);border-color:var(--purple);color:#fff}
-.thought-add-btn{
-  margin-left:auto;padding:0.4rem 0.9rem;background:var(--purple);
-  color:#fff;border:none;border-radius:20px;font-family:'Syne',sans-serif;
-  font-size:0.78rem;font-weight:700;cursor:pointer;letter-spacing:0.03em;
-}
-.thought-add-btn:active{transform:scale(0.97)}
-
-.thought-filter-row{display:flex;gap:0.3rem;margin-bottom:0.6rem;flex-wrap:wrap}
-.thought-filter{
-  padding:0.25rem 0.6rem;border-radius:20px;border:1px solid var(--border2);
-  background:transparent;color:var(--text3);font-size:0.68rem;font-weight:700;
-  cursor:pointer;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.05em;
-  transition:all 0.12s;
-}
-.thought-filter.active{background:var(--purple);border-color:var(--purple);color:#fff}
-
-.thought-empty{color:var(--text3);font-size:0.8rem;padding:0.75rem 0;text-align:center}
-
-
-/* ─── THOUGHT → FROG BUTTON ─────────────────────────────────── */
-.thought-to-frog{
-  background:none;border:1px solid rgba(212,168,67,0.35);
-  border-radius:20px;color:var(--gold);font-size:0.68rem;font-weight:700;
-  padding:0.18rem 0.55rem;cursor:pointer;font-family:'Syne',sans-serif;
-  letter-spacing:0.04em;transition:all 0.15s;white-space:nowrap;
-}
-.thought-to-frog:active{background:var(--gold);color:#000}
 
 </style>
 </head>
@@ -1285,25 +853,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
 
-      <!-- Deep Work -->
-      <div class="card">
-        <div class="card-title">DEEP WORK</div>
-        <div class="deep-work-wrap">
-          <div class="deep-work-row">
-            <div class="deep-work-blocks" id="deepWorkBlocks"></div>
-            <div>
-              <div class="dw-total" id="dwTotal">0.0</div>
-              <div class="dw-unit">Stunden</div>
-            </div>
-          </div>
-          <div class="dw-goal-row">
-            <span class="dw-goal-label">Tagesziel: <span id="dwGoalLabel">4h</span></span>
-            <div class="dw-progress"><div class="dw-progress-fill" id="dwProgressFill" style="width:0%"></div></div>
-            <span style="font-size:0.65rem;color:var(--blue)" id="dwPct">0%</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Erfolge -->
       <div class="card" id="winsCard">
         <div class="card-title">🏆 KLEINE ERFOLGE</div>
@@ -1427,128 +976,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     </div>
 
     <!-- VIEW: FRÖSCHE -->
-    <div class="view" id="view-froesche">
-
-      <div style="text-align:right;margin-bottom:0.5rem"><button class="tag-edit-btn" onclick="manageProjects()">⊞ Projekte</button></div>
-      <div class="frog-quote">
-        „Iss den Frosch als erstes am Morgen – dann kann dir den Rest des Tages nichts Schlimmeres passieren." – Mark Twain
-      </div>
-
-      <div class="frog-stats-row" id="frogStatsRow"></div>
-
-      <div class="card" style="margin-bottom:0.75rem">
-        <div class="card-title">ERLEDIGUNGSRATE NACH WOCHENTAG</div>
-        <div id="frogWeekdayChart"></div>
-      </div>
-
-      <div class="frog-add-card" id="frogAddCard">
-        <div class="frog-add-title">🐸 Frosch für heute definieren</div>
-        <input class="frog-input" id="frogInput" placeholder="Was ist dein schwierigster Task heute?" maxlength="200" onkeydown="if(event.key==='Enter')addFrog()"/>
-        <div class="frog-options-row">
-          <div style="flex:1;min-width:120px">
-            <div class="frog-opt-label">Priorität</div>
-            <select class="frog-select" id="frogPriority">
-              <option value="1">🔴 Kritisch</option>
-              <option value="2" selected>🟡 Wichtig</option>
-              <option value="3">🔵 Sollte heute</option>
-            </select>
-          </div>
-          <div style="flex:1;min-width:120px">
-            <div class="frog-opt-label">Dread-Faktor</div>
-            <select class="frog-select" id="frogDread">
-              <option value="5">😰 Sehr hoch</option>
-              <option value="4">😟 Hoch</option>
-              <option value="3" selected>😐 Mittel</option>
-              <option value="2">🙂 Niedrig</option>
-              <option value="1">😊 Kein Problem</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-bottom:0.5rem">
-          <div class="frog-opt-label">Projekt (optional)</div>
-          <select class="project-select" id="frogProject">
-            <option value="">– Kein Projekt –</option>
-          </select>
-        </div>
-        <button class="frog-submit" onclick="addFrog()">Frosch hinzufügen</button>
-      </div>
-
-      <div id="frogList"></div>
-
-      <div class="section-title" style="padding-top:0.5rem">VORABEND-PLANUNG</div>
-      <div class="tomorrow-card" id="tomorrowCard">
-        <div class="tomorrow-header">
-          <span class="tomorrow-title">🌙 Frösche für morgen</span>
-          <span class="tomorrow-streak">📋 <span id="planStreakInline">0</span>d</span>
-        </div>
-        <div id="tomorrowList"></div>
-        <div id="tomorrowAddWrap">
-          <input class="frog-input" id="tomorrowInput" placeholder="Morgens schwierigster Task…" maxlength="200" style="margin-bottom:0.5rem" onkeydown="if(event.key==='Enter')addTomorrowFrog()"/>
-          <div class="frog-options-row">
-            <div style="flex:1;min-width:120px">
-              <div class="frog-opt-label">Priorität</div>
-              <select class="frog-select" id="tomorrowPriority">
-                <option value="1">🔴 Kritisch</option>
-                <option value="2" selected>🟡 Wichtig</option>
-                <option value="3">🔵 Sollte morgen</option>
-              </select>
-            </div>
-            <div style="flex:1;min-width:120px">
-              <div class="frog-opt-label">Dread-Faktor</div>
-              <select class="frog-select" id="tomorrowDread">
-                <option value="5">😰 Sehr hoch</option>
-                <option value="4">😟 Hoch</option>
-                <option value="3" selected>😐 Mittel</option>
-                <option value="2">🙂 Niedrig</option>
-                <option value="1">😊 Kein Problem</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-bottom:0.5rem">
-            <div class="frog-opt-label">Projekt (optional)</div>
-            <select class="project-select" id="tomorrowProject">
-              <option value="">– Kein Projekt –</option>
-            </select>
-          </div>
-          <button class="frog-submit" style="background:#5b8dee" onclick="addTomorrowFrog()">Für morgen einplanen</button>
-        </div>
-      </div>
-
-      <div style="font-size:0.7rem;color:var(--text3);line-height:1.7;padding:0.5rem 0 1rem">
-        <strong style="color:var(--text2)">Best Practice:</strong><br>
-        · Max. 3 Frösche pro Tag<br>
-        · Frösche morgens als erstes angehen<br>
-        · Am Vorabend planen = 2× höhere Umsetzungsrate<br>
-        · Keine kleinen Tasks vor dem ersten Frosch
-      </div>
-
-      <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#4a5268;padding:1.2rem 0 0.6rem">ZUKÜNFTIGE FRÖSCHE</div>
-      <div style="font-size:0.75rem;color:#4a5268;margin-bottom:0.75rem;line-height:1.5">Ideen für später – einem Tag zuordnen wenn du bereit bist.</div>
-      <div id="futureFrogList" style="margin-bottom:0.5rem">
-        <div style="text-align:center;padding:0.75rem;color:#4a5268;font-size:0.8rem">📅 Noch keine zukünftigen Frösche.</div>
-      </div>
-      <div style="background:#161b26;border:1px solid rgba(155,114,232,0.3);border-radius:14px;padding:1rem;margin-bottom:0.75rem">
-        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9b72e8;margin-bottom:0.75rem">📅 Frosch für später</div>
-        <input class="frog-input" id="futureFrogInput" placeholder="Aufgabe für einen zukünftigen Tag…" maxlength="200" onkeydown="if(event.key==='Enter')addFutureFrog()" style="margin-bottom:0.5rem"/>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
-          <div style="flex:1;min-width:120px">
-            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#8890a8;margin-bottom:0.25rem">Priorität</div>
-            <select class="frog-select" id="futurePriority">
-              <option value="1">🔴 Kritisch</option>
-              <option value="2" selected>🟡 Wichtig</option>
-              <option value="3">🔵 Sollte bald</option>
-            </select>
-          </div>
-          <div style="flex:1;min-width:120px">
-            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#8890a8;margin-bottom:0.25rem">Geplant für</div>
-            <input type="date" class="frog-select" id="futureFrogDate" style="cursor:pointer"/>
-          </div>
-        </div>
-        <button onclick="addFutureFrog()" style="width:100%;padding:0.8rem;background:#9b72e8;color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:0.84rem;font-weight:800;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase">Für später einplanen</button>
-      </div>
-    </div>
-
-    <!-- VIEW: WOCHENRÜCKBLICK -->
     <div class="view" id="view-woche">
 
       <!-- WOCHENZIEL -->
@@ -1681,10 +1108,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <span class="nav-icon">◈</span>
       <span class="nav-label">Insights</span>
     </button>
-    <button class="nav-btn" onclick="showView('froesche',this)">
-      <span class="nav-icon">🐸</span>
-      <span class="nav-label">Frösche</span>
-    </button>
     <button class="nav-btn" onclick="showView('woche',this)">
       <span class="nav-icon">📋</span>
       <span class="nav-label">Woche</span>
@@ -1795,7 +1218,6 @@ let state = {
   date: TODAY,
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0, sleepQuality: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
-  deepWork: 0,
   wins: [],
   thoughts: [],
   gratitude: ['','',''],  meds_taken: [],
@@ -1832,7 +1254,6 @@ async function init(){
     if(todayData.meals) { state.meals = todayData.meals; renderAllMeals(); }
     if(todayData.gratitude) { state.gratitude = todayData.gratitude; restoreGratitude(); }
     if(todayData.moods) buildMoodGrid();
-    if(todayData.deepWork !== undefined) renderDeepWork();
     if(todayData.wins) renderWins();
     if(todayData.thoughts) renderThoughts();
     if(todayData.meds_taken) renderMedList();
@@ -1857,7 +1278,6 @@ async function init(){
   buildTagGrid('painTag', [], 'pain');
   buildMoodGrid();
   renderMedList();
-  renderDeepWork();
   populateProjectSelects();
   buildTagGrid('negTag', [], 'neg');
   buildTagGrid('aktTag', [], 'akt');
@@ -1865,12 +1285,10 @@ async function init(){
   updateStreak();
   updatePlanStreak();
   renderRoutines();
-  renderFrogs();
   renderInsights();
   renderWeekReview();
   renderWeekGoal();
   setTimeout(renderWeekGoal, 500); // Retry für PWA-Start
-  renderFutureFrogs();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2066,7 +1484,7 @@ async function loadDateData(){
   state = {
     wellbeing:5, sleep:7.0, hrv:55, energy:7, pain:0, sleepQuality:0,
     ern:[], neg:[], akt:[], pain_tags:[], moods:[], note:'', painNote:'',
-    deepWork:0, wins:[], thoughts:[], meds_taken:[], meals:{}, gratitude:['','',''],
+    wins:[], thoughts:[], meds_taken:[], meals:{}, gratitude:['','',''],
     date: activeDate
   };
 
@@ -2091,12 +1509,10 @@ async function loadDateData(){
   buildTagGrid('aktTag', [], 'akt');
   buildMoodGrid();
   renderMedList();
-  renderDeepWork();
   renderAllMeals();
   restoreGratitude();
   renderWins();
   renderThoughts();
-  renderFrogs();
   updateHeader();
   showToast(activeDate === TODAY ? 'Heute' : activeDate);
 }
@@ -2796,7 +2212,6 @@ function showView(name, btn){
   if(name==='routinen') renderRoutines();
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
-  if(name==='froesche'){ renderFrogs(); populateProjectSelects(); }
   if(name==='woche'){ renderWeekReview(); renderWeekGoal(); }
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
@@ -2992,9 +2407,6 @@ function exportWeekPDF(){
     return {name:r.name, done, planned, rate: planned>0?Math.round(done/planned*100):null};
   }).filter(r=>r.planned>0);
 
-  const allFrogs = weekDays.flatMap(ds=>getFrogs(ds));
-  const doneFrogs = allFrogs.filter(f=>f.done).length;
-
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -3019,8 +2431,6 @@ function exportWeekPDF(){
   .routine-rate { font-family: 'Courier New', monospace; font-size: 9pt; color: #444; min-width: 80px; text-align: right; }
   .review-box { background: #f9f9f9; border-left: 3px solid #b8860b; padding: 10px 12px; border-radius: 0 4px 4px 0; font-style: italic; font-size: 10pt; color: #333; margin-top: 6px; min-height: 30px; }
   .goal-box { background: #fffbea; border: 1px solid #e8c84a; border-radius: 6px; padding: 10px 12px; font-size: 10pt; margin-top: 6px; }
-  .frog-item { font-size: 9.5pt; padding: 3px 0; border-bottom: 1px solid #f0f0f0; display: flex; gap: 6px; }
-  .frog-done { color: #2e7d32; } .frog-open { color: #c62828; }
   .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8pt; color: #aaa; text-align: center; }
   @media print { body { padding: 1.5cm; } @page { margin: 1.5cm; } }
 </style>
@@ -3032,7 +2442,6 @@ function exportWeekPDF(){
 <div class="kpi-grid">
   <div class="kpi"><div class="kpi-val">${avg('wellbeing')}</div><div class="kpi-label">Ø Lebensgefühl</div></div>
   <div class="kpi"><div class="kpi-val">${avg('sleep')}h</div><div class="kpi-label">Ø Schlaf</div></div>
-  <div class="kpi"><div class="kpi-val">${doneFrogs}/${allFrogs.length}</div><div class="kpi-label">Frösche</div></div>
   <div class="kpi"><div class="kpi-val">${validDays.length}/7</div><div class="kpi-label">Einträge</div></div>
 </div>
 
@@ -3058,8 +2467,6 @@ function exportWeekPDF(){
 
 ${routineRows.length ? '<div class="section"><div class="section-title">Routinen-Compliance</div>'+routineRows.map(r=>{const color=r.rate>=80?'#2e7d32':r.rate>=50?'#b8860b':'#c62828';return '<div class="routine-row"><span>'+r.name+'</span><span class="routine-rate" style="color:'+color+'">'+r.done+'/'+r.planned+' ('+r.rate+'%)</span></div>';}).join('')+'</div>' : ''}
 
-${allFrogs.length ? '<div class="section"><div class="section-title">Frösche der Woche</div>'+weekDays.map((ds,i)=>{const frogs=getFrogs(ds);if(!frogs.length)return '';return frogs.map(f=>'<div class="frog-item"><span class="'+(f.done?'frog-done':'frog-open')+'">'+(f.done?'✓':'○')+'</span><span>'+dayNames[i].slice(0,2)+'.</span><span>'+f.text+'</span></div>').join('');}).join('')+'</div>' : ''}
-
 ${wReview.good||wReview.improve||wReview.focus ? '<div class="section"><div class="section-title">Wochenrückblick</div>'+(wReview.good?'<div style="font-size:8pt;font-weight:700;color:#888;margin-bottom:2px">WAS LIEF GUT?</div><div class="review-box">'+wReview.good+'</div>':'')+(wReview.improve?'<div style="font-size:8pt;font-weight:700;color:#888;margin:8px 0 2px">WAS VERBESSERN?</div><div class="review-box">'+wReview.improve+'</div>':'')+(wReview.focus?'<div style="font-size:8pt;font-weight:700;color:#888;margin:8px 0 2px">FOKUS NÄCHSTE WOCHE</div><div class="review-box">'+wReview.focus+'</div>':'')+'</div>' : ''}
 
 <div class="footer">Daily Tracker · Erstellt am ${new Date().toLocaleDateString('de',{day:'2-digit',month:'2-digit',year:'numeric'})} · Vertraulich</div>
@@ -3080,8 +2487,6 @@ function openCSVExportDialog(){
 
     <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.4rem">Kategorie</div>
     <div style="display:flex;flex-direction:column;gap:0.35rem;margin-bottom:1rem">
-      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="days" checked style="accent-color:var(--gold)"/> Tageswerte (Wellbeing, Schlaf, Stimmung…)</label>
-      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="frogs" style="accent-color:var(--gold)"/> Frösche (alle Aufgaben)</label>
       <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="routines" style="accent-color:var(--gold)"/> Routinen-Compliance</label>
     </div>
 
@@ -3109,7 +2514,6 @@ function runCSVExport(){
   closeModal();
 
   if(cat === 'days') exportCSVDays(period);
-  else if(cat === 'frogs') exportCSVFrogs(period);
   else if(cat === 'routines') exportCSVRoutines(period);
 }
 
@@ -3128,7 +2532,7 @@ function exportCSVDays(period){
   const cols = [
     'Datum','Lebensgefühl','Schlaf_h','Schlafqualität','HRV','Energie','Schmerz',
     'Schmerzstellen','Ernährung','Negatives','Aktivität','Stimmungen',
-    'DeepWork_h','Gewinne','Notiz','Schmerz_Notiz',
+    'Gewinne','Notiz','Schmerz_Notiz',
     'Frühstück','Mittagessen','Abendessen','Snacks'
   ];
   const rows = days.map(d=>[
@@ -3144,7 +2548,6 @@ function exportCSVDays(period){
     csvArr(d.neg),
     csvArr(getEffectiveAkt(d)),
     csvArr(d.moods),
-    d.deepWork||'',
     csvArr(d.wins?.map?.(w=>w.text||w)),
     csvStr(d.note),
     csvStr(d.painNote),
@@ -3156,37 +2559,6 @@ function exportCSVDays(period){
 
   downloadCSV([cols.join(';'), ...rows], `tracker_tage_${periodLabel(period)}_${TODAY}.csv`);
   showToast('Tageswerte exportiert!');
-}
-
-function exportCSVFrogs(period){
-  const cutoff = period ? new Date(TODAY) : null;
-  if(cutoff) cutoff.setDate(cutoff.getDate() - period + 1);
-  const cutoffStr = cutoff?.toISOString().slice(0,10);
-
-  const rows = [];
-  const cur = new Date(TODAY);
-  for(let i=0; i<(period||365); i++){
-    const ds = cur.toISOString().slice(0,10);
-    if(cutoffStr && ds < cutoffStr) break;
-    const frogs = getFrogs(ds);
-    frogs.forEach(f=>{
-      rows.push([
-        ds,
-        csvStr(f.text),
-        ['','Kritisch','Wichtig','Sollte heute'][f.priority]||'',
-        ['','Sehr hoch','Hoch','Mittel','Niedrig'][f.dread]||'',
-        f.done?'Ja':'Nein',
-        f.completedAt ? new Date(f.completedAt).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'}) : '',
-        csvStr(f.project||''),
-      ].join(';'));
-    });
-    cur.setDate(cur.getDate()-1);
-  }
-
-  if(!rows.length){ showToast('Keine Frösche im gewählten Zeitraum'); return; }
-  const header = 'Datum;Aufgabe;Priorität;Dread;Erledigt;Uhrzeit;Projekt';
-  downloadCSV([header, ...rows.reverse()], `tracker_froesche_${periodLabel(period)}_${TODAY}.csv`);
-  showToast(`${rows.length} Frösche exportiert!`);
 }
 
 function exportCSVRoutines(period){
@@ -3242,35 +2614,6 @@ function exportCSV(){ openCSVExportDialog(); }
 
 function exportJSON(){
   // Collect all frog entries (last 365 days)
-  const frogData = {};
-  const cur = new Date(TODAY);
-  for(let i=0;i<365;i++){
-    const ds = cur.toISOString().slice(0,10);
-    const f = getFrogs(ds);
-    if(f.length) frogData[ds] = f;
-    cur.setDate(cur.getDate()-1);
-  }
-  // Collect custom tag opts
-  const customTags = {
-    ern: getTagOpts('ern'),
-    neg: getTagOpts('neg'),
-    akt: getTagOpts('akt'),
-    pain: getTagOpts('pain'),
-  };
-  // Meal memory
-  const mealMemory = getMealMemory();
-  // Notification prefs
-  const notifPrefs = {
-    enabled: localStorage.getItem('notif_enabled'),
-    dailyTime: localStorage.getItem('daily_reminder_time'),
-  };
-  const data = {
-    version: 2,
-    exported: new Date().toISOString(),
-    days: allDays,
-    routines: allRoutines,
-    completions: routineCompletions,
-    frogs: frogData,
     customTags,
     mealMemory,
     notifPrefs,
@@ -3333,9 +2676,6 @@ async function performImport(encodedData){
     allRoutines = await dbGetAll('routines');
     routineCompletions = await dbGetAll('routine_completions');
     // Restore frogs
-    for(const [date, frogs] of Object.entries(data.frogs||{})){
-      saveFrogs(date, frogs);
-    }
     // Restore custom tags
     for(const [key, opts] of Object.entries(data.customTags||{})){
       if(Array.isArray(opts)) saveTagOpts(key, opts);
@@ -3721,214 +3061,9 @@ document.addEventListener('click', e=>{
 // ══════════════════════════════════════════════════════════════════
 // FRÖSCHE – EAT THE FROG
 // ══════════════════════════════════════════════════════════════════
-function getFrogs(date){ 
-  try { return JSON.parse(localStorage.getItem('frogs_'+date)||'[]'); }
-  catch(e){ return []; }
-}
-function saveFrogs(date, frogs){
-  localStorage.setItem('frogs_'+date, JSON.stringify(frogs));
-}
-
-function addFrog(){
-  const text = document.getElementById('frogInput').value.trim();
-  if(!text) return;
-  const frogs = getFrogs(TODAY);
-  if(frogs.filter(f=>!f.done).length >= 3){
-    showToast('Max. 3 Frösche pro Tag!'); return;
-  }
-  frogs.push({
-    id: Date.now().toString(),
-    text,
-    priority: parseInt(document.getElementById('frogPriority').value),
-    dread: parseInt(document.getElementById('frogDread').value),
-    done: false,
-    created: new Date().toISOString()
-  });
-  saveFrogs(TODAY, frogs);
-  document.getElementById('frogInput').value = '';
-  renderFrogs();
-  showToast('🐸 Frosch hinzugefügt!');
-}
-
-function toggleFrog(id){
-  const frogs = getFrogs(activeDate);
-  const f = frogs.find(f=>f.id===id);
-  if(!f) return;
-  f.done = !f.done;
-  if(f.done) f.completedAt = new Date().toISOString();
-  else delete f.completedAt;
-  saveFrogs(activeDate, frogs);
-  renderFrogs();
-  if(f.done) showToast('🎉 Frosch gegessen!');
-}
-
-function deleteFrog(id){
-  const frogs = getFrogs(activeDate).filter(f=>f.id!==id);
-  saveFrogs(activeDate, frogs);
-  renderFrogs();
-}
-
 const PRIORITY_LABELS = {1:'Kritisch',2:'Wichtig',3:'Sollte heute'};
 const PRIORITY_COLORS = {1:'var(--red)',2:'var(--gold)',3:'var(--blue)'};
 const DREAD_LABELS = {5:'😰 Sehr hoch',4:'😟 Hoch',3:'😐 Mittel',2:'🙂 Niedrig',1:'😊 Kein Problem'};
-
-function moveFrogToMorrow(id){
-  const frogs = getFrogs(activeDate);
-  const f = frogs.find(x=>x.id===id);
-  if(!f) return;
-  // Entfernen aus heute
-  saveFrogs(activeDate, frogs.filter(x=>x.id!==id));
-  // Hinzufügen zu morgen
-  const tKey = getTomorrowKey();
-  const tFrogs = getFrogs(tKey);
-  tFrogs.push({...f, id: Date.now().toString(), done:false, completedAt:null, planned:false});
-  saveFrogs(tKey, tFrogs);
-  showToast('Frosch auf morgen verschoben!');
-  renderFrogs();
-}
-
-function moveFrogToLater(id){
-  const frogs = getFrogs(activeDate);
-  const f = frogs.find(x=>x.id===id);
-  if(!f) return;
-  // Entfernen aus heute
-  saveFrogs(activeDate, frogs.filter(x=>x.id!==id));
-  // Hinzufügen zu Future Frogs
-  const future = getFutureFrogs();
-  future.push({id: Date.now().toString(), text:f.text, priority:f.priority, dread:f.dread, project:f.project||'', created:new Date().toISOString()});
-  saveFutureFrogs(future);
-  showToast('Frosch auf Später-Liste verschoben!');
-  renderFrogs();
-  renderFutureFrogs();
-}
-
-function renderFrogWeekdayChart(){
-  const el = document.getElementById('frogWeekdayChart');
-  if(!el) return;
-
-  const DOW = ['Mo','Di','Mi','Do','Fr','Sa','So'];
-  // Sammle alle Frosch-Daten aus localStorage
-  const stats = Array(7).fill(null).map(()=>({total:0, done:0}));
-
-  // Alle frogs_YYYY-MM-DD Keys scannen
-  for(let i=0; i<localStorage.length; i++){
-    const key = localStorage.key(i);
-    if(!key.startsWith('frogs_')) continue;
-    const dateStr = key.replace('frogs_','');
-    const d = new Date(dateStr+'T12:00:00');
-    if(isNaN(d.getTime())) continue;
-    const dow = (d.getDay()+6)%7; // Mo=0
-    try{
-      const frogs = JSON.parse(localStorage.getItem(key)||'[]');
-      if(!frogs.length) continue;
-      stats[dow].total += frogs.length;
-      stats[dow].done  += frogs.filter(f=>f.done).length;
-    } catch(e){}
-  }
-
-  const maxRate = Math.max(...stats.map(s=>s.total>0?s.done/s.total:0), 0.01);
-
-  if(stats.every(s=>s.total===0)){
-    el.innerHTML='<div style="color:var(--text3);font-size:0.8rem;padding:0.5rem 0">Noch keine Frosch-Daten. Fang heute an! 🐸</div>';
-    return;
-  }
-
-  const bars = stats.map((s,i)=>{
-    const rate = s.total>0 ? s.done/s.total : 0;
-    const pct = Math.round(rate*100);
-    const h = maxRate>0 ? Math.round(rate/maxRate*56) : 0; // max 56px
-    const color = rate>=0.8?'var(--green)':rate>=0.5?'var(--gold)':'var(--red)';
-    const isToday = i === (new Date(TODAY+'T12:00:00').getDay()+6)%7;
-    const borderStyle = isToday ? `border:1px solid var(--gold);border-radius:3px 3px 0 0;` : '';
-    return `<div class="frog-dow-col">
-      <div class="frog-dow-pct">${s.total>0?pct+'%':''}</div>
-      <div class="frog-dow-bar-wrap">
-        <div class="frog-dow-bar" style="height:${h}px;background:${s.total>0?color:'var(--bg3)'};${borderStyle}"></div>
-      </div>
-      <div class="frog-dow-label" style="${isToday?'color:var(--gold);font-weight:700':''}">${DOW[i]}</div>
-      <div class="frog-dow-pct" style="color:var(--text3)">${s.total>0?s.done+'/'+s.total:''}</div>
-    </div>`;
-  }).join('');
-
-  el.innerHTML = `<div class="frog-dow-wrap">${bars}</div>
-    <div style="font-size:0.62rem;color:var(--text3);margin-top:0.4rem">Erledigte / geplante Frösche · Heute = gold markiert</div>`;
-}
-
-function renderFrogs(){
-  const frogs = getFrogs(activeDate);
-  const list = document.getElementById('frogList');
-
-  // Sort: undone first, then by priority, then dread desc
-  const sorted = [...frogs].sort((a,b)=>{
-    if(a.done !== b.done) return a.done?1:-1;
-    if(a.priority !== b.priority) return a.priority-b.priority;
-    return b.dread-a.dread;
-  });
-
-  if(!sorted.length){
-    list.innerHTML = `<div class="frog-empty"><span class="frog-empty-icon">🐸</span>Noch keine Frösche für heute.<br>Definiere deinen schwierigsten Task.</div>`;
-  } else {
-    list.innerHTML = sorted.map(f=>`
-      <div class="frog-item${f.done?' done':''}" style="--frog-color:${PRIORITY_COLORS[f.priority]}">
-        <div class="frog-check" onclick="toggleFrog('${f.id}')">${f.done?'✓':''}</div>
-        <div class="frog-body">
-          <div class="frog-text">${esc(f.text)}</div>
-          <div class="frog-meta">
-            <span class="frog-priority p${f.priority}">${PRIORITY_LABELS[f.priority]}</span>
-            <span class="frog-dread">${DREAD_LABELS[f.dread]}</span>
-            ${f.done&&f.completedAt?`<span style="font-size:0.65rem;color:var(--green)">✓ ${new Date(f.completedAt).toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'})}</span>`:''}
-          </div>
-          ${!f.done?`<div class="frog-move-row">
-            <button class="frog-move-btn" onclick="moveFrogToMorrow('${f.id}')">→ Morgen</button>
-            <button class="frog-move-btn frog-move-later" onclick="moveFrogToLater('${f.id}')">→ Später</button>
-          </div>`:''}
-        </div>
-        <button class="frog-del" onclick="deleteFrog('${f.id}')">🗑</button>
-      </div>`).join('');
-  }
-
-  // Stats
-  const total = frogs.length;
-  const done = frogs.filter(f=>f.done).length;
-  const streak = getFrogStreak();
-  document.getElementById('frogStatsRow').innerHTML = `
-    <div class="frog-stat"><div class="frog-stat-num">${done}/${total}</div><div class="frog-stat-label">Heute gegessen</div></div>
-    <div class="frog-stat"><div class="frog-stat-num">${streak}</div><div class="frog-stat-label">Tage Streak</div></div>
-    <div class="frog-stat"><div class="frog-stat-num">${getTotalEatenFrogs()}</div><div class="frog-stat-label">Gesamt</div></div>
-  `;
-
-  // Hide add form if 3 active frogs
-  const activeFrogs = frogs.filter(f=>!f.done).length;
-  document.getElementById('frogAddCard').style.opacity = activeFrogs>=3?'0.4':'1';
-  renderTomorrowFrogs();
-  updatePlanStreak();
-  renderFrogWeekdayChart();
-}
-
-function getFrogStreak(){
-  let streak=0;
-  const cur = new Date(TODAY);
-  for(let i=0;i<365;i++){
-    const ds = cur.toISOString().slice(0,10);
-    const frogs = getFrogs(ds);
-    if(frogs.length && frogs.some(f=>f.done)){ streak++; cur.setDate(cur.getDate()-1); }
-    else break;
-  }
-  return streak;
-}
-
-function getTotalEatenFrogs(){
-  let total=0;
-  // Check last 90 days
-  const cur = new Date(TODAY);
-  for(let i=0;i<90;i++){
-    const ds = cur.toISOString().slice(0,10);
-    total += getFrogs(ds).filter(f=>f.done).length;
-    cur.setDate(cur.getDate()-1);
-  }
-  return total;
-}
-
 
 // ══════════════════════════════════════════════════════════════════
 // VORABEND-PLANUNG
@@ -3942,69 +3077,6 @@ function getYesterdayKey(){
   return d.toISOString().slice(0,10);
 }
 
-function addTomorrowFrog(){
-  const text = document.getElementById('tomorrowInput').value.trim();
-  if(!text) return;
-  const key = getTomorrowKey();
-  const frogs = getFrogs(key);
-  if(frogs.filter(f=>!f.done).length >= 3){
-    showToast('Max. 3 Frösche für morgen!'); return;
-  }
-  frogs.push({
-    id: Date.now().toString(),
-    text,
-    priority: parseInt(document.getElementById('tomorrowPriority').value),
-    dread: parseInt(document.getElementById('tomorrowDread').value),
-    done: false,
-    planned: true,  // marked as pre-planned
-    created: new Date().toISOString()
-  });
-  saveFrogs(key, frogs);
-  document.getElementById('tomorrowInput').value='';
-  renderTomorrowFrogs();
-  updatePlanStreak();
-  showToast('🌙 Frosch für morgen geplant!');
-}
-
-function deleteTomorrowFrog(id){
-  const key = getTomorrowKey();
-  saveFrogs(key, getFrogs(key).filter(f=>f.id!==id));
-  renderTomorrowFrogs();
-  updatePlanStreak();
-}
-
-function renderTomorrowFrogs(){
-  const key = getTomorrowKey();
-  const frogs = getFrogs(key);
-  const list = document.getElementById('tomorrowList');
-  if(!list) return;
-
-  const active = frogs.filter(f=>!f.done);
-  if(!active.length){
-    list.innerHTML='';
-    return;
-  }
-
-  list.innerHTML = active.map(f=>`
-    <div class="frog-planned">
-      <span class="frog-planned-icon">${['','😊','🙂','😐','😟','😰'][f.dread]}</span>
-      <div class="frog-planned-body">
-        <div class="frog-planned-text">${esc(f.text)}</div>
-        <div class="frog-planned-meta">${PRIORITY_LABELS[f.priority]}</div>
-      </div>
-      <button class="frog-planned-del" onclick="deleteTomorrowFrog('${f.id}')">×</button>
-    </div>`).join('');
-
-  if(active.length>=3){
-    document.getElementById('tomorrowAddWrap').style.opacity='0.4';
-    document.getElementById('tomorrowAddWrap').style.pointerEvents='none';
-  } else {
-    document.getElementById('tomorrowAddWrap').style.opacity='1';
-    document.getElementById('tomorrowAddWrap').style.pointerEvents='auto';
-  }
-}
-
-// Plan streak: how many consecutive evenings did user plan frogs?
 function getPlanStreak(){
   let streak=0;
   const cur = new Date(TODAY);
@@ -4015,13 +3087,11 @@ function getPlanStreak(){
     // A day counts if frogs were planned for the NEXT day
     const nextDs = new Date(cur); nextDs.setDate(nextDs.getDate()+1);
     const nextKey = nextDs.toISOString().slice(0,10);
-    const planned = getFrogs(nextKey).filter(f=>f.planned);
     // Also count today's planning (frogs for tomorrow already set)
     if(planned.length > 0){ streak++; cur.setDate(cur.getDate()-1); }
     else break;
   }
   // Also check if frogs for tomorrow already planned today
-  const tomorrowPlanned = getFrogs(getTomorrowKey()).filter(f=>f.planned).length > 0;
   if(tomorrowPlanned && streak===0) streak=1;
   else if(tomorrowPlanned) streak++; // today adds to streak
   return streak;
@@ -4203,40 +3273,6 @@ function hideMedSugg(){
 // ══════════════════════════════════════════════════════════════════
 // DEEP WORK TRACKER
 // ══════════════════════════════════════════════════════════════════
-const DW_STEP = 0.5;   // each block = 30 min
-const DW_MAX  = 12;    // max 12 blocks = 6h
-const DW_GOAL = parseInt(localStorage.getItem('dw_goal')||'4'); // hours
-
-function renderDeepWork(){
-  const wrap = document.getElementById('deepWorkBlocks');
-  if(!wrap) return;
-  const blocks = Math.round((state.deepWork||0) / DW_STEP);
-  const goal = parseInt(localStorage.getItem('dw_goal')||'4');
-  wrap.innerHTML = '';
-  for(let i=0;i<DW_MAX;i++){
-    const b = document.createElement('div');
-    b.className = 'dw-block' + (i < blocks ? ' active' : '');
-    b.title = ((i+1)*DW_STEP) + 'h';
-    b.onclick = ()=>setDeepWork(i < blocks ? i : i+1);
-    wrap.appendChild(b);
-  }
-  const h = state.deepWork||0;
-  document.getElementById('dwTotal').textContent = h.toFixed(1);
-  const pct = Math.min(100, Math.round(h/goal*100));
-  document.getElementById('dwProgressFill').style.width = pct+'%';
-  document.getElementById('dwPct').textContent = pct+'%';
-  document.getElementById('dwGoalLabel').textContent = goal+'h';
-}
-
-function setDeepWork(blocks){
-  // Toggle: clicking last active block deactivates it
-  const current = Math.round((state.deepWork||0)/DW_STEP);
-  state.deepWork = (blocks === current ? blocks-1 : blocks) * DW_STEP;
-  if(state.deepWork < 0) state.deepWork = 0;
-  renderDeepWork();
-  scheduleAutoSave();
-}
-
 // ══════════════════════════════════════════════════════════════════
 // PROJEKT-TAGS
 // ══════════════════════════════════════════════════════════════════
@@ -4248,14 +3284,6 @@ function saveProjects(p){ localStorage.setItem('projects', JSON.stringify(p)); }
 
 function populateProjectSelects(){
   const projects = getProjects();
-  ['frogProject','tomorrowProject'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el) return;
-    const cur = el.value;
-    el.innerHTML = '<option value="">– Kein Projekt –</option>'
-      + projects.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
-    if(cur) el.value = cur;
-  });
 }
 
 function manageProjects(){
@@ -4297,47 +3325,7 @@ function deleteProject(i){
 }
 
 // Patch addFrog to include project
-const _origAddFrog = addFrog;
 // ── override addFrog ──
-function addFrog(){
-  const text = document.getElementById('frogInput').value.trim();
-  if(!text) return;
-  const frogs = getFrogs(TODAY);
-  if(frogs.filter(f=>!f.done).length >= 3){ showToast('Max. 3 Frösche pro Tag!'); return; }
-  frogs.push({
-    id: Date.now().toString(), text,
-    priority: parseInt(document.getElementById('frogPriority').value),
-    dread: parseInt(document.getElementById('frogDread').value),
-    project: document.getElementById('frogProject')?.value||'',
-    done: false, created: new Date().toISOString()
-  });
-  saveFrogs(TODAY, frogs);
-  document.getElementById('frogInput').value='';
-  renderFrogs();
-  showToast('🐸 Frosch hinzugefügt!');
-}
-
-// Patch addTomorrowFrog
-function addTomorrowFrog(){
-  const text = document.getElementById('tomorrowInput').value.trim();
-  if(!text) return;
-  const key = getTomorrowKey();
-  const frogs = getFrogs(key);
-  if(frogs.filter(f=>!f.done).length >= 3){ showToast('Max. 3 Frösche für morgen!'); return; }
-  frogs.push({
-    id: Date.now().toString(), text,
-    priority: parseInt(document.getElementById('tomorrowPriority').value),
-    dread: parseInt(document.getElementById('tomorrowDread').value),
-    project: document.getElementById('tomorrowProject')?.value||'',
-    done: false, planned: true, created: new Date().toISOString()
-  });
-  saveFrogs(key, frogs);
-  document.getElementById('tomorrowInput').value='';
-  renderTomorrowFrogs();
-  updatePlanStreak();
-  showToast('🌙 Frosch für morgen geplant!');
-}
-
 // ══════════════════════════════════════════════════════════════════
 // WOCHENRÜCKBLICK
 // ══════════════════════════════════════════════════════════════════
@@ -4446,19 +3434,13 @@ function renderWeekReview(){
 
   const avgWb = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.wellbeing||5),0)/weekDays.length).toFixed(1) : '–';
   const avgSleep = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.sleep||0),0)/weekDays.length).toFixed(1) : '–';
-  const totalDW = weekDays.reduce((s,x)=>s+(x.deepWork||0),0).toFixed(1);
   // Frogs eaten this week
-  let frogsEaten=0;
-  for(let i=0;i<7;i++){
-    const ds = new Date(new Date(monStr)); ds.setDate(ds.getDate()+i);
-    frogsEaten += getFrogs(ds.toISOString().slice(0,10)).filter(f=>f.done).length;
   }
 
   document.getElementById('reviewStatsGrid').innerHTML = `
     <div class="review-stat"><div class="review-stat-num">${avgWb}</div><div class="review-stat-lbl">Ø Wohlbefinden</div></div>
     <div class="review-stat"><div class="review-stat-num">${avgSleep}h</div><div class="review-stat-lbl">Ø Schlaf</div></div>
-    <div class="review-stat"><div class="review-stat-num">${totalDW}h</div><div class="review-stat-lbl">Deep Work</div></div>
-    <div class="review-stat"><div class="review-stat-num">${frogsEaten}</div><div class="review-stat-lbl">Frösche</div></div>
+
     <div class="review-stat"><div class="review-stat-num">${weekDays.length}/7</div><div class="review-stat-lbl">Einträge</div></div>
     <div class="review-stat"><div class="review-stat-num">${weekDays.filter(x=>x.akt&&x.akt.length).length}</div><div class="review-stat-lbl">Aktiv-Tage</div></div>
   `;
@@ -4789,7 +3771,6 @@ function renderThoughts(){
             value="${esc(t.next||'')}"
             oninput="updateThoughtNext('${t.id}',this.value)"
           />`:''}
-        ${t.asFrog?'<span style="font-size:0.65rem;color:var(--green)">🐸 Bereits als Frosch</span>':`<button class="thought-to-frog" onclick="thoughtToFrog('${t.id}')" title="Als Frosch übernehmen">🐸 → Frosch</button>`}
       </div>
     </div>`;
   }).join('');
@@ -4802,67 +3783,6 @@ document.addEventListener('input', e=>{
     e.target.style.height=Math.min(e.target.scrollHeight,200)+'px';
   }
 });
-
-
-function thoughtToFrog(id){
-  const t = (state.thoughts||[]).find(t=>t.id===id);
-  if(!t) return;
-  const frogs = getFrogs(TODAY);
-  if(frogs.filter(f=>!f.done).length >= 3){
-    // Offer to plan for tomorrow instead
-    document.getElementById('modalContent').innerHTML = `
-      <div class="modal-title">Heute schon 3 Frösche</div>
-      <div class="modal-sub">Soll der Gedanke als Frosch für <strong>morgen</strong> eingeplant werden?<br><br>
-        <em style="color:var(--text2)">${esc(t.text)}</em></div>
-      <div class="modal-actions">
-        <button class="btn-primary" onclick="thoughtToTomorrowFrog('${id}')">Für morgen</button>
-        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-      </div>`;
-    document.getElementById('modal').style.display='flex';
-    return;
-  }
-  // Add as frog for today
-  frogs.push({
-    id: Date.now().toString(),
-    text: t.text,
-    priority: 2,
-    dread: 3,
-    project: '',
-    done: false,
-    fromThought: true,
-    created: new Date().toISOString()
-  });
-  saveFrogs(TODAY, frogs);
-  // Mark thought as sent to frog
-  t.asFrog = true;
-  renderThoughts();
-  renderFrogs();
-  showToast('🐸 Als Frosch übernommen!');
-}
-
-function thoughtToTomorrowFrog(id){
-  const t = (state.thoughts||[]).find(t=>t.id===id);
-  if(!t){ closeModal(); return; }
-  const key = getTomorrowKey();
-  const frogs = getFrogs(key);
-  if(frogs.filter(f=>!f.done).length >= 3){ closeModal(); showToast('Morgen auch schon 3 Frösche!'); return; }
-  frogs.push({
-    id: Date.now().toString(),
-    text: t.text,
-    priority: 2,
-    dread: 3,
-    project: '',
-    done: false,
-    planned: true,
-    fromThought: true,
-    created: new Date().toISOString()
-  });
-  saveFrogs(key, frogs);
-  t.asFrog = true;
-  closeModal();
-  renderThoughts();
-  showToast('🌙 Für morgen eingeplant!');
-}
 
 
 // ═══ ADDED FEATURES ═══
@@ -4887,70 +3807,6 @@ function restoreSecs(){
     hdr.classList.toggle('open',open);
   });
 }
-function renderFrogListInline(){
-  const el=document.getElementById('frogListInline');if(!el)return;
-  const frogs=getFrogs(TODAY);
-  if(!frogs.length){el.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:0.4rem 0">Noch keine Frösche für heute.</div>';return;}
-  const sorted=[...frogs].sort((a,b)=>a.done===b.done?a.priority-b.priority:a.done?1:-1);
-  el.innerHTML=sorted.map(f=>`<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border)">
-    <div onclick="toggleFrog('${f.id}');renderFrogListInline()" style="width:22px;height:22px;border-radius:50%;border:2px solid ${f.done?'var(--green)':'var(--border2)'};background:${f.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;cursor:pointer;flex-shrink:0;color:#fff">${f.done?'✓':''}</div>
-    <div style="flex:1;font-size:0.82rem;font-weight:600;${f.done?'text-decoration:line-through;color:var(--text3)':''}">${esc(f.text)}</div>
-  </div>`).join('');
-}
-function getFutureFrogs(){try{return JSON.parse(localStorage.getItem('future_frogs')||'[]');}catch(e){return[];}}
-function saveFutureFrogs(list){localStorage.setItem('future_frogs',JSON.stringify(list));}
-function addFutureFrog(){
-  const text=document.getElementById('futureFrogInput')?.value.trim();if(!text)return;
-  const date=document.getElementById('futureFrogDate')?.value;
-  const priority=parseInt(document.getElementById('futurePriority')?.value||'2');
-  const list=getFutureFrogs();
-  list.push({id:Date.now().toString(),text,priority,date,created:new Date().toISOString()});
-  list.sort((a,b)=>{if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;return a.date.localeCompare(b.date);});
-  saveFutureFrogs(list);
-  if(document.getElementById('futureFrogInput'))document.getElementById('futureFrogInput').value='';
-  if(document.getElementById('futureFrogDate'))document.getElementById('futureFrogDate').value='';
-  renderFutureFrogs();showToast('📅 Für später eingeplant!');
-}
-function deleteFutureFrog(id){saveFutureFrogs(getFutureFrogs().filter(f=>f.id!==id));renderFutureFrogs();}
-function moveFutureFrogToDay(id,toDate){
-  const list=getFutureFrogs();const frog=list.find(f=>f.id===id);if(!frog)return;
-  if(!toDate)toDate=TODAY;
-  const target=getFrogs(toDate);
-  if(target.filter(f=>!f.done).length>=3){showToast('Bereits 3 Frösche!');return;}
-  target.push({id:Date.now().toString(),text:frog.text,priority:frog.priority,dread:3,project:'',done:false,planned:toDate!==TODAY,created:new Date().toISOString()});
-  saveFrogs(toDate,target);saveFutureFrogs(list.filter(f=>f.id!==id));
-  renderFutureFrogs();renderFrogs();renderFrogListInline();
-  showToast(toDate===TODAY?'🐸 Heute aktiviert!':'🌙 Eingeplant!');
-}
-function moveFrogToDay(id,fromDate,toTarget){
-  const frogs=getFrogs(fromDate);const frog=frogs.find(f=>f.id===id);if(!frog)return;
-  const toDate=toTarget==='tomorrow'?getTomorrowKey():toTarget;
-  const target=getFrogs(toDate);
-  if(target.filter(f=>!f.done).length>=3){showToast('Bereits 3 Frösche!');return;}
-  saveFrogs(fromDate,frogs.filter(f=>f.id!==id));
-  target.push({...frog,done:false,planned:toTarget==='tomorrow',movedFrom:fromDate});
-  saveFrogs(toDate,target);renderFrogs();renderTomorrowFrogs();renderFutureFrogs();updatePlanStreak();
-  showToast('→ Verschoben!');
-}
-function renderFutureFrogs(){
-  const el=document.getElementById('futureFrogList');if(!el)return;
-  const current=getFutureFrogs();
-  if(!current.length){el.innerHTML='<div style="text-align:center;padding:0.75rem;color:var(--text3);font-size:0.8rem">📅 Noch keine zukünftigen Frösche.</div>';return;}
-  const DAY=['So','Mo','Di','Mi','Do','Fr','Sa'];
-  el.innerHTML=current.map(f=>{
-    const dl=f.date?(()=>{const d=new Date(f.date+'T00:00:00');const diff=Math.round((d-new Date(TODAY+'T00:00:00'))/(864e5));return diff===0?'Heute':diff===1?'Morgen':diff<=7?`${DAY[d.getDay()]},${d.getDate()}.${d.getMonth()+1}.`:d.toLocaleDateString('de',{day:'2-digit',month:'2-digit'});})():'Kein Datum';
-    return `<div style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.75rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:0.45rem;border-left:3px solid var(--purple)">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:0.84rem;font-weight:600">${esc(f.text)}</div>
-        <div style="font-size:0.68rem;color:var(--text3);margin-top:3px">📅 ${dl}</div>
-      </div>
-      <button onclick="moveFutureFrogToDay('${f.id}','${TODAY}')" style="background:none;border:1px solid var(--gold);border-radius:4px;color:var(--gold);font-size:0.68rem;font-weight:700;cursor:pointer;padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap">→ Heute</button>
-      <button onclick="moveFutureFrogToDay('${f.id}','${getTomorrowKey()}')" style="background:none;border:1px solid var(--blue);border-radius:4px;color:var(--blue);font-size:0.68rem;font-weight:700;cursor:pointer;padding:0.2rem 0.5rem;font-family:'Syne',sans-serif;white-space:nowrap">→ Morgen</button>
-      <button onclick="deleteFutureFrog('${f.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem">🗑</button>
-    </div>`;
-  }).join('');
-}
-
 // ══════════════════════════════════════════════════════════════════
 // KI-TAGESAUSWERTUNG
 // ══════════════════════════════════════════════════════════════════
@@ -4979,7 +3835,6 @@ HEUTE (${TODAY}):
 - Ernährung: ${(todayEntry.ern||[]).join(', ')||'keine Angabe'}
 - Aktivität: ${getEffectiveAkt(todayEntry).join(', ')||'keine Angabe'}
 - Stimmung: ${(todayEntry.moods||[]).join(', ')||'keine Angabe'}
-- Deep Work: ${todayEntry.deepWork||0} h
 - Dankbarkeit: ${(todayEntry.gratitude||[]).filter(Boolean).join(' / ')||'–'}
 - Notiz: ${todayEntry.note||'–'}
 
@@ -5015,5 +3870,6 @@ Gib 2-3 konkrete Beobachtungen und einen Handlungsvorschlag für morgen.`;
 </script>
 </body>
 </html>
+
 
 
