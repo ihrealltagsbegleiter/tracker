@@ -597,6 +597,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
   <div class="topbar">
     <div class="topbar-title">Aufgaben</div>
     <div class="topbar-actions">
+      <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
       <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
       <button class="icon-btn primary" onclick="openAddModal()">+ Neu</button>
     </div>
@@ -831,7 +832,18 @@ input[type=date]::-webkit-calendar-picker-indicator {
 <script>
 'use strict';
 
-// ── STORAGE ──
+// ── SUPABASE CONFIG ──
+const SB_URL = 'https://cuukfowezhcosjnuckuo.supabase.co';
+const SB_KEY = 'sb_publishable_Cj33uDp4shZaiWYbJkRPqQ_usXXCUcz';
+
+const SB_HEADERS = {
+  'Content-Type': 'application/json',
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Prefer': 'resolution=merge-duplicates'
+};
+
+// ── LOCAL STORAGE (offline-first cache) ──
 const STORE_KEY   = 'iab_tasks_v2';
 const DONE_KEY    = 'iab_done_v2';
 const PROJECT_KEY = 'iab_projects_v1';
@@ -839,20 +851,112 @@ const PROJECT_KEY = 'iab_projects_v1';
 function load() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
 }
-function save(tasks) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(tasks));
+function save(t) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(t));
+  sbUpsertAll('tasks', t);
 }
 function loadDone() {
   try { return JSON.parse(localStorage.getItem(DONE_KEY) || '{}'); } catch { return {}; }
 }
 function saveDone(d) {
   localStorage.setItem(DONE_KEY, JSON.stringify(d));
+  sbUpsertDone(d);
 }
 function loadProjects() {
   try { return JSON.parse(localStorage.getItem(PROJECT_KEY) || '[]'); } catch { return []; }
 }
 function saveProjects(p) {
   localStorage.setItem(PROJECT_KEY, JSON.stringify(p));
+  sbUpsertAll('projects', p);
+}
+
+// ── SUPABASE SYNC ──
+let syncDebounce = {};
+
+function sbUpsertAll(table, items) {
+  clearTimeout(syncDebounce[table]);
+  syncDebounce[table] = setTimeout(async () => {
+    if (!navigator.onLine) return;
+    try {
+      const rows = items.map(item => ({ id: item.id, data: item }));
+      await fetch(`${SB_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: SB_HEADERS,
+        body: JSON.stringify(rows)
+      });
+    } catch(e) { console.warn('Sync error:', e); }
+  }, 800);
+}
+
+function sbUpsertDone(doneObj) {
+  clearTimeout(syncDebounce['done_log']);
+  syncDebounce['done_log'] = setTimeout(async () => {
+    if (!navigator.onLine) return;
+    try {
+      const rows = Object.entries(doneObj).map(([id, date]) => ({ id, data: { id, date } }));
+      if (rows.length === 0) return;
+      await fetch(`${SB_URL}/rest/v1/done_log`, {
+        method: 'POST',
+        headers: SB_HEADERS,
+        body: JSON.stringify(rows)
+      });
+    } catch(e) { console.warn('Sync error done:', e); }
+  }, 800);
+}
+
+async function sbLoadAll() {
+  try {
+    const [tRes, pRes, dRes] = await Promise.all([
+      fetch(`${SB_URL}/rest/v1/tasks?select=id,data,updated_at&order=updated_at.desc`, { headers: SB_HEADERS }),
+      fetch(`${SB_URL}/rest/v1/projects?select=id,data,updated_at&order=updated_at.desc`, { headers: SB_HEADERS }),
+      fetch(`${SB_URL}/rest/v1/done_log?select=id,data`, { headers: SB_HEADERS })
+    ]);
+    if (!tRes.ok || !pRes.ok || !dRes.ok) return false;
+
+    const [tRows, pRows, dRows] = await Promise.all([tRes.json(), pRes.json(), dRes.json()]);
+
+    const remoteTasks    = tRows.map(r => r.data);
+    const remoteProjects = pRows.map(r => r.data);
+    const remoteDone     = Object.fromEntries(dRows.map(r => [r.data.id, r.data.date]));
+
+    // Merge: remote wins for same ID (newest updated_at)
+    const localTasks    = load();
+    const localProjects = loadProjects();
+    const localDone     = loadDone();
+
+    // Build merged tasks: remote overrides local for same ID
+    const taskMap = {};
+    localTasks.forEach(t => taskMap[t.id] = t);
+    remoteTasks.forEach(t => taskMap[t.id] = t);
+    const mergedTasks = Object.values(taskMap);
+
+    const projMap = {};
+    localProjects.forEach(p => projMap[p.id] = p);
+    remoteProjects.forEach(p => projMap[p.id] = p);
+    const mergedProjects = Object.values(projMap);
+
+    const mergedDone = Object.assign({}, localDone, remoteDone);
+
+    localStorage.setItem(STORE_KEY, JSON.stringify(mergedTasks));
+    localStorage.setItem(PROJECT_KEY, JSON.stringify(mergedProjects));
+    localStorage.setItem(DONE_KEY, JSON.stringify(mergedDone));
+
+    return { tasks: mergedTasks, projects: mergedProjects, done: mergedDone };
+  } catch(e) {
+    console.warn('Remote load failed, using local:', e);
+    return false;
+  }
+}
+
+// Delete from Supabase when task/project is deleted
+async function sbDelete(table, id) {
+  if (!navigator.onLine) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+  } catch(e) { console.warn('Delete sync error:', e); }
 }
 
 // ── STATE ──
@@ -1161,8 +1265,10 @@ function checkTask(id, e) {
 function deleteTask(id, e) {
   e.stopPropagation();
   if (!confirm('Aufgabe wirklich löschen?')) return;
+  const delId = id;
   tasks = tasks.filter(t => t.id !== id);
   save(tasks);
+  sbDelete('tasks', delId);
   expandedIds.delete(id);
   render();
   showToast('🗑 Gelöscht');
@@ -1493,10 +1599,12 @@ function deleteProject(id, e) {
   e.stopPropagation();
   const p = projects.find(x => x.id === id);
   if (!confirm(`Projekt "${p?.name}" löschen? Aufgaben bleiben erhalten (ohne Projektzuordnung).`)) return;
+  const delPjId = id;
   tasks.forEach(t => { if (t.projectId === id) t.projectId = null; });
   projects = projects.filter(x => x.id !== id);
   saveProjects(projects);
   save(tasks);
+  sbDelete('projects', delPjId);
   render();
   showToast('🗑 Projekt gelöscht');
 }
@@ -1758,8 +1866,35 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ── SYNC STATUS INDICATOR ──
+function setSyncStatus(status) {
+  // status: 'syncing' | 'ok' | 'offline' | 'error'
+  let el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = { syncing: '⟳ Sync…', ok: '✓ Sync', offline: '⚡ Offline', error: '⚠ Sync-Fehler' };
+  const col = { syncing: 'var(--muted)', ok: 'var(--accent2)', offline: 'var(--warn)', error: 'var(--danger)' };
+  el.textContent = map[status] || '';
+  el.style.color = col[status] || 'var(--muted)';
+}
+
+window.addEventListener('online',  () => { setSyncStatus('syncing'); sbLoadAll().then(d => { if(d){tasks=d.tasks;projects=d.projects;render();} setSyncStatus('ok'); }); });
+window.addEventListener('offline', () => setSyncStatus('offline'));
+
 // ── INIT ──
-render();
+async function init() {
+  setSyncStatus('syncing');
+  const remote = await sbLoadAll();
+  if (remote) {
+    tasks    = remote.tasks;
+    projects = remote.projects;
+    setSyncStatus('ok');
+  } else {
+    setSyncStatus(navigator.onLine ? 'error' : 'offline');
+  }
+  render();
+}
+
+init();
 </script>
 </body>
 </html>
