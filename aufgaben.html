@@ -1470,7 +1470,7 @@ function taskCard(task, isRecurring = false) {
   }
   if (task.eisen) {
     const eisenInfo = {1:['I','Wichtig+Dringend','var(--danger)'],2:['II','Wichtig+Geplant','var(--today)'],3:['III','Delegieren','var(--warn)'],4:['IV','Eliminieren','var(--muted)']};
-    const [num, lbl, col] = eisenInfo[task.eisen] || ['?','',col];
+    const [num, lbl, col] = eisenInfo[task.eisen] || ['?','?','var(--muted)'];
     tags += `<span class="tag tag-eisen-${task.eisen}" title="${lbl}">Q${num}</span>`;
   }
   if (task.context) {
