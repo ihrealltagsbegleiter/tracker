@@ -1022,8 +1022,8 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="topbar-actions">
       <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
       <div class="sort-dropdown-wrap">
-        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)">
-          <span id="sort-btn-label">↕ Sortierung</span>
+        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung">
+          <span id="sort-btn-label">↕</span>
         </button>
         <div class="sort-menu" id="sort-menu">
           <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
@@ -3211,7 +3211,7 @@ function updateSortUI() {
   if (!btn || !lbl) return;
   const isDefault = currentSort.key === 'urgency' && currentSort.dir === 'desc';
   btn.classList.toggle('active', !isDefault);
-  lbl.textContent = isDefault ? '↕ Sortierung' : SORT_LABELS[currentSort.key] + (currentSort.dir === 'asc' ? ' ↑' : ' ↓');
+  lbl.textContent = isDefault ? '↕' : (currentSort.dir === 'asc' ? '↑' : '↓');
 
   // Update menu items
   document.querySelectorAll('.sort-menu-item').forEach(el => {
