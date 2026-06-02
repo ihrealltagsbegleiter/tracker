@@ -805,6 +805,119 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <textarea id="painNote" rows="2" placeholder="Beschreibung: Wo? Wie? Seit wann?…" style="margin-top:0.6rem" oninput="scheduleAutoSave()"></textarea>
       </div>
 
+      <!-- Was lief nicht gut -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
+          <button class="tag-edit-btn" id="negEditBtn" onclick="toggleTagEdit('neg')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="negTag"></div>
+        <div class="tag-add-row" id="negAddRow" style="display:none">
+          <input class="tag-add-input" id="negAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('neg')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
+        </div>
+        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem" oninput="scheduleAutoSave()"></textarea>
+      </div>
+
+      <!-- Aktivität -->
+      <div class="card">
+        <div class="tag-group-header">
+          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
+          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
+        </div>
+        <div class="tag-grid" id="aktTag"></div>
+        <div class="tag-add-row" id="aktAddRow" style="display:none">
+          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
+          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
+        </div>
+      </div>
+
+
+      <!-- Dankbarkeit -->
+      <div class="card">
+        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
+        <div id="gratitudeList">
+          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
+          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
+        </div>
+      </div>
+      <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
+      <button class="ai-btn" id="aiBtn" onclick="runAiDayReview()">✦ KI-Auswertung</button>
+      <div id="aiReviewResult" style="display:none"></div>
+    </div>
+
+    <!-- VIEW: ROUTINEN -->
+    <div class="view" id="view-routinen">
+      <div class="section-title">HEUTE</div>
+      <div class="routine-progress"><div class="routine-progress-fill" id="routineProgress" style="width:0%"></div></div>
+      <div id="routineList"></div>
+      <button class="add-routine-btn" onclick="openAddRoutine()">+ Neue Routine hinzufügen</button>
+    </div>
+
+    <!-- VIEW: STATISTIKEN -->
+    <div class="view" id="view-stats">
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab active" onclick="setPeriod(7,this)">7T</button>
+        <button class="period-tab" onclick="setPeriod(14,this)">14T</button>
+        <button class="period-tab" onclick="setPeriod(30,this)">30T</button>
+        <button class="period-tab" onclick="setPeriod(90,this)">90T</button>
+        <button class="period-tab" onclick="setPeriod(365,this)">1J</button>
+      </div>
+      <div class="card">
+        <div class="card-title">JAHRESÜBERSICHT – LEBENSGEFÜHL</div>
+        <div id="heatmapChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">LEBENSGEFÜHL – VERLAUF</div>
+</div>
+      <div class="card">
+        <div class="card-title">DURCHSCHNITTE</div>
+        <div id="avgStats"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">HÄUFIGSTE EINTRÄGE <span style="font-size:0.6rem;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">inkl. Sport/Gesundheits-Routinen</span></div>
+        <div id="tagStats"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ROUTINEN – WOCHENÜBERSICHT</div>
+        <div class="routine-chart-wrap" id="routineChartWrap"></div>
+        <div class="rc-legend">
+          <span><span class="rc-legend-dot" style="background:var(--gold)"></span>Erledigt</span>
+          <span><span class="rc-legend-dot" style="background:var(--bg3);border:1px solid var(--border2)"></span>Verpasst</span>
+          <span><span class="rc-legend-dot" style="background:transparent;border:1px dashed var(--border2)"></span>Nicht geplant</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">MEDIKAMENTE – COMPLIANCE</div>
+        <div id="medComplianceChart"></div>
+      </div>
+
+      <div class="section-title" style="margin-top:1.25rem">INSIGHTS</div>
+      <div class="section-title">WAS TUT DIR GUT?</div>
+      <div class="card" style="margin-bottom:0.75rem">
+        <div class="card-title">SCHLAF · HRV · ENERGIE IM VERLAUF</div>
+        <div id="insightsTrendChart"></div>
+        <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.65rem;font-family:'Syne Mono',monospace">
+          <span style="color:#5b8dee">● Schlaf (h)</span>
+          <span style="color:#9b72e8">● HRV /10</span>
+          <span style="color:#4caf82">● Energie</span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0.75rem">
+        <div class="card-title">STIMMUNGEN – HÄUFIGKEIT (30 TAGE)</div>
+        <div id="moodFreqChart"></div>
+      </div>
+      <div class="card" style="margin-bottom:0.75rem">
+        <div class="card-title">STIMMUNGS-KALENDER</div>
+        <div id="moodCalChart"></div>
+      </div>
+      <div id="corrList"></div>
+    
+    </div>
+
+    <!-- VIEW: ERNÄHRUNG & NEMs -->
+    <div class="view" id="view-ernaehrung">
       <!-- Mahlzeiten -->
       <div class="card" id="mealCard">
         <div class="card-title">MAHLZEITEN</div>
@@ -880,34 +993,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
 
-      <!-- Was lief nicht gut -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">WAS LIEF NICHT GUT?</div>
-          <button class="tag-edit-btn" id="negEditBtn" onclick="toggleTagEdit('neg')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="negTag"></div>
-        <div class="tag-add-row" id="negAddRow" style="display:none">
-          <input class="tag-add-input" id="negAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('neg')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('neg')">+</button>
-        </div>
-        <textarea id="noteText" rows="3" placeholder="Freie Notiz…" style="margin-top:0.6rem" oninput="scheduleAutoSave()"></textarea>
-      </div>
-
-      <!-- Aktivität -->
-      <div class="card">
-        <div class="tag-group-header">
-          <div class="card-title" style="margin-bottom:0">AKTIVITÄT</div>
-          <button class="tag-edit-btn" id="aktEditBtn" onclick="toggleTagEdit('akt')">Bearbeiten</button>
-        </div>
-        <div class="tag-grid" id="aktTag"></div>
-        <div class="tag-add-row" id="aktAddRow" style="display:none">
-          <input class="tag-add-input" id="aktAddInput" placeholder="Neuer Tag…" onkeydown="if(event.key==='Enter')addCustomTag('akt')"/>
-          <button class="tag-add-submit" onclick="addCustomTag('akt')">+</button>
-        </div>
-      </div>
-
-
       <!-- Medikamente & Supplements -->
       <div class="card">
         <div class="card-title">MEDIKAMENTE & SUPPLEMENTS</div>
@@ -924,88 +1009,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
         <div id="medSugg" class="med-sugg"></div>
       </div>
 
-      <!-- Dankbarkeit -->
-      <div class="card">
-        <div class="card-title">DANKBARKEIT – 3 DINGE</div>
-        <div id="gratitudeList">
-          <div class="gratitude-item"><span class="gratitude-num">1</span><textarea class="gratitude-input" id="grat0" rows="1" placeholder="Wofür bin ich heute dankbar?…" oninput="autoGrow(this);saveGratitude(0,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">2</span><textarea class="gratitude-input" id="grat1" rows="1" placeholder="Was war heute schön?…" oninput="autoGrow(this);saveGratitude(1,this.value)"></textarea></div>
-          <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
-        </div>
-      </div>
-      <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
-      <button class="ai-btn" id="aiBtn" onclick="runAiDayReview()">✦ KI-Auswertung</button>
-      <div id="aiReviewResult" style="display:none"></div>
-    </div>
-
-    <!-- VIEW: ROUTINEN -->
-    <div class="view" id="view-routinen">
-      <div class="section-title">HEUTE</div>
-      <div class="routine-progress"><div class="routine-progress-fill" id="routineProgress" style="width:0%"></div></div>
-      <div id="routineList"></div>
-      <button class="add-routine-btn" onclick="openAddRoutine()">+ Neue Routine hinzufügen</button>
-    </div>
-
-    <!-- VIEW: STATISTIKEN -->
-    <div class="view" id="view-stats">
-      <div class="period-tabs" id="periodTabs">
-        <button class="period-tab active" onclick="setPeriod(7,this)">7T</button>
-        <button class="period-tab" onclick="setPeriod(14,this)">14T</button>
-        <button class="period-tab" onclick="setPeriod(30,this)">30T</button>
-        <button class="period-tab" onclick="setPeriod(90,this)">90T</button>
-        <button class="period-tab" onclick="setPeriod(365,this)">1J</button>
-      </div>
-      <div class="card">
-        <div class="card-title">JAHRESÜBERSICHT – LEBENSGEFÜHL</div>
-        <div id="heatmapChart"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">LEBENSGEFÜHL – VERLAUF</div>
-</div>
-      <div class="card">
-        <div class="card-title">DURCHSCHNITTE</div>
-        <div id="avgStats"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">HÄUFIGSTE EINTRÄGE <span style="font-size:0.6rem;font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">inkl. Sport/Gesundheits-Routinen</span></div>
-        <div id="tagStats"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">ROUTINEN – WOCHENÜBERSICHT</div>
-        <div class="routine-chart-wrap" id="routineChartWrap"></div>
-        <div class="rc-legend">
-          <span><span class="rc-legend-dot" style="background:var(--gold)"></span>Erledigt</span>
-          <span><span class="rc-legend-dot" style="background:var(--bg3);border:1px solid var(--border2)"></span>Verpasst</span>
-          <span><span class="rc-legend-dot" style="background:transparent;border:1px dashed var(--border2)"></span>Nicht geplant</span>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">MEDIKAMENTE – COMPLIANCE</div>
-        <div id="medComplianceChart"></div>
-      </div>
-    </div>
-
-    <!-- VIEW: INSIGHTS -->
-    <div class="view" id="view-insights">
-      <div class="section-title">WAS TUT DIR GUT?</div>
-      <div class="card" style="margin-bottom:0.75rem">
-        <div class="card-title">SCHLAF · HRV · ENERGIE IM VERLAUF</div>
-        <div id="insightsTrendChart"></div>
-        <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.65rem;font-family:'Syne Mono',monospace">
-          <span style="color:#5b8dee">● Schlaf (h)</span>
-          <span style="color:#9b72e8">● HRV /10</span>
-          <span style="color:#4caf82">● Energie</span>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:0.75rem">
-        <div class="card-title">STIMMUNGEN – HÄUFIGKEIT (30 TAGE)</div>
-        <div id="moodFreqChart"></div>
-      </div>
-      <div class="card" style="margin-bottom:0.75rem">
-        <div class="card-title">STIMMUNGS-KALENDER</div>
-        <div id="moodCalChart"></div>
-      </div>
-      <div id="corrList"></div>
     </div>
     <!-- VIEW: EINSTELLUNGEN & EXPORT -->
     <div class="view" id="view-einstellungen">
@@ -1086,9 +1089,9 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       <span class="nav-icon">∿</span>
       <span class="nav-label">Statistik</span>
     </button>
-    <button class="nav-btn" onclick="showView('insights',this)">
-      <span class="nav-icon">◈</span>
-      <span class="nav-label">Insights</span>
+    <button class="nav-btn" onclick="showView('ernaehrung',this)">
+      <span class="nav-icon">🥗</span>
+      <span class="nav-label">Ernährung</span>
     </button>
     <button class="nav-btn" onclick="showView('einstellungen',this)">
       <span class="nav-icon">⚙</span>
@@ -2135,7 +2138,7 @@ function showView(name, btn){
   if(name==='routinen') renderRoutines();
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
-  if(name==='insights') renderInsights();
+  if(name==='insights'||name==='stats') { renderInsights(); } if(name==='ernaehrung') { renderAllMeals(); renderMedList(); }
   document.getElementById('appContent').scrollTop=0;
 }
 
