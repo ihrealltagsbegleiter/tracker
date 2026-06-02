@@ -521,6 +521,32 @@ input[type=date]::-webkit-calendar-picker-indicator {
   background: rgba(200,169,110,0.1);
 }
 
+/* ── WAITING ── */
+.waiting-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.waiting-card.overdue-wait { border-left-color: var(--danger); }
+.waiting-person {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--warn);
+  margin-bottom: 4px;
+}
+.waiting-person.overdue { color: var(--danger); }
+.waiting-followup {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
 /* ── HORIZON PICKER ── */
 .horizon-picker {
   display: flex;
@@ -598,6 +624,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     </div>
     <div class="nav-tab" data-tab="recurring" onclick="switchTab('recurring')">
       Regelmäßig <span class="badge" id="badge-recurring">0</span>
+    </div>
+    <div class="nav-tab" data-tab="waiting" onclick="switchTab('waiting')">
+      Warten <span class="badge" id="badge-waiting">0</span>
     </div>
     <div class="nav-tab" data-tab="projects" onclick="switchTab('projects')">
       Projekte <span class="badge" id="badge-projects">0</span>
@@ -755,6 +784,33 @@ input[type=date]::-webkit-calendar-picker-indicator {
   </div>
 </div>
 
+<!-- WAIT MODAL -->
+<div class="modal-overlay" id="wait-overlay" onclick="handleWaitOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title">Warten auf…</div>
+
+    <div class="field">
+      <label>Auf wen / was wartest du?</label>
+      <input type="text" id="fw-person" placeholder="z.B. Steuerberater Müller · Angebot Lieferant X" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>Erinnerung: Nachhaken spätestens am</label>
+      <input type="date" id="fw-due"/>
+    </div>
+
+    <div class="field">
+      <label>Notiz (optional)</label>
+      <textarea id="fw-note" placeholder="Was wurde besprochen / was wird erwartet…" style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeWaitModal()">Abbrechen</button>
+      <button class="btn btn-save" onclick="saveWait()">Zurückstellen</button>
+    </div>
+  </div>
+</div>
+
 <!-- REVIEW MODAL -->
 <div class="modal-overlay" id="review-overlay" onclick="handleReviewOverlayClick(event)">
   <div class="modal">
@@ -882,9 +938,12 @@ function getTabTasks(tab) {
   if (tab === 'recurring') {
     return tasks.filter(t => t.recurring && t.recurring !== 'none' && isRecurringDueToday(t));
   }
-  // Exclude recurring tasks from regular tabs
-  const base = tasks.filter(t => !t.recurring || t.recurring === 'none');
-  if (tab === 'inbox') return base; // all non-recurring
+  if (tab === 'waiting') {
+    return tasks.filter(t => t.waiting === true);
+  }
+  // Exclude recurring and waiting tasks from regular tabs
+  const base = tasks.filter(t => (!t.recurring || t.recurring === 'none') && !t.waiting);
+  if (tab === 'inbox') return base;
   return base.filter(t => t.horizon === tab);
 }
 
@@ -902,13 +961,15 @@ function updateBadges() {
     if (!el) return;
     el.textContent = getTabTasks(tab).length;
   });
+  const wbadge = document.getElementById('badge-waiting');
+  if (wbadge) wbadge.textContent = tasks.filter(t => t.waiting === true).length;
   const pbadge = document.getElementById('badge-projects');
   if (pbadge) pbadge.textContent = projects.filter(p => p.status === 'active').length;
 }
 
 function updateStats() {
   const bar = document.getElementById('stats-bar');
-  if (currentTab === 'inbox' || currentTab === 'today') {
+  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting') {
     bar.style.display = 'grid';
     const nonRecur = tasks.filter(t => !t.recurring || t.recurring === 'none');
     document.getElementById('stat-overdue').textContent =
@@ -925,6 +986,7 @@ function updateStats() {
 
 function renderList() {
   if (currentTab === 'projects') { renderProjectsTab(); return; }
+  if (currentTab === 'waiting') { renderWaitingTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -1004,6 +1066,12 @@ function taskCard(task, isRecurring = false) {
   if (task.recurring && task.recurring !== 'none') {
     tags += `<span class="tag tag-recurring">${recurLabel(task)}</span>`;
   }
+  if (task.waiting) {
+    const wb = task.waitingFor ? `⏳ Warten: ${escHtml(task.waitingFor)}` : '⏳ Warten auf Rückmeldung';
+    const wd = task.waitingDue ? ` · bis ${task.waitingDue.split('-').reverse().join('.')}` : '';
+    const wOverdue = task.waitingDue && diffDays(task.waitingDue) !== null && diffDays(task.waitingDue) < 0;
+    tags += `<span class="tag" style="color:${wOverdue?'var(--danger)':'var(--warn)'};border-color:${wOverdue?'var(--danger)':'var(--warn)'};background:${wOverdue?'rgba(196,107,90,0.1)':'rgba(196,154,74,0.1)'};">${wb}${wd}</span>`;
+  }
   if (due) {
     tags += `<span class="due-tag ${due.cls}">📅 ${due.label}</span>`;
   }
@@ -1018,14 +1086,16 @@ function taskCard(task, isRecurring = false) {
       { val: 'maybe', label: 'Vielleicht', active: task.horizon === 'maybe' },
     ].map(h => `<button class="horizon-pick-btn${h.active ? ' active' : ''}" onclick="setHorizonDirect('${task.id}','${h.val}',event)">${h.label}</button>`).join('');
 
+    const waitBtn = task.waiting
+      ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${task.id}',event)">▶ Reaktivieren</button>`
+      : `<button class="task-action-btn" onclick="openWaitModal('${task.id}',event)">⏳ Warten auf…</button>`;
+
     actions = `<div class="task-actions">
       <button class="task-action-btn" onclick="openEditModal('${task.id}',event)">✏️ Bearbeiten</button>
+      ${waitBtn}
       <button class="task-action-btn del" onclick="deleteTask('${task.id}',event)">🗑 Löschen</button>
     </div>
-    <div class="horizon-picker">
-      <span class="horizon-pick-label">→</span>
-      ${horizonBtns}
-    </div>`;
+    ${!task.waiting ? `<div class="horizon-picker"><span class="horizon-pick-label">→</span>${horizonBtns}</div>` : ''}`;
   }
 
   const note = (task.note && expanded) ? `<div class="task-note">${escHtml(task.note)}</div>` : '';
@@ -1122,6 +1192,9 @@ function switchTab(tab) {
     if (tab === 'projects') {
       addBtn.textContent = '+ Projekt';
       addBtn.onclick = () => openProjectModal(null);
+    } else if (tab === 'waiting') {
+      addBtn.textContent = '+ Neu';
+      addBtn.onclick = () => openAddModal();
     } else {
       addBtn.textContent = '+ Neu';
       addBtn.onclick = () => openAddModal();
@@ -1536,6 +1609,139 @@ function renderProjectTaskList(p) {
   return inner;
 }
 
+
+// ── WAITING ──
+let waitingTaskId = null;
+
+function openWaitModal(id, e) {
+  e.stopPropagation();
+  waitingTaskId = id;
+  const task = tasks.find(t => t.id === id);
+  document.getElementById('fw-person').value   = task?.waitingFor  || '';
+  document.getElementById('fw-due').value      = task?.waitingDue  || '';
+  document.getElementById('fw-note').value     = task?.waitingNote || '';
+  document.getElementById('wait-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('fw-person').focus(), 300);
+}
+
+function closeWaitModal() {
+  document.getElementById('wait-overlay').classList.remove('open');
+  waitingTaskId = null;
+}
+
+function handleWaitOverlayClick(e) {
+  if (e.target === document.getElementById('wait-overlay')) closeWaitModal();
+}
+
+function saveWait() {
+  const task = tasks.find(t => t.id === waitingTaskId);
+  if (!task) return;
+  task.waiting     = true;
+  task.waitingFor  = document.getElementById('fw-person').value.trim() || null;
+  task.waitingDue  = document.getElementById('fw-due').value   || null;
+  task.waitingNote = document.getElementById('fw-note').value.trim() || null;
+  task.waitingSince = todayStr();
+  save(tasks);
+  closeWaitModal();
+  expandedIds.delete(waitingTaskId);
+  showToast('⏳ Zurückgestellt');
+  render();
+}
+
+function unWaitTask(id, e) {
+  e.stopPropagation();
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.waiting     = false;
+  task.waitingFor  = null;
+  task.waitingDue  = null;
+  task.waitingNote = null;
+  task.waitingSince = null;
+  save(tasks);
+  expandedIds.delete(id);
+  showToast('▶ Reaktiviert');
+  render();
+}
+
+function renderWaitingTab() {
+  const list = document.getElementById('task-list');
+  const bar  = document.getElementById('stats-bar');
+
+  const waiting = tasks.filter(t => t.waiting === true);
+
+  // Stats: overdue follow-up count
+  const overdueWait = waiting.filter(t => t.waitingDue && diffDays(t.waitingDue) !== null && diffDays(t.waitingDue) < 0).length;
+  if (overdueWait > 0) {
+    bar.style.display = 'grid';
+    document.getElementById('stat-overdue').textContent    = overdueWait;
+    document.getElementById('stat-today-count').textContent = waiting.filter(t => t.waitingDue && diffDays(t.waitingDue) === 0).length;
+    document.getElementById('stat-high-impact').textContent = waiting.filter(t => t.impact === 'high').length;
+    document.getElementById('stat-total').textContent      = waiting.length;
+    document.getElementById('stat-overdue').parentElement.querySelector('.stat-lbl').textContent = 'Nachhaken!';
+  } else {
+    bar.style.display = 'none';
+  }
+
+  if (waiting.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Nichts zurückgestellt.</div></div>`;
+    return;
+  }
+
+  // Sort: overdue nachhaken first, then by waitingDue
+  const sorted = [...waiting].sort((a, b) => {
+    const da = diffDays(a.waitingDue) ?? 9999;
+    const db = diffDays(b.waitingDue) ?? 9999;
+    return da - db;
+  });
+
+  // Group by person
+  const byPerson = {};
+  sorted.forEach(t => {
+    const key = t.waitingFor || '—';
+    if (!byPerson[key]) byPerson[key] = [];
+    byPerson[key].push(t);
+  });
+
+  let html = '';
+  Object.entries(byPerson).forEach(([person, ts]) => {
+    html += `<div class="section-header"><span class="section-label">⏳ ${escHtml(person)}</span><div class="section-line"></div></div>`;
+    ts.forEach(t => {
+      const wd = t.waitingDue ? diffDays(t.waitingDue) : null;
+      const isOverdue = wd !== null && wd < 0;
+      const isToday   = wd === 0;
+      const expanded  = expandedIds.has(t.id);
+
+      let dueLine = '';
+      if (t.waitingDue) {
+        if (isOverdue) dueLine = `<span style="color:var(--danger);font-size:0.75rem;">🔴 Nachhaken überfällig (${Math.abs(wd)}T)</span>`;
+        else if (isToday) dueLine = `<span style="color:var(--today);font-size:0.75rem;">🔵 Nachhaken heute</span>`;
+        else dueLine = `<span style="color:var(--muted);font-size:0.75rem;">📅 Nachhaken: ${t.waitingDue.split('-').reverse().join('.')}</span>`;
+      }
+
+      const since = t.waitingSince ? `seit ${t.waitingSince.split('-').reverse().join('.')}` : '';
+
+      html += `<div class="waiting-card ${isOverdue ? 'overdue-wait' : ''}" onclick="toggleExpand('${t.id}',event)">
+        <div class="task-top">
+          <div class="task-check" onclick="checkTask('${t.id}',event)"></div>
+          <div class="task-body">
+            <div class="task-title">${escHtml(t.title)}</div>
+            ${since ? `<div class="waiting-followup">${since}</div>` : ''}
+            ${t.waitingNote ? `<div class="waiting-followup">${escHtml(t.waitingNote)}</div>` : ''}
+            <div class="task-meta" style="margin-top:6px;">${dueLine}</div>
+            ${expanded ? `<div class="task-actions" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+              <button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${t.id}',event)">▶ Reaktivieren</button>
+              <button class="task-action-btn" onclick="openWaitModal('${t.id}',event)">✏️ Bearbeiten</button>
+              <button class="task-action-btn del" onclick="deleteTask('${t.id}',event)">🗑</button>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+
+  list.innerHTML = html;
+}
+
 // ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -1546,7 +1752,7 @@ function showToast(msg) {
 
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); }
+  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); closeWaitModal(); }
   if (e.key === 'n' && !e.target.matches('input,textarea,select')) {
     if (currentTab === 'projects') openProjectModal(null); else openAddModal();
   }
