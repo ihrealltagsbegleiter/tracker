@@ -2196,6 +2196,7 @@ function openQuick() {
   document.getElementById('fab').classList.add('open');
   document.getElementById('quick-input').value = '';
   setQuickImpact(3);
+  attachQuickListener();
   setTimeout(() => document.getElementById('quick-input').focus(), 180);
 }
 
@@ -2256,10 +2257,16 @@ function saveQuickTask() {
   showToast('⚡ Im Eingang');
 }
 
-document.getElementById('quick-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); saveQuickTask(); }
-  if (e.key === 'Escape') { e.preventDefault(); closeQuick(); }
-});
+// quick-input listener attached lazily on first open (element is after </body> injection)
+function attachQuickListener() {
+  const el = document.getElementById('quick-input');
+  if (!el || el._listenerAttached) return;
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); saveQuickTask(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeQuick(); }
+  });
+  el._listenerAttached = true;
+}
 
 
 // ── MATRIX TAB ──
