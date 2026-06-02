@@ -2613,7 +2613,14 @@ function downloadCSV(lines, filename){
 function exportCSV(){ openCSVExportDialog(); }
 
 function exportJSON(){
-  // Collect all frog entries (last 365 days)
+  const customTags = {};
+  try{ ['ern','neg','akt','pain'].forEach(k=>{ const v=localStorage.getItem('custom_'+k+'_opts'); if(v) customTags[k]=JSON.parse(v); }); }catch(e){}
+  const mealMemory = (() => { try{ return JSON.parse(localStorage.getItem('meal_memory')||'{}'); }catch(e){ return {}; } })();
+  const notifPrefs = (() => { try{ return JSON.parse(localStorage.getItem('notif_prefs')||'{}'); }catch(e){ return {}; } })();
+  const data = {
+    days: allDays,
+    routines: allRoutines,
+    routine_completions: routineCompletions,
     customTags,
     mealMemory,
     notifPrefs,
@@ -3434,8 +3441,6 @@ function renderWeekReview(){
 
   const avgWb = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.wellbeing||5),0)/weekDays.length).toFixed(1) : '–';
   const avgSleep = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.sleep||0),0)/weekDays.length).toFixed(1) : '–';
-  // Frogs eaten this week
-  }
 
   document.getElementById('reviewStatsGrid').innerHTML = `
     <div class="review-stat"><div class="review-stat-num">${avgWb}</div><div class="review-stat-lbl">Ø Wohlbefinden</div></div>
