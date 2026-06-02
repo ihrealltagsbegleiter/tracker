@@ -1645,16 +1645,7 @@ function checkTask(id, e) {
     card.style.transform = 'translateX(30px)';
     setTimeout(() => {
       const doneTask = tasks.find(t => t.id === id);
-      // Frosch im Tracker als erledigt markieren
-      if (doneTask?.frog) {
-        const today = todayStr();
-        try {
-          let frogs = JSON.parse(localStorage.getItem('frogs_' + today) || '[]');
-          const fi = frogs.findIndex(f => f.aufgabenId === doneTask.id);
-          if (fi >= 0) { frogs[fi].done = true; frogs[fi].completedAt = new Date().toISOString(); }
-          localStorage.setItem('frogs_' + today, JSON.stringify(frogs));
-        } catch {}
-      }
+
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
       expandedIds.delete(id);
@@ -2750,36 +2741,9 @@ function setDread(val) {
   });
 }
 
-// ── Tracker-Sync: Frösche als frogs_YYYY-MM-DD in localStorage schreiben ──
-function syncFrogToTracker(task) {
-  if (!task.frog) return;
-  const today = todayStr();
-  let frogs = [];
-  try { frogs = JSON.parse(localStorage.getItem('frogs_' + today) || '[]'); } catch {}
-  // Nicht doppelt eintragen
-  if (frogs.find(f => f.aufgabenId === task.id)) return;
-  if (frogs.filter(f => !f.done).length >= 3) return; // Tracker-Limit: max 3
-  frogs.push({
-    id:          Date.now().toString(),
-    aufgabenId:  task.id,   // Rückreferenz für Deduplizierung
-    text:        task.title,
-    priority:    Math.max(1, Math.min(3, Math.round((6 - (parseInt(task.impact) || 3)) / 2) + 1)), // Impact 5→1, Prio 1→3
-    dread:       task.dread || 3,
-    done:        false,
-    created:     new Date().toISOString(),
-    source:      'aufgaben'  // Herkunfts-Marker
-  });
-  localStorage.setItem('frogs_' + today, JSON.stringify(frogs));
-}
-
-function removeFrogFromTracker(taskId) {
-  const today = todayStr();
-  try {
-    let frogs = JSON.parse(localStorage.getItem('frogs_' + today) || '[]');
-    frogs = frogs.filter(f => f.aufgabenId !== taskId);
-    localStorage.setItem('frogs_' + today, JSON.stringify(frogs));
-  } catch {}
-}
+// Kein Tracker-Sync – Frösche leben nur in der Aufgaben-App (Supabase-sync)
+function syncFrogToTracker() {}
+function removeFrogFromTracker() {}
 
 // ── FROGS TAB ──
 const DREAD_LABELS = ['','😊 Kein Problem','🙂 Niedrig','😐 Mittel','😟 Hoch','😰 Sehr hoch'];
@@ -2792,8 +2756,6 @@ function renderFrogsTab() {
   const frogs = tasks.filter(t => t.frog === true && !t.waiting)
     .sort((a, b) => (b.dread || 3) - (a.dread || 3) || (parseInt(b.impact)||3) - (parseInt(a.impact)||3));
 
-  // Tracker-Frosch-Eintrag für alle Frösche ohne Erledigungsdatum aktuell halten
-  frogs.forEach(t => syncFrogToTracker(t));
 
   if (frogs.length === 0) {
     list.innerHTML = `<div class="empty">
@@ -2803,24 +2765,14 @@ function renderFrogsTab() {
     return;
   }
 
-  const trackerUrl = 'https://ihrealltagsbegleiter.github.io/tracker/';
 
-  let html = `<div class="frog-banner">
-    <div style="font-size:2rem;">🐸</div>
-    <div>
-      <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#4caf82;">${frogs.length} Frosch${frogs.length > 1 ? '…e' : ''} definiert</div>
-      <div class="frog-sync-note">✓ Automatisch mit Tracker synchronisiert</div>
-      <div style="margin-top:6px;">
-        <a href="${trackerUrl}" target="_blank" style="
-          font-family:monospace;font-size:0.68rem;
-          color:#4caf82;text-decoration:none;
-          border:1px solid rgba(76,175,130,0.4);
-          border-radius:6px;padding:3px 10px;
-          transition:all 0.15s;
-        ">→ Tracker öffnen</a>
-      </div>
-    </div>
-  </div>`;
+   let html = `<div class="frog-banner">
+     <div style="font-size:2rem;">🐸</div>
+     <div>
+       <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#4caf82;">${frogs.length} Frosch${frogs.length > 1 ? '…e' : ''} definiert</div>
+       <div class="frog-sync-note">✓ Geräteübergreifend via Supabase synchronisiert</div>
+     </div>
+   </div>`;
 
   // Gruppen nach Dread
   const groups = [
