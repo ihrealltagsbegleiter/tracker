@@ -544,7 +544,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
   transition:all 0.12s;letter-spacing:0.02em;
   display:flex;align-items:center;gap:0.3rem;
 }
-.mood-tag.active{border-color:var(--mood-color,var(--gold));background:color-mix(in srgb,var(--mood-color,var(--gold)) 15%,transparent);color:var(--mood-color,var(--gold))}
+.mood-tag.active{border-color:var(--gold);background:rgba(212,168,67,0.18);color:var(--gold)}
 .mood-tag:active{transform:scale(0.95)}
 
 /* ─── MEDIKAMENTEN-LOG ──────────────────────────────────────── */
@@ -2887,16 +2887,26 @@ function getYesterdayKey(){
 // STIMMUNGS-TAGS
 // ══════════════════════════════════════════════════════════════════
 const MOOD_OPTIONS = [
-  {label:'😌 Ruhig',      color:'#4caf82'},
-  {label:'😊 Fröhlich',   color:'#f0c96a'},
-  {label:'⚡ Fokussiert', color:'#5b8dee'},
-  {label:'😤 Gereizt',    color:'#e05555'},
-  {label:'😰 Ängstlich',  color:'#ff9800'},
-  {label:'😔 Traurig',    color:'#8890a8'},
-  {label:'😴 Erschöpft',  color:'#9b72e8'},
-  {label:'🤩 Motiviert',  color:'#d4a843'},
-  {label:'😶 Leer',       color:'#4a5268'},
-  {label:'🥰 Dankbar',    color:'#e91e8c'},
+  {label:'😌 Ruhig',        color:'#4caf82'},
+  {label:'😊 Fröhlich',     color:'#f0c96a'},
+  {label:'⚡ Fokussiert',   color:'#5b8dee'},
+  {label:'😤 Gereizt',      color:'#e05555'},
+  {label:'😰 Ängstlich',    color:'#ff9800'},
+  {label:'😔 Traurig',      color:'#8890a8'},
+  {label:'😴 Erschöpft',    color:'#9b72e8'},
+  {label:'🤩 Motiviert',    color:'#d4a843'},
+  {label:'😶 Leer',         color:'#6b7280'},
+  {label:'🥰 Dankbar',      color:'#e91e8c'},
+  {label:'😤 Frustriert',   color:'#ef4444'},
+  {label:'🤗 Verbunden',    color:'#10b981'},
+  {label:'😮 Überfordert',  color:'#f97316'},
+  {label:'🧘 Gelassen',     color:'#06b6d4'},
+  {label:'😁 Begeistert',   color:'#eab308'},
+  {label:'😞 Niedergeschlagen', color:'#6366f1'},
+  {label:'🤒 Unwohl',       color:'#84cc16'},
+  {label:'💪 Stark',        color:'#22c55e'},
+  {label:'🌀 Unruhig',      color:'#a855f7'},
+  {label:'😐 Gleichgültig', color:'#94a3b8'},
 ];
 
 function buildMoodGrid(){
