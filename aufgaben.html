@@ -1021,20 +1021,6 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="topbar-title">Aufgaben</div>
     <div class="topbar-actions">
       <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
-      <div class="sort-dropdown-wrap">
-        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung">
-          <span id="sort-btn-label">↕</span>
-        </button>
-        <div class="sort-menu" id="sort-menu">
-          <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
-          <div class="sort-menu-item" data-key="impact"    onclick="setSortKey('impact')">   <span class="sort-icon">★</span> Impact           <span class="sort-menu-dir" id="dir-impact"    onclick="toggleSortDir('impact',event)">↓</span></div>
-          <div class="sort-menu-item" data-key="due"       onclick="setSortKey('due')">      <span class="sort-icon">📅</span> Fälligkeitsdatum <span class="sort-menu-dir" id="dir-due"       onclick="toggleSortDir('due',event)">↑</span></div>
-          <div class="sort-menu-item" data-key="eisen"     onclick="setSortKey('eisen')">    <span class="sort-icon">Q</span> Eisenhower        <span class="sort-menu-dir" id="dir-eisen"     onclick="toggleSortDir('eisen',event)">↑</span></div>
-          <div class="sort-menu-item" data-key="created"   onclick="setSortKey('created')">  <span class="sort-icon">🕐</span> Erstelldatum     <span class="sort-menu-dir" id="dir-created"   onclick="toggleSortDir('created',event)">↓</span></div>
-          <div class="sort-menu-item" data-key="title"     onclick="setSortKey('title')">    <span class="sort-icon">A</span> Alphabetisch      <span class="sort-menu-dir" id="dir-title"     onclick="toggleSortDir('title',event)">↑</span></div>
-          <div class="sort-menu-item" data-key="project"   onclick="setSortKey('project')">  <span class="sort-icon">📁</span> Projekt          <span class="sort-menu-dir" id="dir-project"   onclick="toggleSortDir('project',event)">↑</span></div>
-        </div>
-      </div>
       <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
       <button class="icon-btn primary" onclick="openAddModal()">+ Neu</button>
     </div>
@@ -1085,6 +1071,20 @@ input[type=date]::-webkit-calendar-picker-indicator {
       📋 Protokoll
     </div>
 
+    <div class="sort-dropdown-wrap" style="display:flex;align-items:center;margin-left:auto;padding:0 8px;flex-shrink:0;">
+      <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung" style="padding:6px 10px;font-size:0.75rem;">
+        <span id="sort-btn-label">↕</span>
+      </button>
+      <div class="sort-menu" id="sort-menu">
+        <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
+        <div class="sort-menu-item" data-key="impact"    onclick="setSortKey('impact')">   <span class="sort-icon">★</span> Impact           <span class="sort-menu-dir" id="dir-impact"    onclick="toggleSortDir('impact',event)">↓</span></div>
+        <div class="sort-menu-item" data-key="due"       onclick="setSortKey('due')">      <span class="sort-icon">📅</span> Fälligkeit       <span class="sort-menu-dir" id="dir-due"       onclick="toggleSortDir('due',event)">↑</span></div>
+        <div class="sort-menu-item" data-key="eisen"     onclick="setSortKey('eisen')">    <span class="sort-icon">Q</span> Eisenhower       <span class="sort-menu-dir" id="dir-eisen"     onclick="toggleSortDir('eisen',event)">↑</span></div>
+        <div class="sort-menu-item" data-key="created"   onclick="setSortKey('created')">  <span class="sort-icon">🕐</span> Erstellt         <span class="sort-menu-dir" id="dir-created"   onclick="toggleSortDir('created',event)">↓</span></div>
+        <div class="sort-menu-item" data-key="title"     onclick="setSortKey('title')">    <span class="sort-icon">A</span> Alphabetisch     <span class="sort-menu-dir" id="dir-title"     onclick="toggleSortDir('title',event)">↑</span></div>
+        <div class="sort-menu-item" data-key="project"   onclick="setSortKey('project')">  <span class="sort-icon">📁</span> Projekt         <span class="sort-menu-dir" id="dir-project"   onclick="toggleSortDir('project',event)">↑</span></div>
+      </div>
+    </div>
   </div>
 
   <!-- STATS (only on inbox/today) -->
