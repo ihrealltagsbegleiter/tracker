@@ -891,53 +891,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
           <div class="gratitude-item"><span class="gratitude-num">3</span><textarea class="gratitude-input" id="grat2" rows="1" placeholder="Was hat mich heute überrascht?…" oninput="autoGrow(this);saveGratitude(2,this.value)"></textarea></div>
         </div>
       </div>
-
-      <!-- Erfolge -->
-      <div class="card" id="winsCard">
-        <div class="card-title">🏆 KLEINE ERFOLGE</div>
-        <div class="win-list" id="winList"></div>
-        <div class="win-add-row">
-          <input class="win-input" id="winInput"
-            placeholder="Was hast du heute erreicht?…"
-            autocomplete="off"
-            oninput="showWinSugg()"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addWin()}"
-          />
-          <button class="win-add-btn" onclick="addWin()">+</button>
-        </div>
-        <div class="win-sugg" id="winSugg"></div>
-      </div>
-
-      <!-- Gedanken / Brain Dump -->
-      <div class="card" id="thoughtsCard">
-        <div class="card-title">🧠 GEDANKEN-DUMP</div>
-
-        <!-- Filter -->
-        <div class="thought-filter-row">
-          <button class="thought-filter active" data-filter="all" onclick="setThoughtFilter('all',this)">Alle</button>
-          <button class="thought-filter" data-filter="do" onclick="setThoughtFilter('do',this)">🔴 Erledigen</button>
-          <button class="thought-filter" data-filter="clarify" onclick="setThoughtFilter('clarify',this)">🟡 Klären</button>
-          <button class="thought-filter" data-filter="release" onclick="setThoughtFilter('release',this)">🔵 Loslassen</button>
-          <button class="thought-filter" data-filter="dump" onclick="setThoughtFilter('dump',this)">💜 Nur raus</button>
-        </div>
-
-        <!-- List -->
-        <div id="thoughtList"></div>
-
-        <!-- Add -->
-        <textarea class="thought-add-area" id="thoughtInput"
-          placeholder="Was geht dir im Kopf rum? Einfach rausschreiben…"
-          rows="2"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addThought()}"
-        ></textarea>
-        <div class="thought-toolbar">
-          <button class="thought-type-btn type-do" data-type="do" onclick="selectThoughtType('do',this)">🔴 Erledigen</button>
-          <button class="thought-type-btn type-clarify" data-type="clarify" onclick="selectThoughtType('clarify',this)">🟡 Klären</button>
-          <button class="thought-type-btn type-release" data-type="release" onclick="selectThoughtType('release',this)">🔵 Loslassen</button>
-          <button class="thought-type-btn type-dump active" data-type="dump" onclick="selectThoughtType('dump',this)">💜 Nur raus</button>
-          <button class="thought-add-btn" onclick="addThought()">Ablegen →</button>
-        </div>
-      </div>
       <button class="save-btn" id="saveBtn" onclick="saveToday()">Tag speichern</button>
       <button class="ai-btn" id="aiBtn" onclick="runAiDayReview()">✦ KI-Auswertung</button>
       <div id="aiReviewResult" style="display:none"></div>
@@ -1257,8 +1210,6 @@ let state = {
   date: TODAY,
   wellbeing: 5, sleep: 7.0, hrv: 55, energy: 7, pain: 0, sleepQuality: 0,
   ern: [], neg: [], akt: [], pain_tags: [], moods: [], note: '', painNote: '',
-  wins: [],
-  thoughts: [],
   gratitude: ['','',''],  meds_taken: [],
   meals: { fruehstueck: [], mittagessen: [], abendessen: [], snacks: [] }
 };
@@ -1293,8 +1244,6 @@ async function init(){
     if(todayData.meals) { state.meals = todayData.meals; renderAllMeals(); }
     if(todayData.gratitude) { state.gratitude = todayData.gratitude; restoreGratitude(); }
     if(todayData.moods) buildMoodGrid();
-    if(todayData.wins) renderWins();
-    if(todayData.thoughts) renderThoughts();
     if(todayData.meds_taken) renderMedList();
     if(todayData.pain_tags) buildTagGrid('painTag', [], 'pain');
     // Mark save button
@@ -1523,7 +1472,7 @@ async function loadDateData(){
   state = {
     wellbeing:5, sleep:7.0, hrv:55, energy:7, pain:0, sleepQuality:0,
     ern:[], neg:[], akt:[], pain_tags:[], moods:[], note:'', painNote:'',
-    wins:[], thoughts:[], meds_taken:[], meals:{}, gratitude:['','',''],
+    meds_taken:[], meals:{}, gratitude:['','',''],
     date: activeDate
   };
 
@@ -1550,8 +1499,6 @@ async function loadDateData(){
   renderMedList();
   renderAllMeals();
   restoreGratitude();
-  renderWins();
-  renderThoughts();
   updateHeader();
   showToast(activeDate === TODAY ? 'Heute' : activeDate);
 }
@@ -2587,7 +2534,6 @@ function exportCSVDays(period){
     csvArr(d.neg),
     csvArr(getEffectiveAkt(d)),
     csvArr(d.moods),
-    csvArr(d.wins?.map?.(w=>w.text||w)),
     csvStr(d.note),
     csvStr(d.painNote),
     csvArr((d.meals||{}).fruehstueck),
@@ -2665,7 +2611,6 @@ function exportJSON(){
     notifPrefs,
     medSchedule: getMedSchedule(),
     medMemory: getMedMemory(),
-    winMemory: getWinMemory(),
     weekReviews: getWeekReviews(),
     projects: getProjects(),
   };
@@ -2730,8 +2675,7 @@ async function performImport(encodedData){
     if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
     if(Array.isArray(data.medSchedule)) saveMedSchedule(data.medSchedule);
     if(Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
-    if(Array.isArray(data.winMemory)) localStorage.setItem('win_memory', JSON.stringify(data.winMemory));
-    if(data.weekReviews) saveWeekReviews(data.weekReviews);
+      if(data.weekReviews) saveWeekReviews(data.weekReviews);
     if(Array.isArray(data.projects)) saveProjects(data.projects);
     closeModal();
     showToast(imported + ' Tage importiert!');
@@ -3608,209 +3552,6 @@ function renderRoutineChart(){
 }
 
 
-// ══════════════════════════════════════════════════════════════════
-// KLEINE ERFOLGE
-// ══════════════════════════════════════════════════════════════════
-function getWinMemory(){
-  try{ return JSON.parse(localStorage.getItem('win_memory')||'[]'); }
-  catch(e){ return []; }
-}
-function addToWinMemory(text){
-  const mem = getWinMemory();
-  const clean = text.trim().toLowerCase();
-  if(!clean) return;
-  // Increment count if exists, else add
-  const ex = mem.find(m=>m.text.toLowerCase()===clean);
-  if(ex){ ex.count=(ex.count||1)+1; ex.last=TODAY; }
-  else mem.unshift({text:text.trim(), count:1, last:TODAY});
-  // Sort by count desc, cap at 300
-  mem.sort((a,b)=>b.count-a.count);
-  if(mem.length>300) mem.pop();
-  localStorage.setItem('win_memory', JSON.stringify(mem));
-}
-
-const WIN_ICONS = ['🏆','⭐','✅','💪','🎯','🌟','🔥','👏','🚀','💡'];
-
-function renderWins(){
-  const wrap = document.getElementById('winList');
-  if(!wrap) return;
-  const wins = state.wins||[];
-  wrap.innerHTML = wins.map((w,i)=>`
-    <div class="win-entry">
-      <span class="win-entry-icon">${WIN_ICONS[i%WIN_ICONS.length]}</span>
-      <span class="win-entry-text">${esc(w)}</span>
-      <button class="win-entry-del" onclick="removeWin(${i})">×</button>
-    </div>`).join('');
-}
-
-function addWin(){
-  const input = document.getElementById('winInput');
-  const val = input.value.trim();
-  if(!val) return;
-  if(!state.wins) state.wins=[];
-  state.wins.push(val);
-  addToWinMemory(val);
-  input.value='';
-  hideWinSugg();
-  renderWins();
-}
-
-function removeWin(idx){
-  state.wins.splice(idx,1);
-  renderWins();
-}
-
-function showWinSugg(){
-  const input = document.getElementById('winInput');
-  const q = input.value.trim().toLowerCase();
-  const el = document.getElementById('winSugg');
-  if(!q||!el){ if(el) el.innerHTML=''; return; }
-
-  const mem = getWinMemory();
-  // Also include wins from past days
-  const pastWins = allDays.flatMap(d=>d.wins||[]).map(w=>({text:w,count:1}));
-  // Merge: prefer mem entries (have counts)
-  const allKnown = [...mem];
-  pastWins.forEach(p=>{
-    if(!allKnown.find(m=>m.text.toLowerCase()===p.text.toLowerCase()))
-      allKnown.push(p);
-  });
-
-  const matches = allKnown
-    .filter(m=>m.text.toLowerCase().includes(q))
-    .filter(m=>!(state.wins||[]).map(x=>x.toLowerCase()).includes(m.text.toLowerCase()))
-    .slice(0,8);
-
-  if(!matches.length){ el.innerHTML=''; return; }
-
-  el.innerHTML = matches.map(m=>{
-    const hi = esc(m.text||m);
-    return `<div class="win-sugg-item"
-      onclick="selectWin('${m.text.replace(/'/g,"\'")}')">
-      🏆 ${hi}
-      ${m.count>1?`<span class="win-count-badge">×${m.count}</span>`:''}
-    </div>`;
-  }).join('');
-}
-
-function selectWin(text){
-  document.getElementById('winInput').value = text;
-  hideWinSugg();
-  addWin();
-}
-
-function hideWinSugg(){
-  const el = document.getElementById('winSugg');
-  if(el) el.innerHTML='';
-}
-
-document.addEventListener('click', e=>{
-  if(!e.target.closest('#winsCard')) hideWinSugg();
-});
-
-
-// ══════════════════════════════════════════════════════════════════
-// GEDANKEN / BRAIN DUMP
-// ══════════════════════════════════════════════════════════════════
-let activeThoughtType = 'dump';
-let activeThoughtFilter = 'all';
-
-const THOUGHT_TYPE_META = {
-  do:      {label:'Erledigen', icon:'🔴', hint:'Nächster Schritt:'},
-  clarify: {label:'Klären',    icon:'🟡', hint:'Was muss ich klären?'},
-  release: {label:'Loslassen', icon:'🔵', hint:'Warum lasse ich das los:'},
-  dump:    {label:'Nur raus',  icon:'💜', hint:''},
-};
-
-function selectThoughtType(type, btn){
-  activeThoughtType = type;
-  document.querySelectorAll('.thought-type-btn').forEach(b=>{
-    b.classList.remove('active','type-do','type-clarify','type-release','type-dump');
-  });
-  btn.classList.add('active','type-'+type);
-  document.getElementById('thoughtInput').focus();
-}
-
-function setThoughtFilter(filter, btn){
-  activeThoughtFilter = filter;
-  document.querySelectorAll('.thought-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderThoughts();
-}
-
-function addThought(){
-  const input = document.getElementById('thoughtInput');
-  const text = input.value.trim();
-  if(!text) return;
-  if(!state.thoughts) state.thoughts=[];
-  state.thoughts.unshift({
-    id: Date.now().toString(),
-    text,
-    type: activeThoughtType,
-    next: '',
-    created: new Date().toISOString()
-  });
-  input.value='';
-  input.style.height='auto';
-  renderThoughts();
-  showToast('Abgelegt 💜');
-}
-
-function removeThought(id){
-  state.thoughts = (state.thoughts||[]).filter(t=>t.id!==id);
-  renderThoughts();
-}
-
-function updateThoughtNext(id, val){
-  const t = (state.thoughts||[]).find(t=>t.id===id);
-  if(t) t.next=val;
-}
-
-function renderThoughts(){
-  const el = document.getElementById('thoughtList');
-  if(!el) return;
-  const thoughts = state.thoughts||[];
-  const filtered = activeThoughtFilter==='all'
-    ? thoughts
-    : thoughts.filter(t=>t.type===activeThoughtFilter);
-
-  if(!filtered.length){
-    el.innerHTML=`<div class="thought-empty">${
-      activeThoughtFilter==='all'
-        ? 'Noch nichts abgelegt. Schreib einfach los.'
-        : 'Keine Einträge in dieser Kategorie.'
-    }</div>`;
-    return;
-  }
-
-  el.innerHTML = filtered.map(t=>{
-    const meta = THOUGHT_TYPE_META[t.type]||THOUGHT_TYPE_META.dump;
-    const showNext = t.type==='do'||t.type==='clarify'||t.type==='release';
-    return `<div class="thought-item type-${t.type}">
-      <div class="thought-top">
-        <div class="thought-text">${esc(t.text)}</div>
-        <button class="thought-del" onclick="removeThought('${t.id}')">×</button>
-      </div>
-      <div class="thought-meta">
-        <span class="thought-type-badge type-${t.type}">${meta.icon} ${meta.label}</span>
-        ${showNext?`
-          <input class="thought-next"
-            placeholder="${meta.hint}…"
-            value="${esc(t.next||'')}"
-            oninput="updateThoughtNext('${t.id}',this.value)"
-          />`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// Auto-grow textarea
-document.addEventListener('input', e=>{
-  if(e.target.id==='thoughtInput'){
-    e.target.style.height='auto';
-    e.target.style.height=Math.min(e.target.scrollHeight,200)+'px';
-  }
-});
 
 
 // ═══ ADDED FEATURES ═══
