@@ -585,6 +585,157 @@ input[type=date]::-webkit-calendar-picker-indicator {
 }
 
 
+
+/* ── IMPACT STARS ── */
+.tag-impact-5 { color: #c46b5a; border-color: #c46b5a; background: rgba(196,107,90,0.12); }
+.tag-impact-4 { color: #c49a4a; border-color: #c49a4a; background: rgba(196,154,74,0.10); }
+.tag-impact-3 { color: #c8a96e; border-color: #c8a96e; background: rgba(200,169,110,0.10); }
+.tag-impact-2 { color: #6b6760; border-color: #4a4845; background: transparent; }
+.tag-impact-1 { color: #4a4845; border-color: #3a3835; background: transparent; }
+
+/* ── EISENHOWER TAGS ── */
+.tag-eisen-1 { color: #c46b5a; border-color: #c46b5a; background: rgba(196,107,90,0.12); }
+.tag-eisen-2 { color: #5a8fa0; border-color: #5a8fa0; background: rgba(90,143,160,0.10); }
+.tag-eisen-3 { color: #c49a4a; border-color: #c49a4a; background: rgba(196,154,74,0.10); }
+.tag-eisen-4 { color: #4a4845; border-color: #3a3835; background: transparent; }
+
+/* ── MATRIX TAB ── */
+.matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  margin-top: 4px;
+}
+.matrix-quadrant {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px;
+  min-height: 140px;
+}
+.matrix-quadrant-header {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-bottom: 10px;
+}
+.matrix-q-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.matrix-q-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.matrix-q-sub { color: var(--muted); font-size: 0.6rem; margin-top: 1px; }
+.matrix-q1 { border-top: 2px solid var(--danger);  }
+.matrix-q2 { border-top: 2px solid var(--today);   }
+.matrix-q3 { border-top: 2px solid var(--warn);    }
+.matrix-q4 { border-top: 2px solid var(--border);  }
+.matrix-q1 .matrix-q-num { color: var(--danger);  }
+.matrix-q2 .matrix-q-num { color: var(--today);   }
+.matrix-q3 .matrix-q-num { color: var(--warn);    }
+.matrix-q4 .matrix-q-num { color: var(--muted);   }
+
+.matrix-axis-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.matrix-axis-y {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%) rotate(180deg);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.matrix-wrapper { position: relative; padding-left: 14px; }
+
+.matrix-task-item {
+  font-size: 0.8rem;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 8px;
+  cursor: pointer;
+  transition: color 0.12s;
+}
+.matrix-task-item:last-child { border-bottom: none; }
+.matrix-task-item:hover { color: var(--accent); }
+.matrix-task-check {
+  width: 16px; height: 16px; flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem;
+  margin-top: 1px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.matrix-task-check:hover { border-color: var(--accent2); }
+.matrix-impact-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+
+/* Star picker */
+.star-picker { display: flex; gap: 4px; }
+.star-btn {
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.25;
+  transition: opacity 0.12s, transform 0.1s;
+  user-select: none;
+  padding: 2px;
+  background: none;
+  border: none;
+}
+.star-btn.lit { opacity: 1; }
+.star-btn:hover { transform: scale(1.2); }
+.star-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  align-self: center;
+  margin-left: 4px;
+}
+
+/* Eisenhower pill buttons */
+.eisen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.eisen-pill {
+  padding: 8px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+  line-height: 1.3;
+}
+.eisen-pill .e-num { font-family: 'Playfair Display', serif; font-size: 1rem; display: block; margin-bottom: 2px; }
+.eisen-pill .e-lbl { font-weight: 500; }
+.eisen-pill .e-sub { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 1px; }
+.eisen-pill.sel-1 { border-color: var(--danger); color: var(--danger); background: rgba(196,107,90,0.1); }
+.eisen-pill.sel-2 { border-color: var(--today);  color: var(--today);  background: rgba(90,143,160,0.1); }
+.eisen-pill.sel-3 { border-color: var(--warn);   color: var(--warn);   background: rgba(196,154,74,0.1); }
+.eisen-pill.sel-4 { border-color: var(--border); color: var(--text);   background: var(--surface2); }
+
 /* ── QUICK CAPTURE ── */
 .fab {
   position: fixed;
@@ -751,6 +902,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="nav-tab" data-tab="projects" onclick="switchTab('projects')">
       Projekte <span class="badge" id="badge-projects">0</span>
     </div>
+    <div class="nav-tab" data-tab="matrix" onclick="switchTab('matrix')">
+      Matrix
+    </div>
   </div>
 
   <!-- STATS (only on inbox/today) -->
@@ -810,11 +964,42 @@ input[type=date]::-webkit-calendar-picker-indicator {
     </div>
 
     <div class="field">
-      <label>Impact</label>
-      <div class="pill-group" id="impact-pills">
-        <div class="pill selected red" data-val="high">🔴 Hoch</div>
-        <div class="pill" data-val="medium">🟡 Mittel</div>
-        <div class="pill" data-val="low">⚪ Niedrig</div>
+      <label>Impact <span style="color:var(--muted);font-size:0.68rem;font-weight:300;">– strategische Hebelwirkung auf die Zukunft</span></label>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+        <div class="star-picker" id="impact-stars">
+          <button class="star-btn lit" data-val="1" onclick="setImpact(1)">★</button>
+          <button class="star-btn lit" data-val="2" onclick="setImpact(2)">★</button>
+          <button class="star-btn lit" data-val="3" onclick="setImpact(3)">★</button>
+          <button class="star-btn" data-val="4" onclick="setImpact(4)">★</button>
+          <button class="star-btn" data-val="5" onclick="setImpact(5)">★</button>
+        </div>
+        <span class="star-label" id="impact-label">Mittel</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Eisenhower-Quadrant <span style="color:var(--muted);font-size:0.68rem;font-weight:300;">– Wichtigkeit × Dringlichkeit</span></label>
+      <div class="eisen-grid" id="eisen-pills">
+        <button class="eisen-pill" data-val="1" onclick="setEisen(1)">
+          <span class="e-num">I</span>
+          <span class="e-lbl">Wichtig + Dringend</span>
+          <span class="e-sub">Sofort selbst erledigen</span>
+        </button>
+        <button class="eisen-pill" data-val="2" onclick="setEisen(2)">
+          <span class="e-num">II</span>
+          <span class="e-lbl">Wichtig + Nicht dringend</span>
+          <span class="e-sub">Planen &amp; einplanen</span>
+        </button>
+        <button class="eisen-pill" data-val="3" onclick="setEisen(3)">
+          <span class="e-num">III</span>
+          <span class="e-lbl">Unwichtig + Dringend</span>
+          <span class="e-sub">Delegieren</span>
+        </button>
+        <button class="eisen-pill" data-val="4" onclick="setEisen(4)">
+          <span class="e-num">IV</span>
+          <span class="e-lbl">Unwichtig + Nicht dringend</span>
+          <span class="e-sub">Eliminieren</span>
+        </button>
       </div>
     </div>
 
@@ -1089,7 +1274,8 @@ let expandedIds = new Set();
 
 // Pill state
 let fHorizon = 'today';
-let fImpact  = 'high';
+let fImpact  = 3;    // 1–5 stars
+let fEisen   = null; // 1–4 Eisenhower quadrant, null = not set
 let fContext = null;
 let fRecur   = 'none';
 
@@ -1192,7 +1378,7 @@ function updateBadges() {
 
 function updateStats() {
   const bar = document.getElementById('stats-bar');
-  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting') {
+  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix') {
     bar.style.display = 'grid';
     const nonRecur = tasks.filter(t => !t.recurring || t.recurring === 'none');
     document.getElementById('stat-overdue').textContent =
@@ -1210,6 +1396,7 @@ function updateStats() {
 function renderList() {
   if (currentTab === 'projects') { renderProjectsTab(); return; }
   if (currentTab === 'waiting') { renderWaitingTab(); return; }
+  if (currentTab === 'matrix') { renderMatrixTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -1276,8 +1463,15 @@ function taskCard(task, isRecurring = false) {
   if (currentTab === 'inbox' && false) {
     tags += `<span class="tag tag-horizon-${task.horizon}">${horizonLabels[task.horizon]||''}</span>`;
   }
-  if (task.impact && task.impact !== 'low') {
-    tags += `<span class="tag tag-impact-${task.impact}">${task.impact === 'high' ? '🔴 Hoch' : '🟡 Mittel'}</span>`;
+  if (task.impact) {
+    const imp = parseInt(task.impact) || 3;
+    const stars = '★'.repeat(imp) + '☆'.repeat(5 - imp);
+    tags += `<span class="tag tag-impact-${imp}" title="Impact: ${IMPACT_LABELS[imp]}">${stars}</span>`;
+  }
+  if (task.eisen) {
+    const eisenInfo = {1:['I','Wichtig+Dringend','var(--danger)'],2:['II','Wichtig+Geplant','var(--today)'],3:['III','Delegieren','var(--warn)'],4:['IV','Eliminieren','var(--muted)']};
+    const [num, lbl, col] = eisenInfo[task.eisen] || ['?','',col];
+    tags += `<span class="tag tag-eisen-${task.eisen}" title="${lbl}">Q${num}</span>`;
   }
   if (task.context) {
     tags += `<span class="tag tag-context">${contextLabels[task.context]||task.context}</span>`;
@@ -1438,7 +1632,9 @@ function openAddModal() {
   populateProjectSelect();
   document.getElementById('f-project').value = '';
   setHorizonPill('today');
-  setImpactPill('high');
+  setImpact(3);
+  fEisen = null;
+  document.querySelectorAll('#eisen-pills .eisen-pill').forEach(b => b.className = 'eisen-pill');
   setContextPill(null);
   setRecurPill('none');
   openModal();
@@ -1456,7 +1652,12 @@ function openEditModal(id, e) {
   populateProjectSelect();
   document.getElementById('f-project').value = task.projectId || '';
   setHorizonPill(task.horizon || 'today');
-  setImpactPill(task.impact || 'high');
+  setImpact(task.impact || 3);
+  fEisen = task.eisen || null;
+  document.querySelectorAll('#eisen-pills .eisen-pill').forEach(b => {
+    b.className = 'eisen-pill';
+    if (fEisen && parseInt(b.dataset.val) === fEisen) b.classList.add('sel-' + fEisen);
+  });
   setContextPill(task.context || null);
   setRecurPill(task.recurring || 'none');
   if (task.recurring === 'custom') {
@@ -1491,6 +1692,7 @@ function saveTask() {
       task.horizon  = fHorizon;
       task.due      = document.getElementById('f-due').value || null;
       task.impact   = fImpact;
+      task.eisen    = fEisen;
       task.context  = fContext;
       task.projectId = document.getElementById('f-project').value || null;
       task.recurring= recur;
@@ -1505,6 +1707,7 @@ function saveTask() {
       horizon:   fHorizon,
       due:       document.getElementById('f-due').value || null,
       impact:    fImpact,
+      eisen:     fEisen,
       context:   fContext,
       projectId: document.getElementById('f-project').value || null,
       recurring: recur,
@@ -1539,15 +1742,24 @@ function setHorizonPill(val) {
     }
   });
 }
-function setImpactPill(val) {
+const IMPACT_LABELS = ['','Minimal','Niedrig','Mittel','Hoch','Maximal'];
+
+function setImpact(val) {
   fImpact = val;
-  document.querySelectorAll('#impact-pills .pill').forEach(p => {
-    p.classList.remove('selected','red','green');
-    if (p.dataset.val === val) {
-      p.classList.add('selected');
-      if (val === 'high') p.classList.add('red');
-      else if (val === 'low') p.classList.add('green');
-    }
+  document.querySelectorAll('#impact-stars .star-btn').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.val) <= val);
+  });
+  const lbl = document.getElementById('impact-label');
+  if (lbl) lbl.textContent = IMPACT_LABELS[val] || '';
+}
+
+function setImpactPill(val) { setImpact(val); } // legacy alias
+
+function setEisen(val) {
+  fEisen = fEisen === val ? null : val; // toggle off
+  document.querySelectorAll('#eisen-pills .eisen-pill').forEach(b => {
+    b.className = 'eisen-pill';
+    if (parseInt(b.dataset.val) === fEisen) b.classList.add('sel-' + fEisen);
   });
 }
 function setContextPill(val) {
@@ -1568,7 +1780,7 @@ function setRecurPill(val) {
 }
 
 pillSetup('horizon-pills', 'fHorizon', setHorizonPill);
-pillSetup('impact-pills',  'fImpact',  setImpactPill);
+// impact uses star buttons directly; eisen uses onclick
 pillSetup('context-pills', 'fContext', setContextPill);
 pillSetup('recur-pills',   'fRecur',   setRecurPill);
 
@@ -1972,7 +2184,7 @@ function renderWaitingTab() {
 
 // ── QUICK CAPTURE ──
 let quickOpen = false;
-let quickImpact = 'high';
+let quickImpact = 3;
 
 function toggleQuick() {
   quickOpen ? closeQuick() : openQuick();
@@ -1983,7 +2195,7 @@ function openQuick() {
   document.getElementById('quick-overlay').classList.add('open');
   document.getElementById('fab').classList.add('open');
   document.getElementById('quick-input').value = '';
-  setQuickImpact('high');
+  setQuickImpact(3);
   setTimeout(() => document.getElementById('quick-input').focus(), 180);
 }
 
@@ -1999,10 +2211,11 @@ function handleQuickOverlayClick(e) {
 
 function setQuickImpact(val) {
   quickImpact = val;
-  document.querySelectorAll('.quick-imp-btn').forEach(b => {
-    b.className = 'quick-imp-btn';
-    if (b.dataset.imp === val) b.classList.add('active-' + val);
+  document.querySelectorAll('#quick-stars .star-btn').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.val) <= val);
   });
+  const lbl = document.getElementById('quick-impact-label');
+  if (lbl) lbl.textContent = IMPACT_LABELS[val] || '';
 }
 
 function saveQuickTask() {
@@ -2016,6 +2229,7 @@ function saveQuickTask() {
     horizon:   'today',   // landet im Eingang (inbox zeigt alle)
     due:       null,
     impact:    quickImpact,
+    eisen:     null,
     context:   null,
     project:   null,
     projectId: null,
@@ -2046,6 +2260,80 @@ document.getElementById('quick-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); saveQuickTask(); }
   if (e.key === 'Escape') { e.preventDefault(); closeQuick(); }
 });
+
+
+// ── MATRIX TAB ──
+const EISEN_META = {
+  1: { num:'I',   label:'Wichtig + Dringend',       sub:'Sofort selbst erledigen', cls:'matrix-q1', col:'var(--danger)' },
+  2: { num:'II',  label:'Wichtig + Nicht dringend', sub:'Planen & einplanen',       cls:'matrix-q2', col:'var(--today)'  },
+  3: { num:'III', label:'Unwichtig + Dringend',     sub:'Delegieren',               cls:'matrix-q3', col:'var(--warn)'   },
+  4: { num:'IV',  label:'Unwichtig + Nicht dringend',sub:'Eliminieren',             cls:'matrix-q4', col:'var(--muted)'  },
+};
+const IMPACT_COLORS = ['','#4a4845','#6b6760','#c8a96e','#c49a4a','#c46b5a'];
+
+function renderMatrixTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  const activeTasks = tasks.filter(t => !t.waiting && (!t.recurring || t.recurring === 'none'));
+  const unclassified = activeTasks.filter(t => !t.eisen);
+
+  let html = '';
+
+  // Axis labels
+  html += `<div style="margin-bottom:4px;">
+    <div class="matrix-axis-label">← Nicht dringend &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dringend →</div>
+  </div>`;
+
+  html += '<div class="matrix-grid">';
+
+  [2, 1, 4, 3].forEach(q => {
+    const m = EISEN_META[q];
+    const qTasks = activeTasks.filter(t => t.eisen === q)
+      .sort((a,b) => (parseInt(b.impact)||3) - (parseInt(a.impact)||3));
+
+    html += `<div class="matrix-quadrant ${m.cls}">
+      <div class="matrix-quadrant-header">
+        <div class="matrix-q-num">${m.num}</div>
+        <div>
+          <div class="matrix-q-label">${m.label}</div>
+          <div class="matrix-q-sub">${m.sub}</div>
+        </div>
+      </div>`;
+
+    if (qTasks.length === 0) {
+      html += `<div style="color:var(--muted);font-size:0.75rem;">Keine Aufgaben</div>`;
+    } else {
+      qTasks.forEach(t => {
+        const imp = parseInt(t.impact) || 3;
+        const dotColor = IMPACT_COLORS[imp] || 'var(--muted)';
+        html += `<div class="matrix-task-item" onclick="switchTab('inbox');expandedIds.add('${t.id}');render();">
+          <div class="matrix-task-check" onclick="checkTask('${t.id}',event)"></div>
+          <div class="matrix-impact-dot" style="background:${dotColor};" title="Impact: ${IMPACT_LABELS[imp]}"></div>
+          <div style="flex:1;min-width:0;font-size:0.8rem;line-height:1.35;">${escHtml(t.title)}</div>
+        </div>`;
+      });
+    }
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+
+  // Unclassified
+  if (unclassified.length > 0) {
+    html += `<div class="section-header" style="margin-top:16px;">
+      <span class="section-label">Nicht eingeordnet (${unclassified.length})</span>
+      <div class="section-line"></div>
+    </div>`;
+    unclassified.slice(0,5).forEach(t => { html += taskCard(t); });
+    if (unclassified.length > 5) {
+      html += `<div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:8px;">+${unclassified.length-5} weitere – Aufgabe bearbeiten um Quadrant zu setzen</div>`;
+    }
+  }
+
+  list.innerHTML = html;
+}
 
 // ── TOAST ──
 function showToast(msg) {
@@ -2110,10 +2398,16 @@ init();
       autocomplete="off"
       autocorrect="off"
     />
-    <div class="quick-impact-row">
-      <button class="quick-imp-btn active-high" data-imp="high"   onclick="setQuickImpact('high')">🔴 Hoch</button>
-      <button class="quick-imp-btn"             data-imp="medium" onclick="setQuickImpact('medium')">🟡 Mittel</button>
-      <button class="quick-imp-btn"             data-imp="low"    onclick="setQuickImpact('low')">⚪ Niedrig</button>
+    <div class="quick-impact-row" style="align-items:center;gap:4px;">
+      <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">Impact:</span>
+      <div class="star-picker" id="quick-stars">
+        <button class="star-btn lit" data-val="1" onclick="setQuickImpact(1)">★</button>
+        <button class="star-btn lit" data-val="2" onclick="setQuickImpact(2)">★</button>
+        <button class="star-btn lit" data-val="3" onclick="setQuickImpact(3)">★</button>
+        <button class="star-btn" data-val="4" onclick="setQuickImpact(4)">★</button>
+        <button class="star-btn" data-val="5" onclick="setQuickImpact(5)">★</button>
+      </div>
+      <span class="star-label" id="quick-impact-label" style="font-size:0.65rem;">Mittel</span>
     </div>
     <div class="quick-hint">
       <span><kbd>Enter</kbd> speichern &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</span>
