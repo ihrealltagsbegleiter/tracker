@@ -3174,6 +3174,20 @@ function renderRoutineChart(){
 
 
 
+
+function getWeekCompletionCount(rid){
+  const d = new Date(TODAY);
+  const dow = d.getDay()||7;
+  let count=0;
+  for(let i=0;i<dow;i++){
+    const ds = new Date(d); ds.setDate(d.getDate()-i);
+    if(routineCompletions.some(c=>c.rid===rid&&c.date===ds.toISOString().slice(0,10))) count++;
+  }
+  return count;
+}
+
+function getWeekReviews(){ try{ return JSON.parse(localStorage.getItem('week_reviews')||'{}'); }catch(e){ return {}; } }
+
 // ═══ ADDED FEATURES ═══
 function toggleSec(sid){
   const hdr=document.getElementById('sh-'+sid);
