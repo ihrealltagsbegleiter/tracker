@@ -985,6 +985,95 @@ input[type=date]::-webkit-calendar-picker-indicator {
   color: var(--accent);
 }
 
+
+/* ── SEARCH ── */
+.search-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 80px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.18s;
+}
+.search-overlay.open { opacity: 1; pointer-events: all; }
+.search-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  width: 100%; max-width: 600px;
+  margin: 0 16px;
+  overflow: hidden;
+  transform: translateY(-10px);
+  transition: transform 0.18s;
+}
+.search-overlay.open .search-box { transform: translateY(0); }
+.search-input-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.search-icon { color: var(--muted); font-size: 1rem; flex-shrink: 0; }
+.search-input {
+  flex: 1; background: transparent; border: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem; outline: none;
+}
+.search-input::placeholder { color: var(--muted); }
+.search-close {
+  color: var(--muted); cursor: pointer; font-size: 0.8rem;
+  font-family: 'DM Mono', monospace; padding: 3px 8px;
+  border: 1px solid var(--border); border-radius: 6px;
+  flex-shrink: 0; transition: color 0.12s;
+}
+.search-close:hover { color: var(--text); }
+.search-results { max-height: 420px; overflow-y: auto; }
+.search-result-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--surface2); }
+.search-result-check {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 1.5px solid var(--border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; margin-top: 1px;
+  cursor: pointer; transition: border-color 0.12s;
+}
+.search-result-check:hover { border-color: var(--accent2); }
+.search-result-body { flex: 1; min-width: 0; }
+.search-result-title { font-size: 0.92rem; line-height: 1.35; }
+.search-result-title mark {
+  background: rgba(200,169,110,0.3);
+  color: var(--accent);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.search-result-meta {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;
+}
+.search-empty {
+  padding: 32px 16px; text-align: center;
+  color: var(--muted); font-size: 0.88rem;
+}
+.search-hint {
+  padding: 10px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.06em;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  display: flex; gap: 12px;
+}
+.search-hint kbd {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 5px; font-size: 0.62rem;
+  font-family: 'DM Mono', monospace; color: var(--text);
+}
+
 /* ── QUICK CAPTURE ── */
 .fab {
   position: fixed;
@@ -1118,6 +1207,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="topbar-actions">
       <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);align-self:center;"></span>
       <div style="display:flex;align-items:center;gap:3px;position:relative;">
+        <button class="icon-btn" id="search-btn" onclick="openSearch()" title="Suchen (S)" style="padding:7px 9px;">🔍</button>
         <button class="icon-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern" style="padding:7px 9px;">⚙</button>
         <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">×</span>
         <button class="icon-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortieren" style="padding:7px 9px;"><span id="sort-btn-label">↕</span></button>
@@ -2931,9 +3021,10 @@ function showToast(msg) {
 
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); closeWaitModal(); closeQuick(); }
+  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); closeWaitModal(); closeQuick(); closeSearch(); }
   if (e.target.matches('input,textarea,select')) return;
   if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); openQuick(); }
+  if (e.key === 's' || e.key === 'S') { e.preventDefault(); openSearch(); }
   if (e.key === 'n' || e.key === 'N') {
     if (currentTab === 'projects') openProjectModal(null); else openAddModal();
   }
@@ -3178,6 +3269,101 @@ function renderFrogsTab() {
   list.innerHTML=html2;
 }
 
+
+// ── SEARCH ──
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+  setTimeout(() => document.getElementById('search-input').focus(), 150);
+}
+
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+}
+
+function handleSearchOverlayClick(e) {
+  if (e.target === document.getElementById('search-overlay')) closeSearch();
+}
+
+function onSearchInput(query) {
+  const q = query.trim().toLowerCase();
+  const container = document.getElementById('search-results');
+  if (!q) { container.innerHTML = ''; return; }
+
+  // Search in all tasks (including waiting, recurring)
+  const results = tasks.filter(t => {
+    if (!t.title) return false;
+    if (t.title.toLowerCase().includes(q)) return true;
+    if (t.note && t.note.toLowerCase().includes(q)) return true;
+    const proj = t.projectId ? projects.find(p => p.id === t.projectId) : null;
+    if (proj && proj.name.toLowerCase().includes(q)) return true;
+    return false;
+  }).slice(0, 20);
+
+  if (!results.length) {
+    container.innerHTML = `<div class="search-empty">Keine Aufgaben gefunden für „${escHtml(query)}"</div>`;
+    return;
+  }
+
+  function highlight(text, q) {
+    if (!text) return '';
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx < 0) return escHtml(text);
+    return escHtml(text.slice(0,idx)) + '<mark>' + escHtml(text.slice(idx,idx+q.length)) + '</mark>' + escHtml(text.slice(idx+q.length));
+  }
+
+  container.innerHTML = results.map(t => {
+    const proj = t.projectId ? projects.find(p => p.id === t.projectId) : null;
+    const urg  = urgency(t);
+    const due  = fmtDue(t);
+    const urgColors = { overdue:'var(--danger)', today:'var(--today)', soon:'var(--warn)', ok:'var(--muted)' };
+    const horizonLabels = {today:'Heute',week:'Woche',month:'Monat',later:'Irgendwann',maybe:'Vielleicht',null:'Eingang'};
+    let meta = '';
+    if (t.waiting) meta += `<span class="tag" style="font-size:0.65rem;color:var(--warn);border-color:var(--warn);">⏳ Warten</span>`;
+    if (t.frog)    meta += `<span class="tag tag-frog" style="font-size:0.65rem;">🐸 Frosch</span>`;
+    if (t.horizon) meta += `<span class="tag tag-horizon-${t.horizon}" style="font-size:0.65rem;">${horizonLabels[t.horizon]||''}</span>`;
+    if (proj)      meta += `<span class="tag" style="font-size:0.65rem;border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
+    if (due)       meta += `<span class="due-tag ${due.cls}" style="font-size:0.65rem;">📅 ${due.label}</span>`;
+
+    return `<div class="search-result-item" onclick="goToTask('${t.id}')">
+      <div class="search-result-check" onclick="checkTaskFromSearch('${t.id}',event)"></div>
+      <div class="search-result-body">
+        <div class="search-result-title">${highlight(t.title, q)}</div>
+        ${t.note && t.note.toLowerCase().includes(q) ? `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${highlight(t.note.slice(0,80), q)}…</div>` : ''}
+        ${meta ? `<div class="search-result-meta">${meta}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function goToTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  closeSearch();
+  // Switch to correct tab
+  let tab = task.horizon || 'inbox';
+  if (!task.horizon) tab = 'inbox';
+  if (task.waiting) tab = 'waiting';
+  if (task.recurring && task.recurring !== 'none') tab = 'recurring';
+  switchTab(tab);
+  setTimeout(() => {
+    expandedIds.add(id);
+    render();
+    // Scroll to card
+    setTimeout(() => {
+      const card = document.getElementById('card-' + id);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }, 50);
+}
+
+function checkTaskFromSearch(id, e) {
+  e.stopPropagation();
+  checkTask(id, e);
+  closeSearch();
+}
+
 </script>
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
@@ -3244,6 +3430,28 @@ function renderFrogsTab() {
   <div class="sort-menu-item" data-key="created"   onclick="setSortKey('created')">  <span class="sort-icon">🕐</span> Erstellt         <span class="sort-menu-dir" id="dir-created"   onclick="toggleSortDir('created',event)">↓</span></div>
   <div class="sort-menu-item" data-key="title"     onclick="setSortKey('title')">    <span class="sort-icon">A</span> Alphabetisch     <span class="sort-menu-dir" id="dir-title"     onclick="toggleSortDir('title',event)">↑</span></div>
   <div class="sort-menu-item" data-key="project"   onclick="setSortKey('project')">  <span class="sort-icon">📁</span> Projekt          <span class="sort-menu-dir" id="dir-project"   onclick="toggleSortDir('project',event)">↑</span></div>
+</div>
+
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="search-overlay" onclick="handleSearchOverlayClick(event)">
+  <div class="search-box" onclick="event.stopPropagation()">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="search-input"
+        placeholder="Aufgabe suchen…"
+        autocomplete="off" autocorrect="off"
+        oninput="onSearchInput(this.value)"
+      />
+      <span class="search-close" onclick="closeSearch()">Esc</span>
+    </div>
+    <div class="search-results" id="search-results"></div>
+    <div class="search-hint">
+      <span><kbd>↵</kbd> öffnen</span>
+      <span><kbd>Esc</kbd> schließen</span>
+      <span><kbd>S</kbd> suchen</span>
+    </div>
+  </div>
 </div>
 
 
