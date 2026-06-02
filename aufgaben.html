@@ -1438,7 +1438,39 @@ function getTabTasks(tab) {
 }
 
 // ── RENDER ──
+function autoEscalate() {
+  // Verschiebt Aufgaben automatisch in Heute/Woche wenn Fälligkeitsdatum erreicht
+  let changed = false;
+  const today = todayStr();
+  const endOfWeek = (() => {
+    const d = new Date();
+    const day = d.getDay() === 0 ? 6 : d.getDay() - 1; // Mo=0 … So=6
+    d.setDate(d.getDate() + (6 - day)); // Sonntag dieser Woche
+    return d.toISOString().split('T')[0];
+  })();
+
+  tasks.forEach(t => {
+    if (!t.due || t.waiting || (t.recurring && t.recurring !== 'none')) return;
+    if (t.horizon === 'today' || t.horizon === 'maybe') return; // nie überschreiben
+    const d = diffDays(t.due);
+    if (d === null) return;
+
+    if (d <= 0 && t.horizon !== 'today') {
+      // Heute oder überfällig → Heute
+      t.horizon = 'today';
+      changed = true;
+    } else if (t.due <= endOfWeek && t.horizon !== 'week' && t.horizon !== 'today') {
+      // Innerhalb dieser Woche → Woche
+      t.horizon = 'week';
+      changed = true;
+    }
+  });
+
+  if (changed) save(tasks);
+}
+
 function render() {
+  autoEscalate();
   updateBadges();
   updateStats();
   renderList();
