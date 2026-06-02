@@ -2095,14 +2095,15 @@ function renderInsights(){
     return;
   }
 
+  const energyVals = days.map(d=>d.energy||0);
   const correlate = (vals) => {
     if(vals.length<5) return null;
     const n=vals.length;
-    const mx=wbVals.reduce((s,v)=>s+v,0)/n, my=vals.reduce((s,v)=>s+v,0)/n;
+    const mx=energyVals.reduce((s,v)=>s+v,0)/n, my=vals.reduce((s,v)=>s+v,0)/n;
     let num=0,dx=0,dy=0;
     for(let i=0;i<n;i++){
-      num+=(wbVals[i]-mx)*(vals[i]-my);
-      dx+=(wbVals[i]-mx)**2;
+      num+=(energyVals[i]-mx)*(vals[i]-my);
+      dx+=(energyVals[i]-mx)**2;
       dy+=(vals[i]-my)**2;
     }
     if(!dx||!dy) return null;
@@ -2129,7 +2130,7 @@ function renderInsights(){
     const vals = days.map(d=>getEffectiveTags(d).includes(tag)?1:0);
     if(vals.filter(v=>v>0).length < 3) return;
     const r = correlate(vals);
-    if(r!==null && Math.abs(r)>0.2) results.push({label:'✦ '+tag,r,desc:r>0?'Positiver Einfluss auf dein Wohlbefinden':'Negativer Einfluss auf dein Wohlbefinden'});
+    if(r!==null && Math.abs(r)>0.2) results.push({label:'✦ '+tag,r,desc:r>0?'Positiver Einfluss auf deine Energie':'Negativer Einfluss auf deine Energie'});
   });
 
   results.sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
@@ -2137,7 +2138,7 @@ function renderInsights(){
   if(!results.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◈</span><div class="empty-text">Noch keine aussagekräftigen Muster erkennbar.</div></div>'; return; }
 
   // Bar visualization for correlation strength
-  el.innerHTML = '<div class="section-title" style="padding-top:0">KORRELATION MIT LEBENSGEFÜHL</div>'
+  el.innerHTML = '<div class="section-title" style="padding-top:0">KORRELATION MIT ENERGIE</div>'
     + '<div style="font-size:0.68rem;color:var(--text3);margin-bottom:0.75rem;line-height:1.5">Basiert auf den letzten 30 Tagen. Balken = Stärke des Zusammenhangs. Grün = hilft dir, Rot = belastet dich.</div>'
     + results.slice(0,10).map(c=>{
       const pct = Math.min(100, Math.abs(c.r)*100).toFixed(0);
