@@ -671,12 +671,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 
     <!-- VIEW: HEUTE -->
     <div class="view active" id="view-heute">
-      <!-- Wochenziel Banner -->
-      <div class="week-goal-banner" id="weekGoalBanner" style="display:none" onclick="document.querySelectorAll('.nav-btn').forEach((b,i)=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes('woche')){showView('woche',b);}})"  >
-        <span class="week-goal-banner-icon">🎯</span>
-        <span class="week-goal-banner-text" id="weekGoalBannerText"></span>
-        <span class="week-goal-banner-arrow">›</span>
-      </div>
       <div class="card">
         <div class="card-title">WIE FÜHLST DU DICH HEUTE?</div>
         <div class="wellbeing-display">
@@ -966,61 +960,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
       <div id="corrList"></div>
     </div>
-
-    <!-- VIEW: FRÖSCHE -->
-    <div class="view" id="view-woche">
-
-      <!-- WOCHENZIEL -->
-      <div class="week-goal-card" id="weekGoalCard">
-        <div class="week-goal-header">
-          <span class="week-goal-icon">🎯</span>
-          <span class="week-goal-title">WOCHENZIEL</span>
-          <span class="week-goal-label" id="weekGoalWeekLabel"></span>
-        </div>
-        <textarea class="week-goal-input" id="weekGoalInput" placeholder="Was ist mein wichtigstes Ziel diese Woche?…" rows="2" oninput="scheduleGoalSave()"></textarea>
-        <div class="week-goal-footer">
-          <span class="week-goal-hint" id="weekGoalStatus">Noch nicht gesetzt</span>
-          <button class="week-goal-save-btn" id="weekGoalSaveBtn" onclick="saveWeekGoal()">Speichern</button>
-        </div>
-      </div>
-
-      <div class="review-card" id="reviewCard">
-        <div class="review-header">
-          <span class="review-title">📋 Wochenrückblick</span>
-          <span class="review-week" id="reviewWeekLabel"></span>
-        </div>
-        <div class="review-stats-grid" id="reviewStatsGrid"></div>
-        <div class="review-section">
-          <div class="review-section-label">✅ Was lief diese Woche gut?</div>
-          <textarea class="review-textarea" id="reviewGood" placeholder="Was bin ich stolz auf? Was hat geklappt?…"></textarea>
-        </div>
-        <div class="review-section">
-          <div class="review-section-label">🔧 Was möchte ich verbessern?</div>
-          <textarea class="review-textarea" id="reviewImprove" placeholder="Was hat mich gebremst? Was ändern?…"></textarea>
-        </div>
-        <div class="review-section">
-          <div class="review-section-label">🎯 Fokus nächste Woche</div>
-          <textarea class="review-textarea" id="reviewFocus" placeholder="Was ist mein wichtigstes Ziel für nächste Woche?…"></textarea>
-        </div>
-        <button class="review-save-btn" id="reviewSaveBtn" onclick="saveWeekReview()">Rückblick speichern</button>
-      </div>
-      <div class="section-title">FRÜHERE RÜCKBLICKE</div>
-      <div id="reviewHistory"></div>
-    </div>
-
     <!-- VIEW: EINSTELLUNGEN & EXPORT -->
     <div class="view" id="view-einstellungen">
 
       <div class="section-title">EXPORT</div>
-
-      <div class="settings-row" onclick="exportWeekPDF()">
-        <div class="settings-left">
-          <div class="settings-icon">📄</div>
-          <div><div class="settings-label">Wochenbericht PDF</div><div class="settings-sub">Aktuelle Woche als strukturierter Bericht</div></div>
-        </div>
-        <div class="settings-arrow">→</div>
-      </div>
-
       <div class="settings-row" onclick="openCSVExportDialog()">
         <div class="settings-left">
           <div class="settings-icon">📊</div>
@@ -1099,10 +1042,6 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
     <button class="nav-btn" onclick="showView('insights',this)">
       <span class="nav-icon">◈</span>
       <span class="nav-label">Insights</span>
-    </button>
-    <button class="nav-btn" onclick="showView('woche',this)">
-      <span class="nav-icon">📋</span>
-      <span class="nav-label">Woche</span>
     </button>
     <button class="nav-btn" onclick="showView('einstellungen',this)">
       <span class="nav-icon">⚙</span>
@@ -1271,12 +1210,8 @@ async function init(){
   buildTagGrid('aktTag', [], 'akt');
   updateHeader();
   updateStreak();
-  updatePlanStreak();
   renderRoutines();
   renderInsights();
-  renderWeekReview();
-  renderWeekGoal();
-  setTimeout(renderWeekGoal, 500); // Retry für PWA-Start
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2198,7 +2133,6 @@ function showView(name, btn){
   if(name==='routinen') renderRoutines();
   if(name==='stats') renderStats();
   if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
-  if(name==='woche'){ renderWeekReview(); renderWeekGoal(); }
   if(name==='insights') renderInsights();
   document.getElementById('appContent').scrollTop=0;
 }
@@ -2298,34 +2232,13 @@ function renderObStep(){
     `).join('')+'</ul>';
   }
 
-  if(s.isGoalStep){
-    const wk = getWeekKey(TODAY);
-    const existing = getWeekGoals()[wk]?.text||'';
-    html += `<div class="ob-setup-row">
-      <div class="ob-setup-label">Mein Wochenziel</div>
-      <textarea class="ob-setup-input" id="obGoalInput" rows="3" placeholder="z.B. Jeden Tag 10 Minuten spazieren gehen…" style="resize:none">${existing}</textarea>
-    </div>`;
-  }
-
   document.getElementById('obContent').innerHTML = html;
 
-  // Focus goal input
-  if(s.isGoalStep) setTimeout(()=>document.getElementById('obGoalInput')?.focus(),200);
 }
 
 function onboardingNext(){
   // Speichere Wochenziel wenn auf Screen 3
   const s = OB_SCREENS[_obStep];
-  if(s.isGoalStep){
-    const text = document.getElementById('obGoalInput')?.value?.trim();
-    if(text){
-      const wk = getWeekKey(TODAY);
-      const goals = getWeekGoals();
-      goals[wk] = {text, saved: new Date().toISOString()};
-      saveWeekGoals(goals);
-      renderWeekGoal();
-    }
-  }
 
   _obStep++;
   if(_obStep >= OB_SCREENS.length){
@@ -2365,106 +2278,6 @@ init().then(()=>{
 }).catch(console.error);
 
 
-function exportWeekPDF(){
-  const wk = getWeekKey(TODAY);
-  const monday = new Date(wk.replace('week_','')+'T12:00:00');
-  const weekDays = Array.from({length:7},(_,i)=>{
-    const d = new Date(monday); d.setDate(monday.getDate()+i);
-    return d.toISOString().slice(0,10);
-  });
-
-  const wDays = weekDays.map(ds=>allDays.find(d=>d.date===ds)||{date:ds});
-  const wReviews = getWeekReviews();
-  const wReview = wReviews[wk] || {};
-  const wGoals = getWeekGoals();
-  const wGoal = wGoals[wk]?.text || '–';
-
-  const dayNames = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
-  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  const sun = new Date(monday); sun.setDate(monday.getDate()+6);
-  const weekLabel = `${monday.getDate()}. ${months[monday.getMonth()]} – ${sun.getDate()}. ${months[sun.getMonth()]} ${sun.getFullYear()}`;
-
-  const validDays = wDays.filter(d=>d.wellbeing);
-  const avg = key => validDays.length ? (validDays.reduce((s,d)=>s+(d[key]||0),0)/validDays.length).toFixed(1) : '–';
-
-  const routineRows = allRoutines.map(r=>{
-    const done = weekDays.filter(ds=>routineCompletions.some(c=>c.rid===r.id&&c.date===ds)).length;
-    const planned = weekDays.filter(ds=>{ const dow=(new Date(ds+'T12:00:00').getDay()||7); return (r.days||[]).includes(dow); }).length;
-    return {name:r.name, done, planned, rate: planned>0?Math.round(done/planned*100):null};
-  }).filter(r=>r.planned>0);
-
-  const html = `<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8"/>
-<title>Wochenbericht ${weekLabel}</title>
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: Georgia, serif; color: #1a1a2e; background: #fff; padding: 2cm; font-size: 11pt; line-height: 1.5; }
-  h1 { font-family: Arial, sans-serif; font-size: 20pt; font-weight: 900; color: #1a1a2e; margin-bottom: 4px; }
-  .subtitle { font-family: Arial, sans-serif; font-size: 10pt; color: #666; margin-bottom: 24px; }
-  .section { margin-bottom: 20px; }
-  .section-title { font-family: Arial, sans-serif; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #888; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
-  .kpi { border: 1px solid #ddd; border-radius: 6px; padding: 10px; text-align: center; }
-  .kpi-val { font-family: 'Courier New', monospace; font-size: 18pt; font-weight: 700; color: #b8860b; }
-  .kpi-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-top: 2px; }
-  .day-row { display: grid; grid-template-columns: 90px 40px 40px 40px 1fr; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 9.5pt; }
-  .day-row.header { font-family: Arial, sans-serif; font-size: 8pt; font-weight: 700; text-transform: uppercase; color: #888; border-bottom: 2px solid #ddd; }
-  .bar-wrap { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; width: 100%; }
-  .bar { height: 100%; border-radius: 3px; background: #b8860b; }
-  .routine-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #f0f0f0; font-size: 9.5pt; }
-  .routine-rate { font-family: 'Courier New', monospace; font-size: 9pt; color: #444; min-width: 80px; text-align: right; }
-  .review-box { background: #f9f9f9; border-left: 3px solid #b8860b; padding: 10px 12px; border-radius: 0 4px 4px 0; font-style: italic; font-size: 10pt; color: #333; margin-top: 6px; min-height: 30px; }
-  .goal-box { background: #fffbea; border: 1px solid #e8c84a; border-radius: 6px; padding: 10px 12px; font-size: 10pt; margin-top: 6px; }
-  .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8pt; color: #aaa; text-align: center; }
-  @media print { body { padding: 1.5cm; } @page { margin: 1.5cm; } }
-</style>
-</head>
-<body>
-<h1>Daily Tracker — Wochenbericht</h1>
-<div class="subtitle">${weekLabel}</div>
-
-<div class="kpi-grid">
-  <div class="kpi"><div class="kpi-val">${avg('wellbeing')}</div><div class="kpi-label">Ø Lebensgefühl</div></div>
-  <div class="kpi"><div class="kpi-val">${avg('sleep')}h</div><div class="kpi-label">Ø Schlaf</div></div>
-  <div class="kpi"><div class="kpi-val">${validDays.length}/7</div><div class="kpi-label">Einträge</div></div>
-</div>
-
-<div class="section">
-  <div class="section-title">Wochenziel</div>
-  <div class="goal-box">${wGoal}</div>
-</div>
-
-<div class="section">
-  <div class="section-title">Tagesverlauf</div>
-  <div class="day-row header"><span>Tag</span><span>WB</span><span>Schlaf</span><span>Energie</span><span>Verlauf &amp; Stimmung</span></div>
-  ${weekDays.map((ds,i)=>{
-    const d = wDays[i];
-    const wb = d.wellbeing||'–';
-    const sl = d.sleep?d.sleep+'h':'–';
-    const en = d.energy||'–';
-    const moods = (d.moods||[]).slice(0,3).join(', ')||'–';
-    const barW = d.wellbeing ? Math.round(d.wellbeing/10*100) : 0;
-    const dd = new Date(ds+'T12:00:00');
-    return '<div class="day-row"><span>'+dayNames[i].slice(0,2)+' '+dd.getDate()+'.'+(dd.getMonth()+1)+'.</span><span>'+wb+'</span><span>'+sl+'</span><span>'+en+'</span><div><div class="bar-wrap"><div class="bar" style="width:'+barW+'%"></div></div><div style="font-size:7.5pt;color:#888;margin-top:1px">'+moods+'</div></div></div>';
-  }).join('')}
-</div>
-
-${routineRows.length ? '<div class="section"><div class="section-title">Routinen-Compliance</div>'+routineRows.map(r=>{const color=r.rate>=80?'#2e7d32':r.rate>=50?'#b8860b':'#c62828';return '<div class="routine-row"><span>'+r.name+'</span><span class="routine-rate" style="color:'+color+'">'+r.done+'/'+r.planned+' ('+r.rate+'%)</span></div>';}).join('')+'</div>' : ''}
-
-${wReview.good||wReview.improve||wReview.focus ? '<div class="section"><div class="section-title">Wochenrückblick</div>'+(wReview.good?'<div style="font-size:8pt;font-weight:700;color:#888;margin-bottom:2px">WAS LIEF GUT?</div><div class="review-box">'+wReview.good+'</div>':'')+(wReview.improve?'<div style="font-size:8pt;font-weight:700;color:#888;margin:8px 0 2px">WAS VERBESSERN?</div><div class="review-box">'+wReview.improve+'</div>':'')+(wReview.focus?'<div style="font-size:8pt;font-weight:700;color:#888;margin:8px 0 2px">FOKUS NÄCHSTE WOCHE</div><div class="review-box">'+wReview.focus+'</div>':'')+'</div>' : ''}
-
-<div class="footer">Daily Tracker · Erstellt am ${new Date().toLocaleDateString('de',{day:'2-digit',month:'2-digit',year:'numeric'})} · Vertraulich</div>
-</body></html>`;
-
-  const win = window.open('','_blank','width=900,height=700');
-  if(!win){ showToast('Bitte Popup-Blocker deaktivieren'); return; }
-  win.document.write(html);
-  win.document.close();
-  win.onload = () => { win.focus(); setTimeout(()=>win.print(),400); };
-  showToast('PDF-Vorschau wird geöffnet…');
-}
 
 function openCSVExportDialog(){
   document.getElementById('modalContent').innerHTML = `
@@ -2675,7 +2488,6 @@ async function performImport(encodedData){
     if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
     if(Array.isArray(data.medSchedule)) saveMedSchedule(data.medSchedule);
     if(Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
-      if(data.weekReviews) saveWeekReviews(data.weekReviews);
     if(Array.isArray(data.projects)) saveProjects(data.projects);
     closeModal();
     showToast(imported + ' Tage importiert!');
@@ -3067,22 +2879,7 @@ function getYesterdayKey(){
   return d.toISOString().slice(0,10);
 }
 
-function getPlanStreak(){
-  return 0; // Plan-Streak war an Frösche gekoppelt, entfernt
-}
 
-function updatePlanStreak(){
-  const streak = getPlanStreak();
-  // Header badge
-  const badge = document.getElementById('planStreakBadge');
-  const count = document.getElementById('planStreakCount');
-  const inline = document.getElementById('planStreakInline');
-  if(badge){
-    if(streak>0){ badge.style.display='flex'; count.textContent=streak+'T'; }
-    else badge.style.display='none';
-  }
-  if(inline) inline.textContent=streak;
-}
 
 
 // ══════════════════════════════════════════════════════════════════
@@ -3302,183 +3099,6 @@ function deleteProject(i){
 // ── override addFrog ──
 // ══════════════════════════════════════════════════════════════════
 // WOCHENRÜCKBLICK
-// ══════════════════════════════════════════════════════════════════
-function getWeekKey(date){
-  const d = new Date(date);
-  const day = d.getDay(); // 0=Sun
-  const diff = d.getDate() - day + (day===0?-6:1); // Mon
-  const mon = new Date(d.setDate(diff));
-  return 'week_'+mon.toISOString().slice(0,10);
-}
-
-function getWeekReviews(){
-  try{ return JSON.parse(localStorage.getItem('week_reviews')||'{}'); }
-  catch(e){ return {}; }
-}
-function saveWeekReviews(r){ localStorage.setItem('week_reviews', JSON.stringify(r)); }
-
-function getCurrentWeekLabel(){
-  const d = new Date(TODAY);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day===0?-6:1);
-  const mon = new Date(new Date(TODAY).setDate(diff));
-  const sun = new Date(mon); sun.setDate(sun.getDate()+6);
-  const fmt = d => d.toLocaleDateString('de',{day:'2-digit',month:'2-digit'});
-  return `KW ${getISOWeek(mon)} · ${fmt(mon)} – ${fmt(sun)}`;
-}
-
-function getISOWeek(d){
-  const date = new Date(d); date.setHours(0,0,0,0);
-  date.setDate(date.getDate()+3-(date.getDay()||7)-1+1);
-  const week1 = new Date(date.getFullYear(),0,4);
-  return 1+Math.round(((date-week1)/86400000-3+(week1.getDay()||7))/7);
-}
-
-// ══════════════════════════════════════════════════════════════════
-// WOCHENZIEL
-// ══════════════════════════════════════════════════════════════════
-function getWeekGoals(){ try{ return JSON.parse(localStorage.getItem('week_goals')||'{}'); }catch(e){ return {}; } }
-function saveWeekGoals(g){ localStorage.setItem('week_goals', JSON.stringify(g)); }
-
-let _goalSaveTimer = null;
-function scheduleGoalSave(){
-  clearTimeout(_goalSaveTimer);
-  _goalSaveTimer = setTimeout(saveWeekGoal, 1500);
-}
-
-function saveWeekGoal(){
-  clearTimeout(_goalSaveTimer);
-  const wk = getWeekKey(TODAY);
-  const goals = getWeekGoals();
-  const text = document.getElementById('weekGoalInput').value.trim();
-  goals[wk] = { text, saved: new Date().toISOString() };
-  saveWeekGoals(goals);
-  const btn = document.getElementById('weekGoalSaveBtn');
-  btn.textContent = '✓ Gespeichert'; btn.classList.add('saved');
-  setTimeout(()=>{ btn.textContent='Speichern'; btn.classList.remove('saved'); }, 2000);
-  renderWeekGoal();
-}
-
-function renderWeekGoal(){
-  const wk = getWeekKey(TODAY);
-  const goals = getWeekGoals();
-  const cur = goals[wk];
-  const input = document.getElementById('weekGoalInput');
-  const status = document.getElementById('weekGoalStatus');
-  const label = document.getElementById('weekGoalWeekLabel');
-  const banner = document.getElementById('weekGoalBanner');
-  const bannerText = document.getElementById('weekGoalBannerText');
-
-  if(label) label.textContent = getCurrentWeekLabel();
-  if(input) input.value = cur?.text || '';
-  if(status) status.textContent = cur?.saved
-    ? '✓ Gespeichert · ' + new Date(cur.saved).toLocaleDateString('de',{day:'2-digit',month:'2-digit'})
-    : 'Noch nicht gesetzt';
-
-  // Banner auf Heute-View
-  if(banner && bannerText){
-    if(cur?.text){
-      bannerText.textContent = cur.text;
-      banner.style.display = 'flex';
-    } else {
-      banner.style.display = 'none';
-    }
-  }
-}
-
-function renderWeekReview(){
-  const wk = getWeekKey(TODAY);
-  const reviews = getWeekReviews();
-  const cur = reviews[wk]||{};
-
-  document.getElementById('reviewWeekLabel').textContent = getCurrentWeekLabel();
-
-  // Auto-fill if already saved
-  document.getElementById('reviewGood').value = cur.good||'';
-  document.getElementById('reviewImprove').value = cur.improve||'';
-  document.getElementById('reviewFocus').value = cur.focus||'';
-
-  // Week stats from allDays
-  const d = new Date(TODAY);
-  const day = d.getDay();
-  const diff = d.getDate()-day+(day===0?-6:1);
-  const monStr = new Date(new Date(TODAY).setDate(diff)).toISOString().slice(0,10);
-  const sunStr = new Date(new Date(TODAY).setDate(diff+6)).toISOString().slice(0,10);
-  const weekDays = allDays.filter(x=>x.date>=monStr&&x.date<=sunStr);
-
-  const avgWb = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.wellbeing||5),0)/weekDays.length).toFixed(1) : '–';
-  const avgSleep = weekDays.length ? (weekDays.reduce((s,x)=>s+(x.sleep||0),0)/weekDays.length).toFixed(1) : '–';
-
-  document.getElementById('reviewStatsGrid').innerHTML = `
-    <div class="review-stat"><div class="review-stat-num">${avgWb}</div><div class="review-stat-lbl">Ø Wohlbefinden</div></div>
-    <div class="review-stat"><div class="review-stat-num">${avgSleep}h</div><div class="review-stat-lbl">Ø Schlaf</div></div>
-
-    <div class="review-stat"><div class="review-stat-num">${weekDays.length}/7</div><div class="review-stat-lbl">Einträge</div></div>
-    <div class="review-stat"><div class="review-stat-num">${weekDays.filter(x=>x.akt&&x.akt.length).length}</div><div class="review-stat-lbl">Aktiv-Tage</div></div>
-  `;
-
-  // History
-  const history = Object.entries(reviews)
-    .filter(([k])=>k!==wk)
-    .sort((a,b)=>b[0].localeCompare(a[0]))
-    .slice(0,8);
-  const histEl = document.getElementById('reviewHistory');
-  if(!history.length){ histEl.innerHTML='<div class="empty" style="padding:1.5rem"><div class="empty-text">Noch keine früheren Rückblicke.</div></div>'; return; }
-  histEl.innerHTML = history.map(([k,r])=>`
-    <div class="review-past-item" onclick="showPastReview('${k}')">
-      <div class="review-past-week">${k.replace('week_','')}</div>
-      <div class="review-past-preview">${esc(r.good||r.focus||'–')}</div>
-    </div>`).join('');
-}
-
-function saveWeekReview(){
-  const wk = getWeekKey(TODAY);
-  const reviews = getWeekReviews();
-  reviews[wk] = {
-    good: document.getElementById('reviewGood').value,
-    improve: document.getElementById('reviewImprove').value,
-    focus: document.getElementById('reviewFocus').value,
-    saved: new Date().toISOString()
-  };
-  saveWeekReviews(reviews);
-  const btn = document.getElementById('reviewSaveBtn');
-  btn.textContent='✓ Gespeichert'; btn.classList.add('saved');
-  setTimeout(()=>{ btn.textContent='Rückblick speichern'; btn.classList.remove('saved'); },2500);
-  showToast('Rückblick gespeichert!');
-  renderWeekReview();
-}
-
-function showPastReview(key){
-  const r = getWeekReviews()[key]||{};
-  document.getElementById('modalContent').innerHTML = `
-    <div class="modal-title">${key.replace('week_','KW – ')}</div>
-    <div style="margin-bottom:0.75rem">
-      <div class="review-section-label" style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">✅ Was lief gut</div>
-      <div style="font-family:'Lora',serif;font-style:italic;font-size:0.84rem;color:var(--text2);line-height:1.6">${esc(r.good||'–')}</div>
-    </div>
-    <div style="margin-bottom:0.75rem">
-      <div class="review-section-label" style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">🔧 Verbesserungen</div>
-      <div style="font-family:'Lora',serif;font-style:italic;font-size:0.84rem;color:var(--text2);line-height:1.6">${esc(r.improve||'–')}</div>
-    </div>
-    <div style="margin-bottom:1rem">
-      <div class="review-section-label" style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">🎯 Fokus nächste Woche</div>
-      <div style="font-family:'Lora',serif;font-style:italic;font-size:0.84rem;color:var(--text2);line-height:1.6">${esc(r.focus||'–')}</div>
-    </div>
-    <div class="modal-actions"><button class="btn-secondary" onclick="closeModal()">Schließen</button></div>`;
-  document.getElementById('modal').style.display='flex';
-}
-
-
-function getWeekCompletionCount(rid){
-  const d = new Date(TODAY);
-  const dow = d.getDay()||7; // 1=Mo
-  let count=0;
-  for(let i=0;i<dow;i++){
-    const ds = new Date(d); ds.setDate(d.getDate()-i);
-    if(routineCompletions.some(c=>c.rid===rid&&c.date===ds.toISOString().slice(0,10))) count++;
-  }
-  return count;
-}
 
 
 // ══════════════════════════════════════════════════════════════════
