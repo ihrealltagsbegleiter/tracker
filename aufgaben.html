@@ -1352,7 +1352,7 @@ function getTabTasks(tab) {
   }
   // Exclude recurring and waiting tasks from regular tabs
   const base = tasks.filter(t => (!t.recurring || t.recurring === 'none') && !t.waiting);
-  if (tab === 'inbox') return base;
+  if (tab === 'inbox') return base.filter(t => !t.horizon || t.horizon === 'inbox' || t.horizon === null);
   return base.filter(t => t.horizon === tab);
 }
 
@@ -1425,23 +1425,9 @@ function renderList() {
   let html = '';
 
   if (currentTab === 'inbox') {
-    // Show all, grouped by horizon
-    const groups = { today: [], week: [], month: [], later: [], maybe: [] };
-    const noHorizon = [];
-    sorted.forEach(t => {
-      if (groups[t.horizon]) groups[t.horizon].push(t);
-      else noHorizon.push(t);
-    });
-    const labels = { today: 'Heute', week: 'Diese Woche', month: 'Diesen Monat', later: 'Irgendwann', maybe: 'Vielleicht nie' };
-    Object.entries(groups).forEach(([h, ts]) => {
-      if (ts.length === 0) return;
-      html += `<div class="section-header"><span class="section-label">${labels[h]}</span><div class="section-line"></div></div>`;
-      ts.forEach(t => { html += taskCard(t); });
-    });
-    if (noHorizon.length) {
-      html += `<div class="section-header"><span class="section-label">Unsortiert</span><div class="section-line"></div></div>`;
-      noHorizon.forEach(t => { html += taskCard(t); });
-    }
+    // Inbox = nur Aufgaben ohne Horizont
+    html += `<div class="section-header"><span class="section-label">Zu sortieren</span><div class="section-line"></div></div>`;
+    sorted.forEach(t => { html += taskCard(t); });
   } else if (currentTab === 'recurring') {
     html += `<div class="section-header"><span class="section-label">Jetzt fällig</span><div class="section-line"></div></div>`;
     sorted.forEach(t => { html += taskCard(t, true); });
@@ -2227,7 +2213,7 @@ function saveQuickTask() {
     id:        'T' + Date.now(),
     title,
     note:      null,
-    horizon:   'today',   // landet im Eingang (inbox zeigt alle)
+    horizon:   null,       // kein Horizont = landet im Eingang
     due:       null,
     impact:    quickImpact,
     eisen:     null,
