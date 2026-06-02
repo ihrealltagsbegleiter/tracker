@@ -2956,6 +2956,229 @@ async function init() {
 
 init();
 
+
+// ── APPEND LOG ──
+function appendLog({ task, type }) {
+  const entry = {
+    id:          'L' + Date.now(),
+    taskId:      task.id,
+    title:       task.title,
+    horizon:     task.horizon || null,
+    projectId:   task.projectId || null,
+    impact:      task.impact || null,
+    eisen:       task.eisen || null,
+    frog:        task.frog || false,
+    type,
+    completedAt: new Date().toISOString(),
+  };
+  logEntries.push(entry);
+  saveLog(logEntries);
+}
+
+// ── LOG TAB ──
+let logFilter = { period: '30', projectId: '', horizon: '', frog: '' };
+
+function renderLogTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  const projectOptions = projects.map(p =>
+    `<option value="${p.id}"${logFilter.projectId===p.id?' selected':''}>${escHtml(p.name)}</option>`
+  ).join('');
+
+  const filterBar = `<div class="log-filter-bar">
+    <select class="log-filter-select" onchange="logFilter.period=this.value;renderLogTab()">
+      <option value="7"${logFilter.period==='7'?' selected':''}>7 Tage</option>
+      <option value="30"${logFilter.period==='30'?' selected':''}>30 Tage</option>
+      <option value="90"${logFilter.period==='90'?' selected':''}>90 Tage</option>
+      <option value="365"${logFilter.period==='365'?' selected':''}>1 Jahr</option>
+      <option value="all"${logFilter.period==='all'?' selected':''}>Alles</option>
+    </select>
+    <select class="log-filter-select" onchange="logFilter.projectId=this.value;renderLogTab()">
+      <option value="">Alle Projekte</option>${projectOptions}
+    </select>
+    <select class="log-filter-select" onchange="logFilter.horizon=this.value;renderLogTab()">
+      <option value="">Alle Horizonte</option>
+      <option value="today">Heute</option><option value="week">Woche</option>
+      <option value="month">Monat</option><option value="later">Irgendwann</option>
+    </select>
+    <select class="log-filter-select" onchange="logFilter.frog=this.value;renderLogTab()">
+      <option value="">Alle Typen</option>
+      <option value="frog"${logFilter.frog==='frog'?' selected':''}>🐸 Frösche</option>
+      <option value="recurring"${logFilter.frog==='recurring'?' selected':''}>↻ Wiederkehrend</option>
+    </select>
+  </div>`;
+
+  let filtered = [...logEntries].reverse();
+  if (logFilter.period !== 'all') {
+    const cutoff = new Date(Date.now() - parseInt(logFilter.period)*86400000);
+    filtered = filtered.filter(e => new Date(e.completedAt) >= cutoff);
+  }
+  if (logFilter.projectId) filtered = filtered.filter(e => e.projectId === logFilter.projectId);
+  if (logFilter.horizon)   filtered = filtered.filter(e => e.horizon === logFilter.horizon);
+  if (logFilter.frog === 'frog')      filtered = filtered.filter(e => e.frog);
+  if (logFilter.frog === 'recurring') filtered = filtered.filter(e => e.type === 'recurring');
+
+  if (filtered.length === 0) {
+    list.innerHTML = filterBar + `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Keine erledigten Aufgaben im gewählten Zeitraum.</div></div>`;
+    return;
+  }
+
+  const total = filtered.length;
+  const frogs = filtered.filter(e => e.frog).length;
+  const recur = filtered.filter(e => e.type === 'recurring').length;
+  const statsHtml = `<div class="log-stats-row">
+    <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Erledigt</div></div>
+    <div class="stat-box"><div class="stat-num">${frogs}</div><div class="stat-lbl">🐸 Frösche</div></div>
+    <div class="stat-box"><div class="stat-num">${recur}</div><div class="stat-lbl">↻ Wiederkehrend</div></div>
+  </div>`;
+
+  const byDay = {};
+  filtered.forEach(e => {
+    const day = e.completedAt.split('T')[0];
+    if (!byDay[day]) byDay[day] = [];
+    byDay[day].push(e);
+  });
+
+  const IMPACT_STARS = {5:'★★★★★',4:'★★★★☆',3:'★★★☆☆',2:'★★☆☆☆',1:'★☆☆☆☆'};
+  const horizonLabels = {today:'Heute',week:'Woche',month:'Monat',later:'Irgendwann',maybe:'Vielleicht'};
+  let html2 = filterBar + statsHtml;
+
+  Object.entries(byDay).forEach(([day, entries]) => {
+    const d = new Date(day + 'T12:00:00');
+    const dayLabel = d.toLocaleDateString('de-DE', {weekday:'long',day:'numeric',month:'long'});
+    html2 += `<div class="log-day-header"><span>${dayLabel}</span><span class="log-day-count">${entries.length} Aufgabe${entries.length>1?'n':''}</span></div>`;
+    entries.forEach(e => {
+      const t = new Date(e.completedAt);
+      const timeStr = t.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      const proj = e.projectId ? projects.find(p => p.id === e.projectId) : null;
+      const icon = e.frog ? '🐸' : e.type === 'recurring' ? '↻' : '✓';
+      let metaTags = '';
+      if (e.horizon) metaTags += `<span class="tag tag-horizon-${e.horizon}" style="font-size:0.62rem;padding:1px 6px;">${horizonLabels[e.horizon]||''}</span>`;
+      if (e.impact)  metaTags += `<span class="tag tag-impact-${parseInt(e.impact)||3}" style="font-size:0.62rem;padding:1px 5px;">${IMPACT_STARS[parseInt(e.impact)]||''}</span>`;
+      if (proj)      metaTags += `<span class="tag" style="font-size:0.62rem;padding:1px 6px;border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
+      html2 += `<div class="log-entry">
+        <div class="log-date-col"><div>${day.split('-').reverse().join('.')}</div><div class="log-time">${timeStr}</div></div>
+        <div class="log-icon">${icon}</div>
+        <div class="log-body"><div class="log-title">${escHtml(e.title)}</div>${metaTags?`<div class="log-meta">${metaTags}</div>`:''}</div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html2;
+}
+
+// ── OVERDUE TAB ──
+function renderOverdueTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+  const overdue = tasks.filter(t => !t.waiting && diffDays(t.due) !== null && diffDays(t.due) < 0)
+    .sort((a,b) => (diffDays(a.due)||0) - (diffDays(b.due)||0));
+  if (overdue.length === 0) { list.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Keine überfälligen Aufgaben.</div></div>`; return; }
+  const groups = [
+    {label:'Heute verpasst',      filter:t=>diffDays(t.due)===0,  tasks:[]},
+    {label:'1–3 Tage überfällig', filter:t=>diffDays(t.due)>=-3&&diffDays(t.due)<0, tasks:[]},
+    {label:'4–7 Tage überfällig', filter:t=>diffDays(t.due)>=-7&&diffDays(t.due)<-3, tasks:[]},
+    {label:'Über eine Woche',     filter:t=>diffDays(t.due)<-7,   tasks:[]},
+  ];
+  overdue.forEach(t => { const g=groups.find(g=>g.filter(t)); if(g) g.tasks.push(t); });
+  let html2 = `<div style="background:linear-gradient(135deg,rgba(196,107,90,0.08),rgba(196,107,90,0.03));border:1px solid rgba(196,107,90,0.25);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;"><div style="font-size:1.5rem;">🔴</div><div><div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--danger);">${overdue.length} überfällige Aufgabe${overdue.length>1?'n':''}</div><div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Jetzt handeln oder bewusst verschieben.</div></div></div>`;
+  groups.forEach(g => {
+    if (!g.tasks.length) return;
+    html2 += `<div class="section-header"><span class="section-label" style="color:var(--danger);">${g.label} (${g.tasks.length})</span><div class="section-line" style="background:rgba(196,107,90,0.2);"></div></div>`;
+    g.tasks.forEach(t => { html2 += taskCard(t); });
+  });
+  list.innerHTML = html2;
+}
+
+// ── MATRIX TAB ──
+const EISEN_META = {
+  1:{num:'I',  label:'Wichtig + Dringend',       sub:'Sofort selbst erledigen', cls:'matrix-q1',col:'var(--danger)'},
+  2:{num:'II', label:'Wichtig + Nicht dringend', sub:'Planen & einplanen',      cls:'matrix-q2',col:'var(--today)'},
+  3:{num:'III',label:'Unwichtig + Dringend',     sub:'Delegieren',              cls:'matrix-q3',col:'var(--warn)'},
+  4:{num:'IV', label:'Unwichtig + Nicht dringend',sub:'Eliminieren',           cls:'matrix-q4',col:'var(--muted)'},
+};
+const IMPACT_COLORS = ['','#4a4845','#6b6760','#c8a96e','#c49a4a','#c46b5a'];
+
+function renderMatrixTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+  const activeTasks = tasks.filter(t => !t.waiting && (!t.recurring||t.recurring==='none'));
+  const unclassified = activeTasks.filter(t => !t.eisen);
+  let html2 = `<div style="margin-bottom:4px;"><div class="matrix-axis-label">← Nicht dringend &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dringend →</div></div><div class="matrix-grid">`;
+  [2,1,4,3].forEach(q => {
+    const m = EISEN_META[q];
+    const qTasks = activeTasks.filter(t=>t.eisen===q).sort((a,b)=>(parseInt(b.impact)||3)-(parseInt(a.impact)||3));
+    html2 += `<div class="matrix-quadrant ${m.cls}"><div class="matrix-quadrant-header"><div class="matrix-q-num">${m.num}</div><div><div class="matrix-q-label">${m.label}</div><div class="matrix-q-sub">${m.sub}</div></div></div>`;
+    if (!qTasks.length) { html2 += `<div style="color:var(--muted);font-size:0.75rem;">Keine Aufgaben</div>`; }
+    else qTasks.forEach(t => {
+      const dotColor = IMPACT_COLORS[parseInt(t.impact)||3]||'var(--muted)';
+      html2 += `<div class="matrix-task-item" onclick="switchTab('inbox');expandedIds.add('${t.id}');render();"><div class="matrix-task-check" onclick="checkTask('${t.id}',event)"></div><div class="matrix-impact-dot" style="background:${dotColor};"></div><div style="flex:1;min-width:0;font-size:0.8rem;line-height:1.35;">${escHtml(t.title)}</div></div>`;
+    });
+    html2 += '</div>';
+  });
+  html2 += '</div>';
+  if (unclassified.length) {
+    html2 += `<div class="section-header" style="margin-top:16px;"><span class="section-label">Nicht eingeordnet (${unclassified.length})</span><div class="section-line"></div></div>`;
+    unclassified.slice(0,5).forEach(t => { html2 += taskCard(t); });
+  }
+  list.innerHTML = html2;
+}
+
+// ── IMPACT TAB ──
+const IMPACT_LABELS = ['','Minimal','Niedrig','Mittel','Hoch','Maximal'];
+const EISEN_SHORT = {1:'QI · Sofort',2:'QII · Planen',3:'QIII · Delegieren',4:'QIV · Eliminieren'};
+const impactColors2 = {5:'var(--danger)',4:'var(--warn)',3:'var(--accent)',2:'var(--muted)',1:'#3a3835'};
+const impactBg2     = {5:'rgba(196,107,90,0.06)',4:'rgba(196,154,74,0.05)',3:'rgba(200,169,110,0.05)',2:'transparent',1:'transparent'};
+
+function renderImpactTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+  const active = tasks.filter(t => !t.waiting && (!t.recurring||t.recurring==='none'));
+  if (!active.length) { list.innerHTML = `<div class="empty"><div class="empty-icon">★</div><div class="empty-text">Keine Aufgaben vorhanden.</div></div>`; return; }
+  let html2 = '';
+  for (let imp=5; imp>=1; imp--) {
+    const group = active.filter(t=>(parseInt(t.impact)||3)===imp)
+      .sort((a,b) => { const uOrd={overdue:0,today:1,soon:2,ok:3}; const ud=(uOrd[urgency(a)]??3)-(uOrd[urgency(b)]??3); return ud||((a.eisen||9)-(b.eisen||9)); });
+    if (!group.length) continue;
+    const stars = '★'.repeat(imp)+'☆'.repeat(5-imp);
+    const color=impactColors2[imp], bg=impactBg2[imp];
+    html2 += `<div style="border-left:3px solid ${color};background:${bg};border-radius:0 var(--r-lg) var(--r-lg) 0;margin-bottom:6px;padding:0;">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px 8px;"><span style="font-size:1rem;color:${color};letter-spacing:0.05em;">${stars}</span><span style="font-family:monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:${color};">${IMPACT_LABELS[imp]}</span><span style="font-family:monospace;font-size:0.65rem;color:var(--muted);margin-left:auto;">${group.length} Aufgabe${group.length>1?'n':''}</span></div>`;
+    const byEisen={};
+    group.forEach(t=>{ const k=t.eisen||0; if(!byEisen[k]) byEisen[k]=[]; byEisen[k].push(t); });
+    [1,2,3,4,0].forEach(q => {
+      const qTasks=byEisen[q]; if(!qTasks||!qTasks.length) return;
+      if (q>0) html2+=`<div style="padding:2px 14px 4px;"><span style="font-family:monospace;font-size:0.62rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-left:2px solid var(--border);padding-left:6px;">${EISEN_SHORT[q]||''}</span></div>`;
+      html2+=`<div style="padding:0 14px 8px;">`;
+      qTasks.forEach(t => {
+        const due=fmtDue(t); const exp=expandedIds.has(t.id); const proj=t.projectId?projects.find(p=>p.id===t.projectId):null;
+        html2+=`<div style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleExpand('${t.id}',event)"><div style="display:flex;align-items:flex-start;gap:10px;"><div class="task-check" onclick="checkTask('${t.id}',event)" style="flex-shrink:0;margin-top:1px;"></div><div style="flex:1;min-width:0;"><div style="font-size:0.9rem;line-height:1.35;">${escHtml(t.title)}</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">${due?`<span class="due-tag ${due.cls}">📅 ${due.label}</span>`:''} ${proj?`<span class="tag" style="border-color:${proj.color};color:${proj.color};font-size:0.65rem;padding:1px 6px;">📁 ${escHtml(proj.name)}</span>`:''}</div>${exp?`<div class="task-actions" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);"><button class="task-action-btn" onclick="openEditModal('${t.id}',event)">✏️ Bearbeiten</button><button class="task-action-btn del" onclick="deleteTask('${t.id}',event)">🗑 Löschen</button></div><div class="horizon-picker" style="margin-top:6px;"><span class="horizon-pick-label">→</span>${['today','week','month','later','maybe'].map(h=>`<button class="horizon-pick-btn${t.horizon===h?' active':''}" onclick="setHorizonDirect('${t.id}','${h}',event)">${{today:'Heute',week:'Woche',month:'Monat',later:'Später',maybe:'Vielleicht'}[h]}</button>`).join('')}</div>`:''}</div></div></div>`;
+      });
+      html2+=`</div>`;
+    });
+    html2+=`</div>`;
+  }
+  list.innerHTML = html2;
+}
+
+// ── FROGS TAB ──
+const DREAD_LABELS = ['','😊 Kein Problem','🙂 Niedrig','😐 Mittel','😟 Hoch','😰 Sehr hoch'];
+const DREAD_COLORS = {5:'var(--danger)',4:'var(--warn)',3:'var(--accent)',2:'var(--accent2)',1:'var(--muted)'};
+
+function renderFrogsTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+  const frogs = tasks.filter(t=>t.frog===true&&!t.waiting).sort((a,b)=>(b.dread||3)-(a.dread||3)||(parseInt(b.impact)||3)-(parseInt(a.impact)||3));
+  if (!frogs.length) { list.innerHTML=`<div class="empty"><div class="empty-icon">🐸</div><div class="empty-text">Keine Frösche definiert.</div></div>`; return; }
+  let html2=`<div class="frog-banner"><div style="font-size:2rem;">🐸</div><div><div style="font-family:'Playfair Display',serif;font-size:1rem;color:#4caf82;">${frogs.length} Frosch${frogs.length>1?'…e':''} definiert</div><div class="frog-sync-note">✓ Geräteübergreifend via Supabase synchronisiert</div></div></div>`;
+  const groups=[{label:'😰 Sehr hoch',dread:5,tasks:frogs.filter(t=>(t.dread||3)===5)},{label:'😟 Hoch',dread:4,tasks:frogs.filter(t=>(t.dread||3)===4)},{label:'😐 Mittel',dread:3,tasks:frogs.filter(t=>(t.dread||3)===3)},{label:'🙂 Niedrig',dread:2,tasks:frogs.filter(t=>(t.dread||3)===2)},{label:'😊 Kein Problem',dread:1,tasks:frogs.filter(t=>(t.dread||3)===1)}].filter(g=>g.tasks.length);
+  groups.forEach(g=>{
+    html2+=`<div class="section-header"><span class="section-label" style="color:${DREAD_COLORS[g.dread]||'var(--muted)'};">${g.label}</span><div class="section-line" style="background:rgba(76,175,130,0.15);"></div></div>`;
+    g.tasks.forEach(t=>{html2+=taskCard(t);});
+  });
+  list.innerHTML=html2;
+}
+
 </script>
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
