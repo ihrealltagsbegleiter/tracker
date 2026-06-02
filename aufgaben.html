@@ -696,14 +696,15 @@ input[type=date]::-webkit-calendar-picker-indicator {
 .star-btn {
   font-size: 1.1rem;
   cursor: pointer;
-  opacity: 0.25;
+  opacity: 0.35;
+  color: var(--border);
   transition: opacity 0.12s, transform 0.1s;
   user-select: none;
   padding: 2px;
   background: none;
   border: none;
 }
-.star-btn.lit { opacity: 1; }
+.star-btn.lit { opacity: 1; color: var(--accent); }
 .star-btn:hover { transform: scale(1.2); }
 .star-label {
   font-family: 'DM Mono', monospace;
