@@ -833,6 +833,62 @@ input[type=date]::-webkit-calendar-picker-indicator {
   margin-bottom: 16px;
 }
 
+
+/* ── SORT DROPDOWN ── */
+.sort-dropdown-wrap { position: relative; }
+.sort-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px 11px;
+  font-size: 0.78rem;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.sort-btn:hover { color: var(--text); border-color: var(--muted); }
+.sort-btn.active { border-color: var(--accent); color: var(--accent); }
+.sort-menu {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  min-width: 200px;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: none;
+}
+.sort-menu.open { display: block; }
+.sort-menu-item {
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--border);
+}
+.sort-menu-item:last-child { border-bottom: none; }
+.sort-menu-item:hover { background: var(--surface2); }
+.sort-menu-item.selected { color: var(--accent); }
+.sort-menu-item .sort-icon { width: 16px; text-align: center; flex-shrink: 0; }
+.sort-menu-dir {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.sort-menu-dir:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ── QUICK CAPTURE ── */
 .fab {
   position: fixed;
@@ -965,6 +1021,20 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="topbar-title">Aufgaben</div>
     <div class="topbar-actions">
       <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
+      <div class="sort-dropdown-wrap">
+        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)">
+          <span id="sort-btn-label">↕ Sortierung</span>
+        </button>
+        <div class="sort-menu" id="sort-menu">
+          <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
+          <div class="sort-menu-item" data-key="impact"    onclick="setSortKey('impact')">   <span class="sort-icon">★</span> Impact           <span class="sort-menu-dir" id="dir-impact"    onclick="toggleSortDir('impact',event)">↓</span></div>
+          <div class="sort-menu-item" data-key="due"       onclick="setSortKey('due')">      <span class="sort-icon">📅</span> Fälligkeitsdatum <span class="sort-menu-dir" id="dir-due"       onclick="toggleSortDir('due',event)">↑</span></div>
+          <div class="sort-menu-item" data-key="eisen"     onclick="setSortKey('eisen')">    <span class="sort-icon">Q</span> Eisenhower        <span class="sort-menu-dir" id="dir-eisen"     onclick="toggleSortDir('eisen',event)">↑</span></div>
+          <div class="sort-menu-item" data-key="created"   onclick="setSortKey('created')">  <span class="sort-icon">🕐</span> Erstelldatum     <span class="sort-menu-dir" id="dir-created"   onclick="toggleSortDir('created',event)">↓</span></div>
+          <div class="sort-menu-item" data-key="title"     onclick="setSortKey('title')">    <span class="sort-icon">A</span> Alphabetisch      <span class="sort-menu-dir" id="dir-title"     onclick="toggleSortDir('title',event)">↑</span></div>
+          <div class="sort-menu-item" data-key="project"   onclick="setSortKey('project')">  <span class="sort-icon">📁</span> Projekt          <span class="sort-menu-dir" id="dir-project"   onclick="toggleSortDir('project',event)">↑</span></div>
+        </div>
+      </div>
       <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
       <button class="icon-btn primary" onclick="openAddModal()">+ Neu</button>
     </div>
@@ -1667,18 +1737,7 @@ function renderList() {
     return;
   }
 
-  // Sort: overdue first, then by impact, then by due date
-  const sorted = [...tabTasks].sort((a, b) => {
-    const ua = urgency(a), ub = urgency(b);
-    const urgOrder = { overdue: 0, today: 1, soon: 2, ok: 3 };
-    if (urgOrder[ua] !== urgOrder[ub]) return urgOrder[ua] - urgOrder[ub];
-    const impOrder = { high: 0, medium: 1, low: 2 };
-    const ia = impOrder[a.impact] ?? 1, ib = impOrder[b.impact] ?? 1;
-    if (ia !== ib) return ia - ib;
-    if (a.due && b.due) return a.due.localeCompare(b.due);
-    if (a.due) return -1; if (b.due) return 1;
-    return 0;
-  });
+  const sorted = applySortOrder(tabTasks);
 
   // Group by project if multiple tasks share one
   let html = '';
@@ -3099,6 +3158,112 @@ function renderLogTab() {
   });
 
   list.innerHTML = html;
+}
+
+
+// ── SORT ──
+const SORT_LABELS = {
+  urgency: '⚡ Dringlichkeit', impact: '★ Impact', due: '📅 Fälligkeit',
+  eisen: 'Q Eisenhower', created: '🕐 Erstellt', title: 'A Alphabetisch', project: '📁 Projekt'
+};
+const SORT_DEFAULT_DIR = {
+  urgency: 'desc', impact: 'desc', due: 'asc',
+  eisen: 'asc', created: 'desc', title: 'asc', project: 'asc'
+};
+
+let currentSort = { key: 'urgency', dir: 'desc' };
+
+function toggleSortMenu(e) {
+  e.stopPropagation();
+  document.getElementById('sort-menu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('sort-menu')?.classList.remove('open');
+});
+
+function setSortKey(key) {
+  if (currentSort.key === key) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.key = key;
+    currentSort.dir = SORT_DEFAULT_DIR[key] || 'asc';
+  }
+  updateSortUI();
+  document.getElementById('sort-menu').classList.remove('open');
+  render();
+}
+
+function toggleSortDir(key, e) {
+  e.stopPropagation();
+  if (currentSort.key === key) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.key = key;
+    currentSort.dir = SORT_DEFAULT_DIR[key] || 'asc';
+  }
+  updateSortUI();
+  render();
+}
+
+function updateSortUI() {
+  const btn = document.getElementById('sort-btn');
+  const lbl = document.getElementById('sort-btn-label');
+  if (!btn || !lbl) return;
+  const isDefault = currentSort.key === 'urgency' && currentSort.dir === 'desc';
+  btn.classList.toggle('active', !isDefault);
+  lbl.textContent = isDefault ? '↕ Sortierung' : SORT_LABELS[currentSort.key] + (currentSort.dir === 'asc' ? ' ↑' : ' ↓');
+
+  // Update menu items
+  document.querySelectorAll('.sort-menu-item').forEach(el => {
+    const k = el.dataset.key;
+    el.classList.toggle('selected', k === currentSort.key);
+    const dirEl = document.getElementById('dir-' + k);
+    if (dirEl) dirEl.textContent = (k === currentSort.key ? currentSort.dir : SORT_DEFAULT_DIR[k] || 'asc') === 'asc' ? '↑' : '↓';
+  });
+}
+
+function applySortOrder(tasks) {
+  const { key, dir } = currentSort;
+  const mul = dir === 'asc' ? 1 : -1;
+
+  return [...tasks].sort((a, b) => {
+    let va, vb;
+    switch(key) {
+      case 'urgency': {
+        const urgOrder = { overdue: 0, today: 1, soon: 2, ok: 3 };
+        va = urgOrder[urgency(a)] ?? 3;
+        vb = urgOrder[urgency(b)] ?? 3;
+        if (va !== vb) return (va - vb) * mul;
+        // Tiebreaker: impact
+        return ((parseInt(b.impact)||3) - (parseInt(a.impact)||3));
+      }
+      case 'impact':
+        va = parseInt(a.impact) || 3;
+        vb = parseInt(b.impact) || 3;
+        return (va - vb) * mul;
+      case 'due':
+        if (a.due && b.due) return a.due.localeCompare(b.due) * mul;
+        if (a.due) return -1 * mul;
+        if (b.due) return 1 * mul;
+        return 0;
+      case 'eisen':
+        va = a.eisen || 9;
+        vb = b.eisen || 9;
+        return (va - vb) * mul;
+      case 'created':
+        va = a.created || '';
+        vb = b.created || '';
+        return va.localeCompare(vb) * mul;
+      case 'title':
+        return (a.title || '').localeCompare(b.title || '', 'de') * mul;
+      case 'project': {
+        const pa = projects.find(p => p.id === a.projectId)?.name || 'zzz';
+        const pb = projects.find(p => p.id === b.projectId)?.name || 'zzz';
+        return pa.localeCompare(pb, 'de') * mul;
+      }
+      default: return 0;
+    }
+  });
 }
 
 // ── TOAST ──
