@@ -1276,7 +1276,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
       <label>Kontext / Energie</label>
       <div class="pill-group" id="context-pills">
         <div class="pill" data-val="focus">🧠 Fokus</div>
-        <div class="pill" data-val="quick">⚡ 2 Min</div>
+        <div class="pill" data-val="quick">⚡ 10 Min</div>
         <div class="pill" data-val="phone">📞 Telefonieren</div>
         <div class="pill" data-val="mobile">🚶 Unterwegs</div>
         <div class="pill" data-val="team">👥 Mit Team</div>
@@ -1856,7 +1856,7 @@ function taskCard(task, isRecurring = false) {
   const due = fmtDue(task);
   const expanded = expandedIds.has(task.id);
   const horizonLabels = { today: 'Heute', week: 'Woche', month: 'Monat', later: 'Irgendwann', maybe: 'Vielleicht' };
-  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 2 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team', research: '📋 Recherche', docs: '📂 Unterlagen', talk: '💬 Absprache', lexware: '💸 Lexware', pc: '💻 Am PC', it: '📲 IT-Entwicklung' };
+  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 10 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team', research: '📋 Recherche', docs: '📂 Unterlagen', talk: '💬 Absprache', lexware: '💸 Lexware', pc: '💻 Am PC', it: '📲 IT-Entwicklung' };
 
   let tags = '';
   if (currentTab === 'inbox' && false) {
@@ -2987,7 +2987,7 @@ init();
     <div class="filter-section-label">Kontext</div>
     <div class="filter-pills" id="fp-context">
       <span class="filter-pill" data-val="focus"  onclick="toggleFilter('context','focus')">🧠 Fokus</span>
-      <span class="filter-pill" data-val="quick"  onclick="toggleFilter('context','quick')">⚡ 2 Min</span>
+      <span class="filter-pill" data-val="quick"  onclick="toggleFilter('context','quick')">⚡ 10 Min</span>
       <span class="filter-pill" data-val="phone"  onclick="toggleFilter('context','phone')">📞 Tel</span>
       <span class="filter-pill" data-val="mobile" onclick="toggleFilter('context','mobile')">🚶 Unterwegs</span>
       <span class="filter-pill" data-val="team"   onclick="toggleFilter('context','team')">👥 Team</span>
