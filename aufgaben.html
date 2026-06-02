@@ -1102,8 +1102,71 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="topbar-title">Aufgaben</div>
     <div class="topbar-actions">
       <span id="sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);align-self:center;"></span>
+      <div style="display:flex;align-items:center;gap:4px;position:relative;">
+        <button class="sort-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern" style="padding:7px 11px;font-size:0.85rem;">⚙</button>
+        <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">× Filter</span>
+        <div class="filter-panel" id="filter-panel">
+          <div class="filter-panel-title">
+            Filter
+            <span class="filter-clear" onclick="clearAllFilters()">Alle zurücksetzen</span>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Impact</div>
+            <div class="filter-pills" id="fp-impact">
+              <span class="filter-pill" data-val="5" onclick="toggleFilter('impact','5')">★★★★★</span>
+              <span class="filter-pill" data-val="4" onclick="toggleFilter('impact','4')">★★★★☆</span>
+              <span class="filter-pill" data-val="3" onclick="toggleFilter('impact','3')">★★★☆☆</span>
+              <span class="filter-pill" data-val="2" onclick="toggleFilter('impact','2')">★★☆☆☆</span>
+              <span class="filter-pill" data-val="1" onclick="toggleFilter('impact','1')">★☆☆☆☆</span>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Eisenhower</div>
+            <div class="filter-pills" id="fp-eisen">
+              <span class="filter-pill" data-val="1" onclick="toggleFilter('eisen','1')">QI</span>
+              <span class="filter-pill" data-val="2" onclick="toggleFilter('eisen','2')">QII</span>
+              <span class="filter-pill" data-val="3" onclick="toggleFilter('eisen','3')">QIII</span>
+              <span class="filter-pill" data-val="4" onclick="toggleFilter('eisen','4')">QIV</span>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Kontext</div>
+            <div class="filter-pills" id="fp-context">
+              <span class="filter-pill" data-val="focus"  onclick="toggleFilter('context','focus')">🧠 Fokus</span>
+              <span class="filter-pill" data-val="quick"  onclick="toggleFilter('context','quick')">⚡ 2 Min</span>
+              <span class="filter-pill" data-val="phone"  onclick="toggleFilter('context','phone')">📞 Tel</span>
+              <span class="filter-pill" data-val="mobile" onclick="toggleFilter('context','mobile')">🚶 Unterwegs</span>
+              <span class="filter-pill" data-val="team"   onclick="toggleFilter('context','team')">👥 Team</span>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Typ</div>
+            <div class="filter-pills" id="fp-type">
+              <span class="filter-pill" data-val="frog"      onclick="toggleFilter('type','frog')">🐸 Frosch</span>
+              <span class="filter-pill" data-val="recurring" onclick="toggleFilter('type','recurring')">↻ Wiederkehrend</span>
+              <span class="filter-pill" data-val="due"       onclick="toggleFilter('type','due')">📅 Hat Datum</span>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-label">Projekt</div>
+            <div class="filter-pills" id="fp-project"></div>
+          </div>
+        </div>
+        <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung" style="padding:7px 11px;font-size:0.85rem;">
+          <span id="sort-btn-label">↕</span>
+        </button>
+        <div class="sort-menu" id="sort-menu">
+          <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
+          <div class="sort-menu-item" data-key="impact"    onclick="setSortKey('impact')">   <span class="sort-icon">★</span> Impact           <span class="sort-menu-dir" id="dir-impact"    onclick="toggleSortDir('impact',event)">↓</span></div>
+          <div class="sort-menu-item" data-key="due"       onclick="setSortKey('due')">      <span class="sort-icon">📅</span> Fälligkeit       <span class="sort-menu-dir" id="dir-due"       onclick="toggleSortDir('due',event)">↑</span></div>
+          <div class="sort-menu-item" data-key="eisen"     onclick="setSortKey('eisen')">    <span class="sort-icon">Q</span> Eisenhower       <span class="sort-menu-dir" id="dir-eisen"     onclick="toggleSortDir('eisen',event)">↑</span></div>
+          <div class="sort-menu-item" data-key="created"   onclick="setSortKey('created')">  <span class="sort-icon">🕐</span> Erstellt         <span class="sort-menu-dir" id="dir-created"   onclick="toggleSortDir('created',event)">↓</span></div>
+          <div class="sort-menu-item" data-key="title"     onclick="setSortKey('title')">    <span class="sort-icon">A</span> Alphabetisch     <span class="sort-menu-dir" id="dir-title"     onclick="toggleSortDir('title',event)">↑</span></div>
+          <div class="sort-menu-item" data-key="project"   onclick="setSortKey('project')">  <span class="sort-icon">📁</span> Projekt          <span class="sort-menu-dir" id="dir-project"   onclick="toggleSortDir('project',event)">↑</span></div>
+        </div>
+      </div>
       <button class="icon-btn" onclick="openReviewModal()">↻ Review</button>
-      <button class="icon-btn primary" onclick="openAddModal()">+ Neu</button>
+      <button class="icon-btn primary" id="main-add-btn" onclick="openAddModal()">+ Neu</button>
     </div>
   </div>
 
@@ -1152,72 +1215,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
       📋 Protokoll
     </div>
 
-    <div class="sort-dropdown-wrap" style="display:flex;align-items:center;margin-left:auto;padding:0 8px;flex-shrink:0;gap:4px;">
-      <button class="sort-btn" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern" style="padding:6px 10px;font-size:0.75rem;">
-        <span id="filter-btn-label">⚙</span>
-      </button>
-      <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">× Filter</span>
-      <div class="filter-panel" id="filter-panel">
-        <div class="filter-panel-title">
-          Filter
-          <span class="filter-clear" onclick="clearAllFilters()">Alle zurücksetzen</span>
-        </div>
-        <div class="filter-section">
-          <div class="filter-section-label">Impact</div>
-          <div class="filter-pills" id="fp-impact">
-            <span class="filter-pill" data-val="5" onclick="toggleFilter('impact','5')">★★★★★</span>
-            <span class="filter-pill" data-val="4" onclick="toggleFilter('impact','4')">★★★★☆</span>
-            <span class="filter-pill" data-val="3" onclick="toggleFilter('impact','3')">★★★☆☆</span>
-            <span class="filter-pill" data-val="2" onclick="toggleFilter('impact','2')">★★☆☆☆</span>
-            <span class="filter-pill" data-val="1" onclick="toggleFilter('impact','1')">★☆☆☆☆</span>
-          </div>
-        </div>
-        <div class="filter-section">
-          <div class="filter-section-label">Eisenhower</div>
-          <div class="filter-pills" id="fp-eisen">
-            <span class="filter-pill" data-val="1" onclick="toggleFilter('eisen','1')">QI</span>
-            <span class="filter-pill" data-val="2" onclick="toggleFilter('eisen','2')">QII</span>
-            <span class="filter-pill" data-val="3" onclick="toggleFilter('eisen','3')">QIII</span>
-            <span class="filter-pill" data-val="4" onclick="toggleFilter('eisen','4')">QIV</span>
-          </div>
-        </div>
-        <div class="filter-section">
-          <div class="filter-section-label">Kontext</div>
-          <div class="filter-pills" id="fp-context">
-            <span class="filter-pill" data-val="focus"  onclick="toggleFilter('context','focus')">🧠 Fokus</span>
-            <span class="filter-pill" data-val="quick"  onclick="toggleFilter('context','quick')">⚡ 2 Min</span>
-            <span class="filter-pill" data-val="phone"  onclick="toggleFilter('context','phone')">📞 Tel</span>
-            <span class="filter-pill" data-val="mobile" onclick="toggleFilter('context','mobile')">🚶 Unterwegs</span>
-            <span class="filter-pill" data-val="team"   onclick="toggleFilter('context','team')">👥 Team</span>
-          </div>
-        </div>
-        <div class="filter-section">
-          <div class="filter-section-label">Typ</div>
-          <div class="filter-pills" id="fp-type">
-            <span class="filter-pill" data-val="frog"      onclick="toggleFilter('type','frog')">🐸 Frosch</span>
-            <span class="filter-pill" data-val="recurring" onclick="toggleFilter('type','recurring')">↻ Wiederkehrend</span>
-            <span class="filter-pill" data-val="waiting"   onclick="toggleFilter('type','waiting')">⏳ Warten</span>
-            <span class="filter-pill" data-val="due"       onclick="toggleFilter('type','due')">📅 Hat Datum</span>
-          </div>
-        </div>
-        <div class="filter-section" id="fp-project-section">
-          <div class="filter-section-label">Projekt</div>
-          <div class="filter-pills" id="fp-project"></div>
-        </div>
-      </div>
-      <button class="sort-btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sortierung" style="padding:6px 10px;font-size:0.75rem;">
-        <span id="sort-btn-label">↕</span>
-      </button>
-      <div class="sort-menu" id="sort-menu">
-        <div class="sort-menu-item" data-key="urgency"   onclick="setSortKey('urgency')">  <span class="sort-icon">⚡</span> Dringlichkeit    <span class="sort-menu-dir" id="dir-urgency"   onclick="toggleSortDir('urgency',event)">↓</span></div>
-        <div class="sort-menu-item" data-key="impact"    onclick="setSortKey('impact')">   <span class="sort-icon">★</span> Impact           <span class="sort-menu-dir" id="dir-impact"    onclick="toggleSortDir('impact',event)">↓</span></div>
-        <div class="sort-menu-item" data-key="due"       onclick="setSortKey('due')">      <span class="sort-icon">📅</span> Fälligkeit       <span class="sort-menu-dir" id="dir-due"       onclick="toggleSortDir('due',event)">↑</span></div>
-        <div class="sort-menu-item" data-key="eisen"     onclick="setSortKey('eisen')">    <span class="sort-icon">Q</span> Eisenhower       <span class="sort-menu-dir" id="dir-eisen"     onclick="toggleSortDir('eisen',event)">↑</span></div>
-        <div class="sort-menu-item" data-key="created"   onclick="setSortKey('created')">  <span class="sort-icon">🕐</span> Erstellt         <span class="sort-menu-dir" id="dir-created"   onclick="toggleSortDir('created',event)">↓</span></div>
-        <div class="sort-menu-item" data-key="title"     onclick="setSortKey('title')">    <span class="sort-icon">A</span> Alphabetisch     <span class="sort-menu-dir" id="dir-title"     onclick="toggleSortDir('title',event)">↑</span></div>
-        <div class="sort-menu-item" data-key="project"   onclick="setSortKey('project')">  <span class="sort-icon">📁</span> Projekt         <span class="sort-menu-dir" id="dir-project"   onclick="toggleSortDir('project',event)">↑</span></div>
-      </div>
-    </div>
+
   </div>
 
   <!-- STATS (only on inbox/today) -->
