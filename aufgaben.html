@@ -878,6 +878,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="nav-tab active" data-tab="inbox" onclick="switchTab('inbox')">
       Eingang <span class="badge" id="badge-inbox">0</span>
     </div>
+    <div class="nav-tab" data-tab="overdue" id="nav-overdue" onclick="switchTab('overdue')" style="display:none;">
+      🔴 Überfällig <span class="badge" id="badge-overdue" style="background:var(--danger);color:#fff;">0</span>
+    </div>
     <div class="nav-tab" data-tab="today" onclick="switchTab('today')">
       Heute <span class="badge" id="badge-today">0</span>
     </div>
@@ -1362,6 +1365,9 @@ function getTabTasks(tab) {
   if (tab === 'waiting') {
     return tasks.filter(t => t.waiting === true);
   }
+  if (tab === 'overdue') {
+    return tasks.filter(t => !t.waiting && diffDays(t.due) !== null && diffDays(t.due) < 0);
+  }
   // Exclude recurring and waiting tasks from regular tabs
   const base = tasks.filter(t => (!t.recurring || t.recurring === 'none') && !t.waiting);
   if (tab === 'inbox') return base.filter(t => !t.horizon || t.horizon === 'inbox' || t.horizon === null);
@@ -1384,6 +1390,11 @@ function updateBadges() {
   });
   const wbadge = document.getElementById('badge-waiting');
   if (wbadge) wbadge.textContent = tasks.filter(t => t.waiting === true).length;
+  const overdueCount = tasks.filter(t => !t.waiting && diffDays(t.due) !== null && diffDays(t.due) < 0).length;
+  const obadge = document.getElementById('badge-overdue');
+  if (obadge) obadge.textContent = overdueCount;
+  const onav = document.getElementById('nav-overdue');
+  if (onav) onav.style.display = overdueCount > 0 ? '' : 'none';
   const pbadge = document.getElementById('badge-projects');
   if (pbadge) pbadge.textContent = projects.filter(p => p.status === 'active').length;
 }
@@ -1409,6 +1420,7 @@ function renderList() {
   if (currentTab === 'projects') { renderProjectsTab(); return; }
   if (currentTab === 'waiting') { renderWaitingTab(); return; }
   if (currentTab === 'matrix') { renderMatrixTab(); return; }
+  if (currentTab === 'overdue') { renderOverdueTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -2417,6 +2429,69 @@ saveProject = function() {
     }
   }
 };
+
+
+// ── OVERDUE TAB ──
+function renderOverdueTab() {
+  const list = document.getElementById('task-list');
+  const bar  = document.getElementById('stats-bar');
+  bar.style.display = 'none';
+
+  const overdue = tasks
+    .filter(t => !t.waiting && diffDays(t.due) !== null && diffDays(t.due) < 0)
+    .sort((a, b) => {
+      // Älteste zuerst (am längsten überfällig)
+      const da = diffDays(a.due) ?? 0;
+      const db = diffDays(b.due) ?? 0;
+      if (da !== db) return da - db; // negativer = weiter überfällig = kommt zuerst
+      // Bei gleichem Datum: höherer Impact zuerst
+      return (parseInt(b.impact) || 3) - (parseInt(a.impact) || 3);
+    });
+
+  if (overdue.length === 0) {
+    // Sollte nicht vorkommen (Tab ist hidden), aber sicher ist sicher
+    list.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Keine überfälligen Aufgaben.</div></div>`;
+    return;
+  }
+
+  // Gruppieren nach Tagen überfällig: heute, 1-3T, 4-7T, älter
+  const groups = [
+    { label: 'Heute verpasst',      tasks: [], filter: t => diffDays(t.due) === 0  },
+    { label: '1–3 Tage überfällig', tasks: [], filter: t => diffDays(t.due) >= -3 && diffDays(t.due) < 0 },
+    { label: '4–7 Tage überfällig', tasks: [], filter: t => diffDays(t.due) >= -7 && diffDays(t.due) < -3 },
+    { label: 'Über eine Woche',     tasks: [], filter: t => diffDays(t.due) < -7   },
+  ];
+  overdue.forEach(t => {
+    const g = groups.find(g => g.filter(t));
+    if (g) g.tasks.push(t);
+  });
+
+  let html = `<div style="
+    background: linear-gradient(135deg, rgba(196,107,90,0.08), rgba(196,107,90,0.03));
+    border: 1px solid rgba(196,107,90,0.25);
+    border-radius: var(--r-lg);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  ">
+    <div style="font-size:1.5rem;">🔴</div>
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--danger);">${overdue.length} überfällige Aufgabe${overdue.length > 1 ? 'n' : ''}</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Jetzt handeln oder bewusst verschieben.</div>
+    </div>
+  </div>`;
+
+  groups.forEach(g => {
+    if (g.tasks.length === 0) return;
+    html += `<div class="section-header">
+      <span class="section-label" style="color:var(--danger);">${g.label} (${g.tasks.length})</span>
+      <div class="section-line" style="background:rgba(196,107,90,0.2);"></div>
+    </div>`;
+    g.tasks.forEach(t => { html += taskCard(t); });
+  });
+
+  list.innerHTML = html;
+}
 
 // ── TOAST ──
 function showToast(msg) {
