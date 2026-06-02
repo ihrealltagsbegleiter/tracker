@@ -3085,23 +3085,7 @@ function getYesterdayKey(){
 }
 
 function getPlanStreak(){
-  let streak=0;
-  const cur = new Date(TODAY);
-  // Start from yesterday (planning is done the evening before)
-  cur.setDate(cur.getDate()-1);
-  for(let i=0;i<365;i++){
-    const ds = cur.toISOString().slice(0,10);
-    // A day counts if frogs were planned for the NEXT day
-    const nextDs = new Date(cur); nextDs.setDate(nextDs.getDate()+1);
-    const nextKey = nextDs.toISOString().slice(0,10);
-    // Also count today's planning (frogs for tomorrow already set)
-    if(planned.length > 0){ streak++; cur.setDate(cur.getDate()-1); }
-    else break;
-  }
-  // Also check if frogs for tomorrow already planned today
-  if(tomorrowPlanned && streak===0) streak=1;
-  else if(tomorrowPlanned) streak++; // today adds to streak
-  return streak;
+  return 0; // Plan-Streak war an Frösche gekoppelt, entfernt
 }
 
 function updatePlanStreak(){
