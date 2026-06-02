@@ -2920,6 +2920,40 @@ function openInlineProjectModal() {
   setTimeout(() => openProjectModal(null), 120);
 }
 
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); closeWaitModal(); closeQuick(); }
+  if (e.target.matches('input,textarea,select')) return;
+  if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); openQuick(); }
+  if (e.key === 'n' || e.key === 'N') {
+    if (currentTab === 'projects') openProjectModal(null); else openAddModal();
+  }
+});
+
+// ── INIT ──
+async function init() {
+  setSyncStatus('syncing');
+  const remote = await sbLoadAll();
+  if (remote) {
+    tasks      = remote.tasks;
+    projects   = remote.projects;
+    if (remote.log) logEntries = remote.log;
+    setSyncStatus('ok');
+  } else {
+    setSyncStatus(navigator.onLine ? 'error' : 'offline');
+  }
+  render();
+}
+
+init();
+
 </script>
 
 <!-- FILTER PANEL (body-level for correct z-index) -->
