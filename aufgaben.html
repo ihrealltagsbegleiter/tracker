@@ -584,6 +584,125 @@ input[type=date]::-webkit-calendar-picker-indicator {
   font-weight: 500;
 }
 
+
+/* ── QUICK CAPTURE ── */
+.fab {
+  position: fixed;
+  bottom: 28px;
+  right: 20px;
+  z-index: 150;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0f0e0c;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(200,169,110,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+.fab:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(200,169,110,0.3); }
+.fab.open { transform: rotate(45deg); background: var(--surface2); color: var(--text); box-shadow: none; }
+
+.quick-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.quick-overlay.open { opacity: 1; pointer-events: all; }
+
+.quick-box {
+  position: fixed;
+  bottom: 96px;
+  right: 16px;
+  left: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  transform: translateY(12px);
+  transition: transform 0.2s, opacity 0.2s;
+  opacity: 0;
+}
+.quick-overlay.open .quick-box {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.quick-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.quick-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  padding: 6px 0 10px;
+  outline: none;
+}
+.quick-input:focus { border-bottom-color: var(--accent); }
+.quick-input::placeholder { color: var(--muted); }
+
+.quick-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.quick-hint kbd {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+}
+.quick-impact-row {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+.quick-imp-btn {
+  flex: 1;
+  padding: 5px 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: center;
+}
+.quick-imp-btn.active-high   { border-color: var(--danger);  color: var(--danger);  background: rgba(196,107,90,0.12); }
+.quick-imp-btn.active-medium { border-color: var(--warn);    color: var(--warn);    background: rgba(196,154,74,0.12); }
+.quick-imp-btn.active-low    { border-color: var(--muted);   color: var(--text);    background: var(--surface2); }
+
 @media (min-width: 600px) {
   .modal { border-radius: var(--r-lg); margin: auto; }
   .modal-overlay { align-items: center; }
@@ -1850,6 +1969,84 @@ function renderWaitingTab() {
   list.innerHTML = html;
 }
 
+
+// ── QUICK CAPTURE ──
+let quickOpen = false;
+let quickImpact = 'high';
+
+function toggleQuick() {
+  quickOpen ? closeQuick() : openQuick();
+}
+
+function openQuick() {
+  quickOpen = true;
+  document.getElementById('quick-overlay').classList.add('open');
+  document.getElementById('fab').classList.add('open');
+  document.getElementById('quick-input').value = '';
+  setQuickImpact('high');
+  setTimeout(() => document.getElementById('quick-input').focus(), 180);
+}
+
+function closeQuick() {
+  quickOpen = false;
+  document.getElementById('quick-overlay').classList.remove('open');
+  document.getElementById('fab').classList.remove('open');
+}
+
+function handleQuickOverlayClick(e) {
+  if (e.target === document.getElementById('quick-overlay')) closeQuick();
+}
+
+function setQuickImpact(val) {
+  quickImpact = val;
+  document.querySelectorAll('.quick-imp-btn').forEach(b => {
+    b.className = 'quick-imp-btn';
+    if (b.dataset.imp === val) b.classList.add('active-' + val);
+  });
+}
+
+function saveQuickTask() {
+  const title = document.getElementById('quick-input').value.trim();
+  if (!title) return;
+
+  const task = {
+    id:        'T' + Date.now(),
+    title,
+    note:      null,
+    horizon:   'today',   // landet im Eingang (inbox zeigt alle)
+    due:       null,
+    impact:    quickImpact,
+    context:   null,
+    project:   null,
+    projectId: null,
+    recurring: 'none',
+    recurDays: null,
+    waiting:   false,
+    created:   todayStr(),
+  };
+
+  tasks.push(task);
+  save(tasks);
+
+  // Kurze Bestätigung im Input, dann leeren für nächste Eingabe
+  const inp = document.getElementById('quick-input');
+  inp.value = '✓ Gespeichert';
+  inp.style.color = 'var(--accent2)';
+  setTimeout(() => {
+    inp.value = '';
+    inp.style.color = '';
+    inp.focus();
+  }, 600);
+
+  render();
+  showToast('⚡ Im Eingang');
+}
+
+document.getElementById('quick-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); saveQuickTask(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeQuick(); }
+});
+
 // ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -1860,8 +2057,10 @@ function showToast(msg) {
 
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); closeWaitModal(); }
-  if (e.key === 'n' && !e.target.matches('input,textarea,select')) {
+  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); closeWaitModal(); closeQuick(); }
+  if (e.target.matches('input,textarea,select')) return;
+  if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); openQuick(); }
+  if (e.key === 'n' || e.key === 'N') {
     if (currentTab === 'projects') openProjectModal(null); else openAddModal();
   }
 });
@@ -1896,5 +2095,32 @@ async function init() {
 
 init();
 </script>
+
+<!-- QUICK CAPTURE FAB -->
+<button class="fab" id="fab" onclick="toggleQuick()" title="Schnellerfassung (Q)">+</button>
+
+<div class="quick-overlay" id="quick-overlay" onclick="handleQuickOverlayClick(event)">
+  <div class="quick-box" onclick="event.stopPropagation()">
+    <div class="quick-label">⚡ Schnellerfassung → Eingang</div>
+    <input
+      type="text"
+      class="quick-input"
+      id="quick-input"
+      placeholder="Aufgabe beschreiben…"
+      autocomplete="off"
+      autocorrect="off"
+    />
+    <div class="quick-impact-row">
+      <button class="quick-imp-btn active-high" data-imp="high"   onclick="setQuickImpact('high')">🔴 Hoch</button>
+      <button class="quick-imp-btn"             data-imp="medium" onclick="setQuickImpact('medium')">🟡 Mittel</button>
+      <button class="quick-imp-btn"             data-imp="low"    onclick="setQuickImpact('low')">⚪ Niedrig</button>
+    </div>
+    <div class="quick-hint">
+      <span><kbd>Enter</kbd> speichern &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</span>
+      <span>Horizon: Eingang</span>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
