@@ -1456,6 +1456,14 @@ function getTabTasks(tab) {
   // Exclude recurring and waiting tasks from regular tabs
   const base = tasks.filter(t => (!t.recurring || t.recurring === 'none') && !t.waiting);
   if (tab === 'inbox') return base.filter(t => !t.horizon || t.horizon === 'inbox' || t.horizon === null);
+  if (tab === 'today') {
+    const regularToday = base.filter(t => t.horizon === 'today');
+    const recurToday   = tasks.filter(t => t.recurring && t.recurring !== 'none' && !t.waiting && isRecurringDueToday(t));
+    const dueToday     = base.filter(t => t.horizon !== 'today' && diffDays(t.due) === 0);
+    // Deduplizieren per ID
+    const seen = new Set();
+    return [...regularToday, ...recurToday, ...dueToday].filter(t => seen.has(t.id) ? false : seen.add(t.id));
+  }
   if (tab === 'week') {
     const regularWeek = base.filter(t => t.horizon === 'week');
     const recurWeek = tasks.filter(t => t.recurring && t.recurring !== 'none' && !t.waiting && isRecurringDueThisWeek(t) && !isRecurringDueToday(t));
