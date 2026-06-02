@@ -736,6 +736,42 @@ input[type=date]::-webkit-calendar-picker-indicator {
 .eisen-pill.sel-3 { border-color: var(--warn);   color: var(--warn);   background: rgba(196,154,74,0.1); }
 .eisen-pill.sel-4 { border-color: var(--border); color: var(--text);   background: var(--surface2); }
 
+
+/* ── FROG ── */
+.tag-frog {
+  color: #4caf82;
+  border-color: #4caf82;
+  background: rgba(76,175,130,0.12);
+}
+.task-card.is-frog {
+  border-left: 3px solid #4caf82;
+}
+.frog-banner {
+  background: linear-gradient(135deg, rgba(76,175,130,0.08), rgba(76,175,130,0.03));
+  border: 1px solid rgba(76,175,130,0.25);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.frog-sync-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: #4caf82;
+  margin-top: 3px;
+  opacity: 0.7;
+}
+.dread-picker { display: flex; gap: 4px; align-items: center; }
+.dread-btn {
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.12s, transform 0.1s;
+  background: none; border: none; padding: 2px;
+}
+.dread-btn.lit { opacity: 1; }
+.dread-btn:hover { transform: scale(1.2); }
+
 /* ── QUICK CAPTURE ── */
 .fab {
   position: fixed;
@@ -911,6 +947,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     <div class="nav-tab" data-tab="impact" onclick="switchTab('impact')">
       Impact
     </div>
+    <div class="nav-tab" data-tab="frogs" onclick="switchTab('frogs')">
+      🐸 Frösche
+    </div>
   </div>
 
   <!-- STATS (only on inbox/today) -->
@@ -1017,6 +1056,26 @@ input[type=date]::-webkit-calendar-picker-indicator {
         <div class="pill" data-val="phone">📞 Telefonieren</div>
         <div class="pill" data-val="mobile">🚶 Unterwegs</div>
         <div class="pill" data-val="team">👥 Mit Team</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>🐸 Frosch <span style="color:var(--muted);font-size:0.68rem;font-weight:300;">– kostet besondere Überwindung</span></label>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:2px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="f-frog" style="width:18px;height:18px;accent-color:#4caf82;cursor:pointer;"/>
+          <span style="font-size:0.88rem;color:var(--muted);">Als Frosch markieren</span>
+        </label>
+        <div id="frog-dread-row" style="display:none;align-items:center;gap:6px;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">Dread:</span>
+          <div class="dread-picker" id="dread-picker">
+            <button class="dread-btn" data-val="1" onclick="setDread(1)">😊</button>
+            <button class="dread-btn" data-val="2" onclick="setDread(2)">🙂</button>
+            <button class="dread-btn lit" data-val="3" onclick="setDread(3)">😐</button>
+            <button class="dread-btn" data-val="4" onclick="setDread(4)">😟</button>
+            <button class="dread-btn" data-val="5" onclick="setDread(5)">😰</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1404,7 +1463,7 @@ function updateBadges() {
 
 function updateStats() {
   const bar = document.getElementById('stats-bar');
-  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix' || currentTab === 'impact') {
+  if (currentTab === 'inbox' || currentTab === 'today' || currentTab === 'waiting' || currentTab === 'matrix' || currentTab === 'impact' || currentTab === 'frogs') {
     bar.style.display = 'grid';
     const nonRecur = tasks.filter(t => !t.recurring || t.recurring === 'none');
     document.getElementById('stat-overdue').textContent =
@@ -1425,6 +1484,7 @@ function renderList() {
   if (currentTab === 'matrix') { renderMatrixTab(); return; }
   if (currentTab === 'overdue') { renderOverdueTab(); return; }
   if (currentTab === 'impact') { renderImpactTab(); return; }
+  if (currentTab === 'frogs') { renderFrogsTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -1494,6 +1554,10 @@ function taskCard(task, isRecurring = false) {
     const proj = projects.find(p => p.id === task.projectId);
     if (proj) tags += `<span class="tag tag-context" style="border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
   }
+  if (task.frog) {
+    const dreadEmoji = ['','😊','🙂','😐','😟','😰'][task.dread || 3];
+    tags += `<span class="tag tag-frog">🐸 Frosch ${dreadEmoji}</span>`;
+  }
   if (task.recurring && task.recurring !== 'none') {
     tags += `<span class="tag tag-recurring">${recurLabel(task)}</span>`;
   }
@@ -1531,7 +1595,7 @@ function taskCard(task, isRecurring = false) {
 
   const note = (task.note && expanded) ? `<div class="task-note">${escHtml(task.note)}</div>` : '';
 
-  return `<div class="task-card urgency-${urg}" id="card-${task.id}" onclick="toggleExpand('${task.id}',event)">
+  return `<div class="task-card urgency-${urg}${task.frog ? ' is-frog' : ''}" id="card-${task.id}" onclick="toggleExpand('${task.id}',event)">
     ${task.recurring && task.recurring !== 'none' ? '<div class="recurring-dot"></div>' : ''}
     <div class="task-top">
       <div class="task-check ${''}" onclick="checkTask('${task.id}',event)"></div>
@@ -1580,10 +1644,21 @@ function checkTask(id, e) {
     card.style.opacity = '0';
     card.style.transform = 'translateX(30px)';
     setTimeout(() => {
+      const doneTask = tasks.find(t => t.id === id);
+      // Frosch im Tracker als erledigt markieren
+      if (doneTask?.frog) {
+        const today = todayStr();
+        try {
+          let frogs = JSON.parse(localStorage.getItem('frogs_' + today) || '[]');
+          const fi = frogs.findIndex(f => f.aufgabenId === doneTask.id);
+          if (fi >= 0) { frogs[fi].done = true; frogs[fi].completedAt = new Date().toISOString(); }
+          localStorage.setItem('frogs_' + today, JSON.stringify(frogs));
+        } catch {}
+      }
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
       expandedIds.delete(id);
-      showToast('✓ Aufgabe erledigt');
+      showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
       render();
     }, 300);
   }
@@ -1651,6 +1726,7 @@ function openAddModal() {
   document.querySelectorAll('#eisen-pills .eisen-pill').forEach(b => b.className = 'eisen-pill');
   setContextPill(null);
   setRecurPill('none');
+  initFrogField(false, 3);
   openModal();
 }
 
@@ -1673,6 +1749,7 @@ function openEditModal(id, e) {
     if (fEisen && parseInt(b.dataset.val) === fEisen) b.classList.add('sel-' + fEisen);
   });
   setContextPill(task.context || null);
+  initFrogField(task.frog || false, task.dread || 3);
   setRecurPill(task.recurring || 'none');
   if (task.recurring === 'custom') {
     document.getElementById('f-recur-days').value = task.recurDays || 7;
@@ -1708,6 +1785,8 @@ function saveTask() {
       task.impact   = fImpact;
       task.eisen    = fEisen;
       task.context  = fContext;
+      task.frog     = document.getElementById('f-frog').checked;
+      task.dread    = task.frog ? fDread : null;
       task.projectId = document.getElementById('f-project').value || null;
       task.recurring= recur;
       task.recurDays= recur === 'custom' ? days : null;
@@ -1723,6 +1802,8 @@ function saveTask() {
       impact:    fImpact,
       eisen:     fEisen,
       context:   fContext,
+      frog:      document.getElementById('f-frog').checked,
+      dread:     document.getElementById('f-frog').checked ? fDread : null,
       projectId: document.getElementById('f-project').value || null,
       recurring: recur,
       recurDays: recur === 'custom' ? days : null,
@@ -1733,6 +1814,12 @@ function saveTask() {
   }
 
   save(tasks);
+  // Frosch-Sync mit Tracker
+  const savedTask = tasks.find(t => t.id === editingId) || tasks[tasks.length - 1];
+  if (savedTask) {
+    if (savedTask.frog) syncFrogToTracker(savedTask);
+    else removeFrogFromTracker(savedTask.id);
+  }
   closeModal();
   render();
 }
@@ -2634,6 +2721,124 @@ function renderImpactTab() {
 
     html += `</div>`;
   }
+
+  list.innerHTML = html;
+}
+
+
+// ── FROGS ──
+let fDread = 3;
+
+function initFrogField(isFrog, dread) {
+  const cb = document.getElementById('f-frog');
+  if (cb) cb.checked = isFrog;
+  fDread = dread || 3;
+  const row = document.getElementById('frog-dread-row');
+  if (row) row.style.display = isFrog ? 'flex' : 'none';
+  setDread(fDread);
+}
+
+document.getElementById('f-frog')?.addEventListener('change', e => {
+  const row = document.getElementById('frog-dread-row');
+  if (row) row.style.display = e.target.checked ? 'flex' : 'none';
+});
+
+function setDread(val) {
+  fDread = val;
+  document.querySelectorAll('#dread-picker .dread-btn').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.val) <= val);
+  });
+}
+
+// ── Tracker-Sync: Frösche als frogs_YYYY-MM-DD in localStorage schreiben ──
+function syncFrogToTracker(task) {
+  if (!task.frog) return;
+  const today = todayStr();
+  let frogs = [];
+  try { frogs = JSON.parse(localStorage.getItem('frogs_' + today) || '[]'); } catch {}
+  // Nicht doppelt eintragen
+  if (frogs.find(f => f.aufgabenId === task.id)) return;
+  if (frogs.filter(f => !f.done).length >= 3) return; // Tracker-Limit: max 3
+  frogs.push({
+    id:          Date.now().toString(),
+    aufgabenId:  task.id,   // Rückreferenz für Deduplizierung
+    text:        task.title,
+    priority:    Math.max(1, Math.min(3, Math.round((6 - (parseInt(task.impact) || 3)) / 2) + 1)), // Impact 5→1, Prio 1→3
+    dread:       task.dread || 3,
+    done:        false,
+    created:     new Date().toISOString(),
+    source:      'aufgaben'  // Herkunfts-Marker
+  });
+  localStorage.setItem('frogs_' + today, JSON.stringify(frogs));
+}
+
+function removeFrogFromTracker(taskId) {
+  const today = todayStr();
+  try {
+    let frogs = JSON.parse(localStorage.getItem('frogs_' + today) || '[]');
+    frogs = frogs.filter(f => f.aufgabenId !== taskId);
+    localStorage.setItem('frogs_' + today, JSON.stringify(frogs));
+  } catch {}
+}
+
+// ── FROGS TAB ──
+const DREAD_LABELS = ['','😊 Kein Problem','🙂 Niedrig','😐 Mittel','😟 Hoch','😰 Sehr hoch'];
+const DREAD_COLORS = { 5:'var(--danger)', 4:'var(--warn)', 3:'var(--accent)', 2:'var(--accent2)', 1:'var(--muted)' };
+
+function renderFrogsTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  const frogs = tasks.filter(t => t.frog === true && !t.waiting)
+    .sort((a, b) => (b.dread || 3) - (a.dread || 3) || (parseInt(b.impact)||3) - (parseInt(a.impact)||3));
+
+  // Tracker-Frosch-Eintrag für alle Frösche ohne Erledigungsdatum aktuell halten
+  frogs.forEach(t => syncFrogToTracker(t));
+
+  if (frogs.length === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">🐸</div>
+      <div class="empty-text">Keine Frösche definiert.<br>Markiere Aufgaben als Frosch<br>die dir besondere Überwindung kosten.</div>
+    </div>`;
+    return;
+  }
+
+  const trackerUrl = 'https://ihrealltagsbegleiter.github.io/tracker/';
+
+  let html = `<div class="frog-banner">
+    <div style="font-size:2rem;">🐸</div>
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:1rem;color:#4caf82;">${frogs.length} Frosch${frogs.length > 1 ? '…e' : ''} definiert</div>
+      <div class="frog-sync-note">✓ Automatisch mit Tracker synchronisiert</div>
+      <div style="margin-top:6px;">
+        <a href="${trackerUrl}" target="_blank" style="
+          font-family:'DM Mono',monospace;font-size:0.68rem;
+          color:#4caf82;text-decoration:none;
+          border:1px solid rgba(76,175,130,0.4);
+          border-radius:6px;padding:3px 10px;
+          transition:all 0.15s;
+        ">→ Tracker öffnen</a>
+      </div>
+    </div>
+  </div>`;
+
+  // Gruppen nach Dread
+  const groups = [
+    { label: '😰 Sehr hoch', dread: 5, tasks: frogs.filter(t => (t.dread||3) === 5) },
+    { label: '😟 Hoch',      dread: 4, tasks: frogs.filter(t => (t.dread||3) === 4) },
+    { label: '😐 Mittel',    dread: 3, tasks: frogs.filter(t => (t.dread||3) === 3) },
+    { label: '🙂 Niedrig',   dread: 2, tasks: frogs.filter(t => (t.dread||3) === 2) },
+    { label: '😊 Kein Problem', dread: 1, tasks: frogs.filter(t => (t.dread||3) === 1) },
+  ].filter(g => g.tasks.length > 0);
+
+  groups.forEach(g => {
+    const col = DREAD_COLORS[g.dread] || 'var(--muted)';
+    html += `<div class="section-header">
+      <span class="section-label" style="color:${col};">${g.label}</span>
+      <div class="section-line" style="background:rgba(76,175,130,0.15);"></div>
+    </div>`;
+    g.tasks.forEach(t => { html += taskCard(t); });
+  });
 
   list.innerHTML = html;
 }
