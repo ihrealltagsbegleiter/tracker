@@ -1412,6 +1412,28 @@ function isRecurringDueToday(task) {
   return true;
 }
 
+function isRecurringDueThisWeek(task) {
+  if (!task.recurring || task.recurring === 'none') return false;
+  if (isRecurringDueToday(task)) return true; // heute fällig = auch diese Woche
+  const done = loadDone();
+  const lastDone = done[task.id];
+  // Berechne wann die Aufgabe das nächste Mal fällig ist
+  let intervalDays;
+  if (task.recurring === 'daily')   intervalDays = 1;
+  else if (task.recurring === 'weekly')  intervalDays = 7;
+  else if (task.recurring === 'monthly') intervalDays = 30;
+  else if (task.recurring === 'custom')  intervalDays = task.recurDays || 7;
+  else return false;
+  if (!lastDone) return true; // noch nie erledigt = jetzt fällig
+  const last = new Date(lastDone + 'T00:00:00');
+  const nextDue = new Date(last.getTime() + intervalDays * 86400000);
+  const endOfWeek = new Date();
+  const dow = endOfWeek.getDay() === 0 ? 6 : endOfWeek.getDay() - 1;
+  endOfWeek.setDate(endOfWeek.getDate() + (6 - dow));
+  endOfWeek.setHours(23, 59, 59, 999);
+  return nextDue <= endOfWeek;
+}
+
 function recurLabel(task) {
   if (task.recurring === 'daily')   return '↻ täglich';
   if (task.recurring === 'weekly')  return '↻ wöchentlich';
@@ -1434,6 +1456,11 @@ function getTabTasks(tab) {
   // Exclude recurring and waiting tasks from regular tabs
   const base = tasks.filter(t => (!t.recurring || t.recurring === 'none') && !t.waiting);
   if (tab === 'inbox') return base.filter(t => !t.horizon || t.horizon === 'inbox' || t.horizon === null);
+  if (tab === 'week') {
+    const regularWeek = base.filter(t => t.horizon === 'week');
+    const recurWeek = tasks.filter(t => t.recurring && t.recurring !== 'none' && !t.waiting && isRecurringDueThisWeek(t) && !isRecurringDueToday(t));
+    return [...regularWeek, ...recurWeek];
+  }
   return base.filter(t => t.horizon === tab);
 }
 
