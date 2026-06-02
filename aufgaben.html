@@ -1280,6 +1280,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
         <div class="pill" data-val="mobile">🚶 Unterwegs</div>
         <div class="pill" data-val="team">👥 Mit Team</div>
         <div class="pill" data-val="research">📋 Recherche</div>
+        <div class="pill" data-val="docs">📂 Unterlagen</div>
       </div>
     </div>
 
@@ -1850,7 +1851,7 @@ function taskCard(task, isRecurring = false) {
   const due = fmtDue(task);
   const expanded = expandedIds.has(task.id);
   const horizonLabels = { today: 'Heute', week: 'Woche', month: 'Monat', later: 'Irgendwann', maybe: 'Vielleicht' };
-  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 2 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team', research: '📋 Recherche' };
+  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 2 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team', research: '📋 Recherche', docs: '📂 Unterlagen' };
 
   let tags = '';
   if (currentTab === 'inbox' && false) {
@@ -2892,6 +2893,7 @@ function applySortOrder(tasks) {
       <span class="filter-pill" data-val="mobile" onclick="toggleFilter('context','mobile')">🚶 Unterwegs</span>
       <span class="filter-pill" data-val="team"   onclick="toggleFilter('context','team')">👥 Team</span>
       <span class="filter-pill" data-val="research" onclick="toggleFilter('context','research')">📋 Recherche</span>
+      <span class="filter-pill" data-val="docs" onclick="toggleFilter('context','docs')">📂 Unterlagen</span>
     </div>
   </div>
   <div class="filter-section">
