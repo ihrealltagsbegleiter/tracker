@@ -1529,7 +1529,6 @@ function setHorizonPill(val) {
     }
   });
 }
-const IMPACT_LABELS = ['','Minimal','Niedrig','Mittel','Hoch','Maximal'];
 
 function setImpact(val) {
   fImpact = val;
@@ -2648,22 +2647,7 @@ function checkTaskFromSearch(id, e) {
 
 'use strict';
 
-// ── SUPABASE CONFIG ──
-const SB_URL = 'https://cuukfowezhcosjnuckuo.supabase.co';
-const SB_KEY = 'sb_publishable_Cj33uDp4shZaiWYbJkRPqQ_usXXCUcz';
 
-const SB_HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': SB_KEY,
-  'Authorization': 'Bearer ' + SB_KEY,
-  'Prefer': 'resolution=merge-duplicates'
-};
-
-// ── LOCAL STORAGE (offline-first cache) ──
-const STORE_KEY   = 'iab_tasks_v2';
-const DONE_KEY    = 'iab_done_v2';
-const PROJECT_KEY = 'iab_projects_v1';
-const LOG_KEY     = 'iab_log_v1';
 
 function load() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
@@ -3987,11 +3971,9 @@ function applyFilters(tasks) {
 
 
 // ── SORT ──
-const SORT_LABELS = {
   urgency:'⚡ Dringlichkeit', impact:'★ Impact', due:'📅 Fälligkeit',
   eisen:'Q Eisenhower', created:'🕐 Erstellt', title:'A Alphabetisch', project:'📁 Projekt'
 };
-const SORT_DEFAULT_DIR = {
   urgency:'desc', impact:'desc', due:'asc', eisen:'asc', created:'desc', title:'asc', project:'asc'
 };
 let currentSort = { key:'urgency', dir:'desc' };
@@ -4297,13 +4279,6 @@ function renderOverdueTab() {
 }
 
 // ── MATRIX TAB ──
-const EISEN_META = {
-  1:{num:'I',  label:'Wichtig + Dringend',       sub:'Sofort selbst erledigen', cls:'matrix-q1',col:'var(--danger)'},
-  2:{num:'II', label:'Wichtig + Nicht dringend', sub:'Planen & einplanen',      cls:'matrix-q2',col:'var(--today)'},
-  3:{num:'III',label:'Unwichtig + Dringend',     sub:'Delegieren',              cls:'matrix-q3',col:'var(--warn)'},
-  4:{num:'IV', label:'Unwichtig + Nicht dringend',sub:'Eliminieren',           cls:'matrix-q4',col:'var(--muted)'},
-};
-const IMPACT_COLORS = ['','#4a4845','#6b6760','#c8a96e','#c49a4a','#c46b5a'];
 
 function renderMatrixTab() {
   const list = document.getElementById('task-list');
@@ -4331,9 +4306,6 @@ function renderMatrixTab() {
 }
 
 // ── IMPACT TAB ──
-const EISEN_SHORT = {1:'QI · Sofort',2:'QII · Planen',3:'QIII · Delegieren',4:'QIV · Eliminieren'};
-const impactColors2 = {5:'var(--danger)',4:'var(--warn)',3:'var(--accent)',2:'var(--muted)',1:'#3a3835'};
-const impactBg2     = {5:'rgba(196,107,90,0.06)',4:'rgba(196,154,74,0.05)',3:'rgba(200,169,110,0.05)',2:'transparent',1:'transparent'};
 
 function renderImpactTab() {
   const list = document.getElementById('task-list');
@@ -4367,8 +4339,6 @@ function renderImpactTab() {
 }
 
 // ── FROGS TAB ──
-const DREAD_LABELS = ['','😊 Kein Problem','🙂 Niedrig','😐 Mittel','😟 Hoch','😰 Sehr hoch'];
-const DREAD_COLORS = {5:'var(--danger)',4:'var(--warn)',3:'var(--accent)',2:'var(--accent2)',1:'var(--muted)'};
 
 function renderFrogsTab() {
   const list = document.getElementById('task-list');
