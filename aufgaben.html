@@ -1285,6 +1285,7 @@ input[type=date]::-webkit-calendar-picker-indicator {
         <div class="pill" data-val="it">📲 IT-Entwicklung</div>
         <div class="pill" data-val="pc">💻 Am PC</div>
         <div class="pill" data-val="talk">💬 Absprache</div>
+        <div class="pill" data-val="lexware">💸 Lexware</div>
       </div>
     </div>
 
@@ -1855,7 +1856,7 @@ function taskCard(task, isRecurring = false) {
   const due = fmtDue(task);
   const expanded = expandedIds.has(task.id);
   const horizonLabels = { today: 'Heute', week: 'Woche', month: 'Monat', later: 'Irgendwann', maybe: 'Vielleicht' };
-  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 2 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team', research: '📋 Recherche', docs: '📂 Unterlagen', talk: '💬 Absprache', pc: '💻 Am PC', it: '📲 IT-Entwicklung' };
+  const contextLabels = { focus: '🧠 Fokus', quick: '⚡ 2 Min', phone: '📞 Tel', mobile: '🚶 Unterwegs', team: '👥 Team', research: '📋 Recherche', docs: '📂 Unterlagen', talk: '💬 Absprache', lexware: '💸 Lexware', pc: '💻 Am PC', it: '📲 IT-Entwicklung' };
 
   let tags = '';
   if (currentTab === 'inbox' && false) {
@@ -2995,6 +2996,7 @@ init();
       <span class="filter-pill" data-val="it" onclick="toggleFilter('context','it')">📲 IT-Entwicklung</span>
       <span class="filter-pill" data-val="pc" onclick="toggleFilter('context','pc')">💻 Am PC</span>
       <span class="filter-pill" data-val="talk" onclick="toggleFilter('context','talk')">💬 Absprache</span>
+      <span class="filter-pill" data-val="lexware" onclick="toggleFilter('context','lexware')">💸 Lexware</span>
     </div>
   </div>
   <div class="filter-section">
