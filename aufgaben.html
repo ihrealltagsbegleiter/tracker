@@ -3947,9 +3947,11 @@ function applyFilters(tasks) {
 
 
 // ── SORT ──
+const SORT_LABELS = {
   urgency:'⚡ Dringlichkeit', impact:'★ Impact', due:'📅 Fälligkeit',
   eisen:'Q Eisenhower', created:'🕐 Erstellt', title:'A Alphabetisch', project:'📁 Projekt'
 };
+const SORT_DEFAULT_DIR = {
   urgency:'desc', impact:'desc', due:'asc', eisen:'asc', created:'desc', title:'asc', project:'asc'
 };
 
