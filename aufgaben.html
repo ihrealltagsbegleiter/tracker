@@ -428,6 +428,99 @@ input[type=date]::-webkit-calendar-picker-indicator {
   word-break: break-word;
 }
 
+/* ── PROJECT CARDS ── */
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.project-card:active { transform: scale(0.99); }
+.project-card-accent {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: var(--r-lg) 0 0 var(--r-lg);
+}
+.project-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 10px;
+}
+.project-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: var(--text);
+  flex: 1;
+}
+.project-status-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.status-active  { color: var(--accent2); border-color: var(--accent2); background: rgba(124,158,111,0.1); }
+.status-paused  { color: var(--warn);    border-color: var(--warn);    background: rgba(196,154,74,0.1); }
+.status-done    { color: var(--muted);   border-color: var(--border);  background: transparent; }
+
+.project-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.project-progress {
+  margin-top: 12px;
+}
+.project-progress-bar {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+.project-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.project-progress-label {
+  display: flex; justify-content: space-between;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.project-actions {
+  display: flex; gap: 6px; margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.project-filter-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.project-filter-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(200,169,110,0.1);
+}
+
 /* ── HORIZON PICKER ── */
 .horizon-picker {
   display: flex;
@@ -505,6 +598,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
     </div>
     <div class="nav-tab" data-tab="recurring" onclick="switchTab('recurring')">
       Regelmäßig <span class="badge" id="badge-recurring">0</span>
+    </div>
+    <div class="nav-tab" data-tab="projects" onclick="switchTab('projects')">
+      Projekte <span class="badge" id="badge-projects">0</span>
     </div>
   </div>
 
@@ -586,7 +682,11 @@ input[type=date]::-webkit-calendar-picker-indicator {
 
     <div class="field">
       <label>Projekt (optional)</label>
-      <input type="text" id="f-project" placeholder="z.B. DATEV-Einführung" autocomplete="off"/>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="f-project" style="flex:1;">
+          <option value="">Kein Projekt</option>
+        </select>
+      </div>
     </div>
 
     <div class="field">
@@ -612,6 +712,49 @@ input[type=date]::-webkit-calendar-picker-indicator {
   </div>
 </div>
 
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="project-overlay" onclick="handleProjectOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="project-modal-title">Neues Projekt</div>
+
+    <div class="field">
+      <label>Projektname</label>
+      <input type="text" id="fp-name" placeholder="z.B. DATEV-Einführung" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>Beschreibung (optional)</label>
+      <textarea id="fp-desc" placeholder="Ziel, Kontext, nächste Meilensteine…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Status</label>
+      <div class="pill-group" id="proj-status-pills">
+        <div class="pill selected blue" data-val="active">Aktiv</div>
+        <div class="pill" data-val="paused">Pausiert</div>
+        <div class="pill" data-val="done">Abgeschlossen</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Farbe</label>
+      <div class="pill-group" id="proj-color-pills">
+        <div class="pill selected" data-val="#c8a96e" style="border-color:#c8a96e;color:#c8a96e;">● Gold</div>
+        <div class="pill" data-val="#5a8fa0" style="border-color:#5a8fa0;color:#5a8fa0;">● Blau</div>
+        <div class="pill" data-val="#7c9e6f" style="border-color:#7c9e6f;color:#7c9e6f;">● Grün</div>
+        <div class="pill" data-val="#c46b5a" style="border-color:#c46b5a;color:#c46b5a;">● Rot</div>
+        <div class="pill" data-val="#9b7ec8" style="border-color:#9b7ec8;color:#9b7ec8;">● Violett</div>
+        <div class="pill" data-val="#6b6760" style="border-color:#6b6760;color:#6b6760;">● Grau</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeProjectModal()">Abbrechen</button>
+      <button class="btn btn-save" onclick="saveProject()">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- REVIEW MODAL -->
 <div class="modal-overlay" id="review-overlay" onclick="handleReviewOverlayClick(event)">
   <div class="modal">
@@ -633,8 +776,9 @@ input[type=date]::-webkit-calendar-picker-indicator {
 'use strict';
 
 // ── STORAGE ──
-const STORE_KEY = 'iab_tasks_v2';
-const DONE_KEY  = 'iab_done_v2';
+const STORE_KEY   = 'iab_tasks_v2';
+const DONE_KEY    = 'iab_done_v2';
+const PROJECT_KEY = 'iab_projects_v1';
 
 function load() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
@@ -648,11 +792,20 @@ function loadDone() {
 function saveDone(d) {
   localStorage.setItem(DONE_KEY, JSON.stringify(d));
 }
+function loadProjects() {
+  try { return JSON.parse(localStorage.getItem(PROJECT_KEY) || '[]'); } catch { return []; }
+}
+function saveProjects(p) {
+  localStorage.setItem(PROJECT_KEY, JSON.stringify(p));
+}
 
 // ── STATE ──
-let tasks = load();
+let tasks    = load();
+let projects = loadProjects();
 let currentTab = 'inbox';
+let currentProjectFilter = null;
 let editingId = null;
+let editingProjectId = null;
 let expandedIds = new Set();
 
 // Pill state
@@ -749,6 +902,8 @@ function updateBadges() {
     if (!el) return;
     el.textContent = getTabTasks(tab).length;
   });
+  const pbadge = document.getElementById('badge-projects');
+  if (pbadge) pbadge.textContent = projects.filter(p => p.status === 'active').length;
 }
 
 function updateStats() {
@@ -769,6 +924,7 @@ function updateStats() {
 }
 
 function renderList() {
+  if (currentTab === 'projects') { renderProjectsTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -841,8 +997,9 @@ function taskCard(task, isRecurring = false) {
   if (task.context) {
     tags += `<span class="tag tag-context">${contextLabels[task.context]||task.context}</span>`;
   }
-  if (task.project) {
-    tags += `<span class="tag tag-context">📁 ${task.project}</span>`;
+  if (task.projectId) {
+    const proj = projects.find(p => p.id === task.projectId);
+    if (proj) tags += `<span class="tag tag-context" style="border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
   }
   if (task.recurring && task.recurring !== 'none') {
     tags += `<span class="tag tag-recurring">${recurLabel(task)}</span>`;
@@ -955,9 +1112,21 @@ function setHorizonDirect(id, horizon, e) {
 // ── TABS ──
 function switchTab(tab) {
   currentTab = tab;
+  currentProjectFilter = null;
   document.querySelectorAll('.nav-tab').forEach(el => {
     el.classList.toggle('active', el.dataset.tab === tab);
   });
+  // Update topbar button
+  const addBtn = document.querySelector('.icon-btn.primary');
+  if (addBtn) {
+    if (tab === 'projects') {
+      addBtn.textContent = '+ Projekt';
+      addBtn.onclick = () => openProjectModal(null);
+    } else {
+      addBtn.textContent = '+ Neu';
+      addBtn.onclick = () => openAddModal();
+    }
+  }
   render();
 }
 
@@ -968,6 +1137,7 @@ function openAddModal() {
   document.getElementById('f-title').value = '';
   document.getElementById('f-note').value = '';
   document.getElementById('f-due').value = '';
+  populateProjectSelect();
   document.getElementById('f-project').value = '';
   setHorizonPill('today');
   setImpactPill('high');
@@ -985,7 +1155,8 @@ function openEditModal(id, e) {
   document.getElementById('f-title').value = task.title || '';
   document.getElementById('f-note').value = task.note || '';
   document.getElementById('f-due').value = task.due || '';
-  document.getElementById('f-project').value = task.project || '';
+  populateProjectSelect();
+  document.getElementById('f-project').value = task.projectId || '';
   setHorizonPill(task.horizon || 'today');
   setImpactPill(task.impact || 'high');
   setContextPill(task.context || null);
@@ -1023,7 +1194,7 @@ function saveTask() {
       task.due      = document.getElementById('f-due').value || null;
       task.impact   = fImpact;
       task.context  = fContext;
-      task.project  = document.getElementById('f-project').value.trim() || null;
+      task.projectId = document.getElementById('f-project').value || null;
       task.recurring= recur;
       task.recurDays= recur === 'custom' ? days : null;
     }
@@ -1037,7 +1208,7 @@ function saveTask() {
       due:       document.getElementById('f-due').value || null,
       impact:    fImpact,
       context:   fContext,
-      project:   document.getElementById('f-project').value.trim() || null,
+      projectId: document.getElementById('f-project').value || null,
       recurring: recur,
       recurDays: recur === 'custom' ? days : null,
       created:   todayStr(),
@@ -1188,6 +1359,183 @@ function reviewReschedule(id) {
   openEditModal(id, { stopPropagation: () => {} });
 }
 
+
+// ── PROJECTS ──
+
+let fpStatus = 'active';
+let fpColor  = '#c8a96e';
+
+function populateProjectSelect() {
+  const sel = document.getElementById('f-project');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Kein Projekt</option>';
+  projects.filter(p => p.status !== 'done').forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if (p.id === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function openProjectModal(id) {
+  editingProjectId = id || null;
+  const p = id ? projects.find(x => x.id === id) : null;
+  document.getElementById('project-modal-title').textContent = p ? 'Projekt bearbeiten' : 'Neues Projekt';
+  document.getElementById('fp-name').value  = p ? p.name : '';
+  document.getElementById('fp-desc').value  = p ? (p.desc || '') : '';
+  setProjectStatusPill(p ? p.status : 'active');
+  setProjectColorPill(p ? p.color : '#c8a96e');
+  document.getElementById('project-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('fp-name').focus(), 300);
+}
+
+function closeProjectModal() {
+  document.getElementById('project-overlay').classList.remove('open');
+}
+
+function handleProjectOverlayClick(e) {
+  if (e.target === document.getElementById('project-overlay')) closeProjectModal();
+}
+
+function saveProject() {
+  const name = document.getElementById('fp-name').value.trim();
+  if (!name) { showToast('⚠️ Projektname fehlt'); return; }
+
+  if (editingProjectId) {
+    const p = projects.find(x => x.id === editingProjectId);
+    if (p) { p.name = name; p.desc = document.getElementById('fp-desc').value.trim(); p.status = fpStatus; p.color = fpColor; }
+    showToast('✏️ Projekt gespeichert');
+  } else {
+    projects.push({ id: 'P' + Date.now(), name, desc: document.getElementById('fp-desc').value.trim(), status: fpStatus, color: fpColor, created: todayStr() });
+    showToast('✓ Projekt angelegt');
+  }
+  saveProjects(projects);
+  closeProjectModal();
+  render();
+}
+
+function deleteProject(id, e) {
+  e.stopPropagation();
+  const p = projects.find(x => x.id === id);
+  if (!confirm(`Projekt "${p?.name}" löschen? Aufgaben bleiben erhalten (ohne Projektzuordnung).`)) return;
+  tasks.forEach(t => { if (t.projectId === id) t.projectId = null; });
+  projects = projects.filter(x => x.id !== id);
+  saveProjects(projects);
+  save(tasks);
+  render();
+  showToast('🗑 Projekt gelöscht');
+}
+
+function filterByProject(id) {
+  currentProjectFilter = currentProjectFilter === id ? null : id;
+  render();
+}
+
+function setProjectStatusPill(val) {
+  fpStatus = val;
+  document.querySelectorAll('#proj-status-pills .pill').forEach(p => {
+    p.classList.remove('selected','blue','green','red');
+    if (p.dataset.val === val) {
+      p.classList.add('selected');
+      if (val === 'active') p.classList.add('blue');
+    }
+  });
+}
+
+function setProjectColorPill(val) {
+  fpColor = val;
+  document.querySelectorAll('#proj-color-pills .pill').forEach(p => {
+    p.classList.toggle('selected', p.dataset.val === val);
+  });
+}
+
+document.getElementById('proj-status-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.pill'); if (pill) setProjectStatusPill(pill.dataset.val);
+});
+document.getElementById('proj-color-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.pill'); if (pill) setProjectColorPill(pill.dataset.val);
+});
+
+function renderProjectsTab() {
+  const list = document.getElementById('task-list');
+  const bar = document.getElementById('stats-bar');
+  bar.style.display = 'none';
+
+  if (projects.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📁</div><div class="empty-text">Noch keine Projekte.<br>Mit "+ Projekt" starten.</div></div>`;
+    return;
+  }
+
+  const statusOrder = { active: 0, paused: 1, done: 2 };
+  const sorted = [...projects].sort((a, b) => (statusOrder[a.status] ?? 0) - (statusOrder[b.status] ?? 0));
+
+  let html = '';
+  sorted.forEach(p => {
+    const pTasks   = tasks.filter(t => t.projectId === p.id);
+    const open     = pTasks.filter(t => !t.recurring || t.recurring === 'none').length;
+    const overdue  = pTasks.filter(t => diffDays(t.due) !== null && diffDays(t.due) < 0).length;
+    const total    = pTasks.length;
+    const pct      = total > 0 ? Math.round((total - open) / total * 100) : 0;
+    const isFiltered = currentProjectFilter === p.id;
+
+    const statusLabel = { active: 'Aktiv', paused: 'Pausiert', done: 'Abgeschlossen' }[p.status] || '';
+    const statusCls   = { active: 'status-active', paused: 'status-paused', done: 'status-done' }[p.status] || '';
+
+    html += `<div class="project-card" id="pcard-${p.id}">
+      <div class="project-card-accent" style="background:${p.color};"></div>
+      <div class="project-card-header">
+        <div class="project-card-title">${escHtml(p.name)}</div>
+        <span class="project-status-badge ${statusCls}">${statusLabel}</span>
+      </div>
+      ${p.desc ? `<div class="project-desc">${escHtml(p.desc)}</div>` : ''}
+      <div class="project-progress">
+        <div class="project-progress-label">
+          <span>${open} offen${overdue > 0 ? ` · <span style="color:var(--danger)">${overdue} überfällig</span>` : ''}</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="project-progress-bar">
+          <div class="project-progress-fill" style="width:${pct}%;background:${p.color};"></div>
+        </div>
+      </div>
+      <div class="project-actions">
+        <button class="task-action-btn project-filter-btn ${isFiltered ? 'active' : ''}" onclick="filterByProject('${p.id}')">
+          ${isFiltered ? '✕ Filter entfernen' : '🔍 Aufgaben anzeigen'}
+        </button>
+        <button class="task-action-btn" onclick="openProjectModal('${p.id}')">✏️ Bearbeiten</button>
+        <button class="task-action-btn del" onclick="deleteProject('${p.id}',event)">🗑</button>
+      </div>
+      ${isFiltered ? renderProjectTaskList(p) : ''}
+    </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function renderProjectTaskList(p) {
+  const pTasks = tasks.filter(t => t.projectId === p.id).sort((a, b) => {
+    const urgOrder = { overdue: 0, today: 1, soon: 2, ok: 3 };
+    return (urgOrder[urgency(a)] ?? 3) - (urgOrder[urgency(b)] ?? 3);
+  });
+  if (pTasks.length === 0) return `<div style="font-size:0.8rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">Keine Aufgaben in diesem Projekt.</div>`;
+
+  let inner = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">`;
+  pTasks.forEach(t => {
+    const urg = urgency(t);
+    const due = fmtDue(t);
+    inner += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div class="task-check" onclick="checkTask('${t.id}',event)" style="flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.88rem;">${escHtml(t.title)}</div>
+        ${due ? `<div class="due-tag ${due.cls}" style="margin-top:3px;">📅 ${due.label}</div>` : ''}
+      </div>
+    </div>`;
+  });
+  inner += `</div>`;
+  return inner;
+}
+
 // ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -1198,8 +1546,10 @@ function showToast(msg) {
 
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeReviewModal(); }
-  if (e.key === 'n' && !e.target.matches('input,textarea,select')) openAddModal();
+  if (e.key === 'Escape') { closeModal(); closeReviewModal(); closeProjectModal(); }
+  if (e.key === 'n' && !e.target.matches('input,textarea,select')) {
+    if (currentTab === 'projects') openProjectModal(null); else openAddModal();
+  }
 });
 
 // ── INIT ──
