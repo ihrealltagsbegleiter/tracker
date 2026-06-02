@@ -605,6 +605,45 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
 .med-sugg-item:last-child{border-bottom:none}
 .med-sugg-item:active{background:var(--bg3)}
 
+/* ─── GEDANKEN / BRAIN DUMP ─────────────────────────────────── */
+.thought-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r2);padding:0.75rem;margin-bottom:0.5rem;
+  animation:fadeIn 0.15s ease;position:relative;
+  border-left:3px solid var(--border2);
+}
+.thought-item.type-do{border-left-color:var(--red)}
+.thought-item.type-clarify{border-left-color:var(--gold)}
+.thought-item.type-release{border-left-color:var(--blue)}
+.thought-item.type-dump{border-left-color:var(--border2)}
+.thought-top{display:flex;align-items:flex-start;gap:0.5rem}
+.thought-text{flex:1;font-size:0.84rem;line-height:1.5;color:var(--text);word-break:break-word}
+.thought-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem;padding:0.1rem;flex-shrink:0}
+.thought-del:active{color:var(--red)}
+.thought-meta{display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
+.thought-type-badge{font-size:0.62rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:0.15rem 0.5rem;border-radius:3px;cursor:pointer;}
+.thought-type-badge.type-do{background:rgba(224,85,85,0.15);color:var(--red)}
+.thought-type-badge.type-clarify{background:rgba(212,168,67,0.15);color:var(--gold)}
+.thought-type-badge.type-release{background:rgba(91,141,238,0.15);color:var(--blue)}
+.thought-type-badge.type-dump{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
+.thought-next{flex:1;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text2);font-family:'Syne',sans-serif;font-size:0.75rem;outline:none;padding:0.2rem 0.1rem;min-width:80px;}
+.thought-next:focus{border-bottom-color:var(--gold)}
+.thought-next::placeholder{color:var(--text3)}
+.thought-add-area{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:0.7rem 0.9rem;color:var(--text);font-family:'Syne',sans-serif;font-size:0.84rem;line-height:1.5;resize:none;outline:none;-webkit-appearance:none;min-height:56px;}
+.thought-add-area:focus{border-color:var(--purple)}
+.thought-add-area::placeholder{color:var(--text3)}
+.thought-toolbar{display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
+.thought-type-btn{padding:0.3rem 0.65rem;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.12s;font-family:'Syne',sans-serif;}
+.thought-type-btn.active.type-do{background:var(--red);border-color:var(--red);color:#fff}
+.thought-type-btn.active.type-clarify{background:var(--gold);border-color:var(--gold);color:#000}
+.thought-type-btn.active.type-release{background:var(--blue);border-color:var(--blue);color:#fff}
+.thought-type-btn.active.type-dump{background:var(--purple);border-color:var(--purple);color:#fff}
+.thought-add-btn{margin-left:auto;padding:0.4rem 0.9rem;background:var(--purple);color:#fff;border:none;border-radius:20px;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;letter-spacing:0.03em;}
+.thought-add-btn:active{transform:scale(0.97)}
+.thought-filter-row{display:flex;gap:0.3rem;margin-bottom:0.6rem;flex-wrap:wrap}
+.thought-filter{padding:0.25rem 0.6rem;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:0.68rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.05em;transition:all 0.12s;}
+.thought-filter.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.thought-empty{color:var(--text3);font-size:0.8rem;padding:0.75rem 0;text-align:center}
 
 </style>
 </head>
