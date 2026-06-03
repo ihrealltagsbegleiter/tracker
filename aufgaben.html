@@ -490,6 +490,27 @@ input[type=number] { max-width: 80px; text-align: center; }
   .modal { border-radius: 12px; margin: auto; }
 }
 
+/* ── QUICK EDIT FELDER ── */
+.qe-section { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.qe-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qe-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); min-width: 52px; flex-shrink: 0; }
+.qe-date { background: var(--surface2,#222); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: inherit; font-size: 0.75rem; padding: 3px 7px; cursor: pointer; }
+.qe-date:focus { outline: none; border-color: var(--accent); }
+.qe-date::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+.qe-btn { font-family: inherit; font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+.qe-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qe-btn.active-q1 { border-color: var(--danger); color: var(--danger); background: rgba(212,99,90,0.1); }
+.qe-btn.active-q2 { border-color: var(--today);  color: var(--today);  background: rgba(90,143,160,0.1); }
+.qe-btn.active-q3 { border-color: var(--warn);   color: var(--warn);   background: rgba(200,154,74,0.1); }
+.qe-btn.active-q4 { border-color: var(--border); color: var(--text);   background: var(--surface2,#222); }
+.qe-star { font-size: 0.85rem; cursor: pointer; color: var(--border); padding: 0 1px; background: none; border: none; }
+.qe-star.lit { color: var(--accent); }
+.qe-btn.active-ctx { border-color: var(--accent2); color: var(--accent2); background: rgba(90,158,122,0.1); }
+.qe-btn.active-proj { border-color: var(--accent); color: var(--accent); background: rgba(200,169,110,0.1); }
+.qe-note-input { width: 100%; box-sizing: border-box; background: var(--surface2,#222); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: inherit; font-size: 0.78rem; padding: 5px 8px; resize: vertical; min-height: 40px; outline: none; }
+.qe-note-input:focus { border-color: var(--accent); }
+.qe-recur-wrap { display: flex; gap: 4px; flex-wrap: wrap; }
+
 /* ── INLINE EDIT ── */
 .task-title[contenteditable="true"] {
   outline: none;
@@ -1399,24 +1420,72 @@ function taskCard(task, isRecurring = false) {
 
   let actions = '';
   if (expanded) {
+    const tid = task.id;
+    // ── Horizont ──
     const horizonBtns = [
-      { val: 'today', label: 'Heute',    active: task.horizon === 'today' },
-      { val: 'week',  label: 'Woche',    active: task.horizon === 'week'  },
-      { val: 'month', label: 'Monat',    active: task.horizon === 'month' },
-      { val: 'later', label: 'Später',   active: task.horizon === 'later' },
-      { val: 'maybe', label: 'Vielleicht', active: task.horizon === 'maybe' },
-    ].map(h => `<button class="horizon-pick-btn${h.active ? ' active' : ''}" onclick="setHorizonDirect('${task.id}','${h.val}',event)">${h.label}</button>`).join('');
+      { val: 'today', label: 'Heute' }, { val: 'week', label: 'Woche' },
+      { val: 'month', label: 'Monat' }, { val: 'later', label: 'Später' },
+      { val: 'maybe', label: 'Vielleicht' },
+    ].map(h => `<button class="horizon-pick-btn${task.horizon===h.val?' active':''}" onclick="setHorizonDirect('${tid}','${h.val}',event)">${h.label}</button>`).join('');
+
+    // ── Eisenhower ──
+    const eisenBtns = [
+      {v:1,l:'QI · Sofort'},{v:2,l:'QII · Planen'},{v:3,l:'QIII · Delegieren'},{v:4,l:'QIV · Eliminieren'}
+    ].map(q => {
+      const active = task.eisen === q.v ? ` active-q${q.v}` : '';
+      return `<button class="qe-btn${active}" onclick="qeSetField('${tid}','eisen',${q.v},event)">${q.l}</button>`;
+    }).join('');
+
+    // ── Priorität (Sterne) ──
+    const stars = [1,2,3,4,5].map(n =>
+      `<button class="qe-star${n<=(task.impact||3)?' lit':''}" onclick="qeSetField('${tid}','impact',${n},event)">★</button>`
+    ).join('');
+
+    // ── Kontext ──
+    const ctxMap = {focus:'🧠 Fokus',quick:'⚡ 10 Min',phone:'📞 Tel',mobile:'🚶 Unterwegs',team:'👥 Team',research:'📋 Recherche',docs:'📂 Unterlagen',talk:'💬 Absprache',lexware:'💸 Lexware',pc:'💻 Am PC',it:'📲 IT-Dev',people:'😬 People'};
+    const ctxBtns = Object.entries(ctxMap).map(([k,v]) => {
+      const active = task.context===k?' active-ctx':'';
+      return `<button class="qe-btn${active}" onclick="qeSetField('${tid}','context','${k}',event)">${v}</button>`;
+    }).join('');
+
+    // ── Projekt ──
+    const projBtns = projects.map(p => {
+      const active = task.projectId===p.id?' active-proj':'';
+      return `<button class="qe-btn${active}" style="${task.projectId===p.id?`border-color:${p.color};color:${p.color};background:${p.color}22;`:''}" onclick="qeSetField('${tid}','projectId','${p.id}',event)">📁 ${escHtml(p.name)}</button>`;
+    }).join('');
+
+    // ── Wiederkehrend ──
+    const recurMap = {none:'—',daily:'täglich',weekly:'wöchentlich',monthly:'monatlich'};
+    const recurBtns = Object.entries(recurMap).map(([k,v]) => {
+      const active = (task.recurring||'none')===k?' active-ctx':'';
+      return `<button class="qe-btn${active}" onclick="qeSetField('${tid}','recurring','${k}',event)">${v}</button>`;
+    }).join('');
+
+    // ── Fälligkeitsdatum ──
+    const dueVal = task.due || '';
+
+    // ── Notiz ──
+    const noteVal = escHtml(task.note || '');
 
     const waitBtn = task.waiting
-      ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${task.id}',event)">▶ Reaktivieren</button>`
-      : `<button class="task-action-btn" onclick="openWaitModal('${task.id}',event)">⏳ Warten auf…</button>`;
+      ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${tid}',event)">▶ Reaktivieren</button>`
+      : `<button class="task-action-btn" onclick="openWaitModal('${tid}',event)">⏳ Warten auf…</button>`;
 
-    actions = `<div class="task-actions">
-      <button class="task-action-btn" onclick="openEditModal('${task.id}',event)">✏️ Bearbeiten</button>
-      ${waitBtn}
-      <button class="task-action-btn del" onclick="deleteTask('${task.id}',event)">🗑 Löschen</button>
+    actions = `
+    <div class="qe-section">
+      <div class="qe-row"><span class="qe-label">Horizont</span>${!task.waiting?`<div class="horizon-picker" style="margin:0;">${horizonBtns}</div>`:'(Warten-Aufgabe)'}</div>
+      <div class="qe-row"><span class="qe-label">Eisenhower</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${eisenBtns}</div></div>
+      <div class="qe-row"><span class="qe-label">Priorität</span>${stars}</div>
+      <div class="qe-row"><span class="qe-label">Fällig</span><input type="date" class="qe-date" value="${dueVal}" onchange="qeSetField('${tid}','due',this.value,event)" onclick="event.stopPropagation()"/>${dueVal?`<button class="qe-btn" onclick="qeSetField('${tid}','due',null,event)">✕</button>`:''}</div>
+      <div class="qe-row"><span class="qe-label">Kontext</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${ctxBtns}</div></div>
+      ${projects.length>0?`<div class="qe-row"><span class="qe-label">Projekt</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${projBtns}${task.projectId?`<button class="qe-btn" onclick="qeSetField('${tid}','projectId',null,event)">✕ keins</button>`:''}</div></div>`:''}
+      <div class="qe-row"><span class="qe-label">Intervall</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${recurBtns}</div></div>
+      <div class="qe-row" style="flex-direction:column;align-items:stretch;"><span class="qe-label" style="margin-bottom:3px;">Notiz</span><textarea class="qe-note-input" onclick="event.stopPropagation()" onchange="qeSetField('${tid}','note',this.value,event)" onblur="qeSetField('${tid}','note',this.value,event)">${noteVal}</textarea></div>
     </div>
-    ${!task.waiting ? `<div class="horizon-picker"><span class="horizon-pick-label">→</span>${horizonBtns}</div>` : ''}`;
+    <div class="task-actions" style="margin-top:8px;">
+      ${waitBtn}
+      <button class="task-action-btn del" onclick="deleteTask('${tid}',event)">🗑 Löschen</button>
+    </div>`;
   }
 
   const note = (task.note && expanded) ? `<div class="task-note">${escHtml(task.note)}</div>` : '';
@@ -1437,6 +1506,29 @@ function taskCard(task, isRecurring = false) {
 
 function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── QUICK EDIT FELDER ──
+function qeSetField(id, field, value, e) {
+  if (e) e.stopPropagation();
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  if (field === 'eisen' && task.eisen === value) {
+    task.eisen = null; // toggle off
+  } else if (field === 'context' && task.context === value) {
+    task.context = null; // toggle off
+  } else if (field === 'projectId' && task.projectId === value) {
+    task.projectId = null; // toggle off
+  } else if (field === 'due' && (value === null || value === '')) {
+    task.due = null;
+  } else {
+    task[field] = value;
+  }
+
+  save(tasks);
+  sbUpsertAll('tasks', tasks);
+  renderList(); // Re-render damit Tags + Felder aktualisiert werden
 }
 
 // ── INLINE TITLE EDIT ──
@@ -3661,24 +3753,72 @@ function taskCard(task, isRecurring = false) {
 
   let actions = '';
   if (expanded) {
+    const tid = task.id;
+    // ── Horizont ──
     const horizonBtns = [
-      { val: 'today', label: 'Heute',    active: task.horizon === 'today' },
-      { val: 'week',  label: 'Woche',    active: task.horizon === 'week'  },
-      { val: 'month', label: 'Monat',    active: task.horizon === 'month' },
-      { val: 'later', label: 'Später',   active: task.horizon === 'later' },
-      { val: 'maybe', label: 'Vielleicht', active: task.horizon === 'maybe' },
-    ].map(h => `<button class="horizon-pick-btn${h.active ? ' active' : ''}" onclick="setHorizonDirect('${task.id}','${h.val}',event)">${h.label}</button>`).join('');
+      { val: 'today', label: 'Heute' }, { val: 'week', label: 'Woche' },
+      { val: 'month', label: 'Monat' }, { val: 'later', label: 'Später' },
+      { val: 'maybe', label: 'Vielleicht' },
+    ].map(h => `<button class="horizon-pick-btn${task.horizon===h.val?' active':''}" onclick="setHorizonDirect('${tid}','${h.val}',event)">${h.label}</button>`).join('');
+
+    // ── Eisenhower ──
+    const eisenBtns = [
+      {v:1,l:'QI · Sofort'},{v:2,l:'QII · Planen'},{v:3,l:'QIII · Delegieren'},{v:4,l:'QIV · Eliminieren'}
+    ].map(q => {
+      const active = task.eisen === q.v ? ` active-q${q.v}` : '';
+      return `<button class="qe-btn${active}" onclick="qeSetField('${tid}','eisen',${q.v},event)">${q.l}</button>`;
+    }).join('');
+
+    // ── Priorität (Sterne) ──
+    const stars = [1,2,3,4,5].map(n =>
+      `<button class="qe-star${n<=(task.impact||3)?' lit':''}" onclick="qeSetField('${tid}','impact',${n},event)">★</button>`
+    ).join('');
+
+    // ── Kontext ──
+    const ctxMap = {focus:'🧠 Fokus',quick:'⚡ 10 Min',phone:'📞 Tel',mobile:'🚶 Unterwegs',team:'👥 Team',research:'📋 Recherche',docs:'📂 Unterlagen',talk:'💬 Absprache',lexware:'💸 Lexware',pc:'💻 Am PC',it:'📲 IT-Dev',people:'😬 People'};
+    const ctxBtns = Object.entries(ctxMap).map(([k,v]) => {
+      const active = task.context===k?' active-ctx':'';
+      return `<button class="qe-btn${active}" onclick="qeSetField('${tid}','context','${k}',event)">${v}</button>`;
+    }).join('');
+
+    // ── Projekt ──
+    const projBtns = projects.map(p => {
+      const active = task.projectId===p.id?' active-proj':'';
+      return `<button class="qe-btn${active}" style="${task.projectId===p.id?`border-color:${p.color};color:${p.color};background:${p.color}22;`:''}" onclick="qeSetField('${tid}','projectId','${p.id}',event)">📁 ${escHtml(p.name)}</button>`;
+    }).join('');
+
+    // ── Wiederkehrend ──
+    const recurMap = {none:'—',daily:'täglich',weekly:'wöchentlich',monthly:'monatlich'};
+    const recurBtns = Object.entries(recurMap).map(([k,v]) => {
+      const active = (task.recurring||'none')===k?' active-ctx':'';
+      return `<button class="qe-btn${active}" onclick="qeSetField('${tid}','recurring','${k}',event)">${v}</button>`;
+    }).join('');
+
+    // ── Fälligkeitsdatum ──
+    const dueVal = task.due || '';
+
+    // ── Notiz ──
+    const noteVal = escHtml(task.note || '');
 
     const waitBtn = task.waiting
-      ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${task.id}',event)">▶ Reaktivieren</button>`
-      : `<button class="task-action-btn" onclick="openWaitModal('${task.id}',event)">⏳ Warten auf…</button>`;
+      ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${tid}',event)">▶ Reaktivieren</button>`
+      : `<button class="task-action-btn" onclick="openWaitModal('${tid}',event)">⏳ Warten auf…</button>`;
 
-    actions = `<div class="task-actions">
-      <button class="task-action-btn" onclick="openEditModal('${task.id}',event)">✏️ Bearbeiten</button>
-      ${waitBtn}
-      <button class="task-action-btn del" onclick="deleteTask('${task.id}',event)">🗑 Löschen</button>
+    actions = `
+    <div class="qe-section">
+      <div class="qe-row"><span class="qe-label">Horizont</span>${!task.waiting?`<div class="horizon-picker" style="margin:0;">${horizonBtns}</div>`:'(Warten-Aufgabe)'}</div>
+      <div class="qe-row"><span class="qe-label">Eisenhower</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${eisenBtns}</div></div>
+      <div class="qe-row"><span class="qe-label">Priorität</span>${stars}</div>
+      <div class="qe-row"><span class="qe-label">Fällig</span><input type="date" class="qe-date" value="${dueVal}" onchange="qeSetField('${tid}','due',this.value,event)" onclick="event.stopPropagation()"/>${dueVal?`<button class="qe-btn" onclick="qeSetField('${tid}','due',null,event)">✕</button>`:''}</div>
+      <div class="qe-row"><span class="qe-label">Kontext</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${ctxBtns}</div></div>
+      ${projects.length>0?`<div class="qe-row"><span class="qe-label">Projekt</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${projBtns}${task.projectId?`<button class="qe-btn" onclick="qeSetField('${tid}','projectId',null,event)">✕ keins</button>`:''}</div></div>`:''}
+      <div class="qe-row"><span class="qe-label">Intervall</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${recurBtns}</div></div>
+      <div class="qe-row" style="flex-direction:column;align-items:stretch;"><span class="qe-label" style="margin-bottom:3px;">Notiz</span><textarea class="qe-note-input" onclick="event.stopPropagation()" onchange="qeSetField('${tid}','note',this.value,event)" onblur="qeSetField('${tid}','note',this.value,event)">${noteVal}</textarea></div>
     </div>
-    ${!task.waiting ? `<div class="horizon-picker"><span class="horizon-pick-label">→</span>${horizonBtns}</div>` : ''}`;
+    <div class="task-actions" style="margin-top:8px;">
+      ${waitBtn}
+      <button class="task-action-btn del" onclick="deleteTask('${tid}',event)">🗑 Löschen</button>
+    </div>`;
   }
 
   const note = (task.note && expanded) ? `<div class="task-note">${escHtml(task.note)}</div>` : '';
