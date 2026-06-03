@@ -1417,13 +1417,13 @@ function checkTask(id, e) {
   }
 
   // One-shot: animate then remove
+  const doneTask = tasks.find(t => t.id === id);
   const card = document.getElementById('card-' + id);
   if (card) {
     card.style.transition = 'opacity 0.3s, transform 0.3s';
     card.style.opacity = '0';
     card.style.transform = 'translateX(30px)';
     setTimeout(() => {
-      const doneTask = tasks.find(t => t.id === id);
       if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
@@ -1431,6 +1431,13 @@ function checkTask(id, e) {
       showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
       render();
     }, 300);
+  } else {
+    // Karte nicht sichtbar (anderer Tab aktiv) → sofort persistent entfernen
+    if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
+    tasks = tasks.filter(t => t.id !== id);
+    save(tasks);
+    expandedIds.delete(id);
+    showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
   }
 }
 
@@ -3475,13 +3482,13 @@ function checkTask(id, e) {
   }
 
   // One-shot: animate then remove
+  const doneTask = tasks.find(t => t.id === id);
   const card = document.getElementById('card-' + id);
   if (card) {
     card.style.transition = 'opacity 0.3s, transform 0.3s';
     card.style.opacity = '0';
     card.style.transform = 'translateX(30px)';
     setTimeout(() => {
-      const doneTask = tasks.find(t => t.id === id);
       if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
@@ -3489,6 +3496,13 @@ function checkTask(id, e) {
       showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
       render();
     }, 300);
+  } else {
+    // Karte nicht sichtbar (anderer Tab aktiv) → sofort persistent entfernen
+    if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
+    tasks = tasks.filter(t => t.id !== id);
+    save(tasks);
+    expandedIds.delete(id);
+    showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
   }
 }
 
