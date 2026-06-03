@@ -2695,8 +2695,24 @@ const _timers = {};
 function scheduleAllNotifications(){
   if(Notification.permission!=='granted') return;
   allRoutines.forEach(r => scheduleRoutineNotif(r));
+  // Medikamente & Supplements mit fester Uhrzeit
+  getMedSchedule().filter(m => m.time && !m.prn).forEach(m => scheduleMedNotif(m));
   // Daily check-in reminder (default 20:00 if no entry today)
   scheduleDailyReminder();
+}
+
+function scheduleMedNotif(m){
+  if(!m.time) return;
+  const key = 'med_'+m.id;
+  if(_timers[key]) clearTimeout(_timers[key]);
+  const ms = msUntilTime(m.time);
+  if(ms < 0) return;
+  _timers[key] = setTimeout(()=>{
+    if(Notification.permission==='granted' && localStorage.getItem('notif_enabled')==='1'){
+      new Notification('💊 '+m.name, { body:'Zeit für dein Medikament / Supplement!', icon:'/icon-192.png', tag:'med_'+m.id });
+    }
+    scheduleMedNotif(m); // re-schedule for next day
+  }, ms);
 }
 
 function scheduleRoutineNotif(r){
@@ -2748,14 +2764,17 @@ function msUntilTime(hhmm){
 function renderRoutineNotifList(){
   const el = document.getElementById('routineNotifList');
   const enabled = localStorage.getItem('notif_enabled')==='1' && Notification.permission==='granted';
-  if(!enabled || !allRoutines.length){ el.innerHTML=''; return; }
+  if(!enabled){ el.innerHTML=''; return; }
 
   const withTime = allRoutines.filter(r=>r.time);
-  if(!withTime.length){
+  const medsCheck = getMedSchedule().filter(m => m.time && !m.prn);
+  if(!withTime.length && !medsCheck.length){
     el.innerHTML=`<div style="font-size:0.75rem;color:var(--text3);padding:0.5rem 0.75rem;background:var(--bg3);border-radius:var(--r2);margin-bottom:0.5rem">
-      Füge einer Routine eine Uhrzeit hinzu, um Erinnerungen zu erhalten.</div>`;
+      Füge einer Routine oder einem Medikament eine Uhrzeit hinzu, um Erinnerungen zu erhalten.</div>`;
     return;
   }
+
+  const medsWithTime = getMedSchedule().filter(m => m.time && !m.prn);
 
   el.innerHTML = '<div class="section-title" style="padding-top:0.5rem">ERINNERUNGEN</div>'
     + withTime.map(r=>`
@@ -2768,7 +2787,18 @@ function renderRoutineNotifList(){
         </div>
       </div>
       <div class="notif-time-badge">${r.time}</div>
-    </div>`).join('');
+    </div>`).join('')
+    + (medsWithTime.length ? medsWithTime.map(m=>`
+    <div class="settings-row" style="cursor:default">
+      <div class="settings-left">
+        <div class="settings-icon">💊</div>
+        <div>
+          <div class="settings-label">${esc(m.name)}</div>
+          <div class="settings-sub">Täglich um ${m.time}</div>
+        </div>
+      </div>
+      <div class="notif-time-badge">${m.time}</div>
+    </div>`).join('') : '');
 
   // Daily reminder row
   const dailyTime = localStorage.getItem('daily_reminder_time')||'20:00';
