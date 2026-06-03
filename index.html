@@ -2377,6 +2377,7 @@ function openCSVExportDialog(){
 
     <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.4rem">Kategorie</div>
     <div style="display:flex;flex-direction:column;gap:0.35rem;margin-bottom:1rem">
+      <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="days" checked style="accent-color:var(--gold)"/> Tageswerte</label>
       <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer"><input type="radio" name="csvCat" value="routines" style="accent-color:var(--gold)"/> Routinen-Compliance</label>
     </div>
 
@@ -2420,7 +2421,7 @@ function exportCSVDays(period){
   if(!days.length){ showToast('Keine Daten im gewählten Zeitraum'); return; }
 
   const cols = [
-    'Datum','Lebensgefühl','Schlaf_h','Schlafqualität','HRV','Energie','Schmerz',
+    'Datum','Schlaf_h','Schlafqualität','HRV','Energie','Schmerz',
     'Schmerzstellen','Ernährung','Negatives','Aktivität','Stimmungen',
     'Gewinne','Notiz','Schmerz_Notiz',
     'Frühstück','Mittagessen','Abendessen','Snacks'
@@ -2437,6 +2438,7 @@ function exportCSVDays(period){
     csvArr(d.neg),
     csvArr(getEffectiveAkt(d)),
     csvArr(d.moods),
+    csvStr((d.gratitude||[]).filter(Boolean).join(' | ')),
     csvStr(d.note),
     csvStr(d.painNote),
     csvArr((d.meals||{}).fruehstueck),
@@ -2506,12 +2508,18 @@ function exportJSON(){
   const mealMemory = (() => { try{ return JSON.parse(localStorage.getItem('meal_memory')||'{}'); }catch(e){ return {}; } })();
   const notifPrefs = (() => { try{ return JSON.parse(localStorage.getItem('notif_prefs')||'{}'); }catch(e){ return {}; } })();
   const data = {
+    exported: new Date().toISOString(),
     days: allDays,
     routines: allRoutines,
     routine_completions: routineCompletions,
     customTags,
+    customRoutineCats: getCustomRoutineCats(),
     mealMemory,
     notifPrefs,
+    notifSchedules: (()=>{ try{ return JSON.parse(localStorage.getItem('notif_schedules')||'{}'); }catch(e){ return {}; } })(),
+    notifEnabled: localStorage.getItem('notif_enabled')||'0',
+    dailyReminderTime: localStorage.getItem('daily_reminder_time')||'',
+    weekGoals: (()=>{ try{ return JSON.parse(localStorage.getItem('week_goals')||'{}'); }catch(e){ return {}; } })(),
     medSchedule: getMedSchedule(),
     medMemory: getMedMemory(),
     weekReviews: getWeekReviews(),
@@ -2568,7 +2576,7 @@ async function performImport(){
       if(day.date){ await dbPut('days',day); imported++; }
     }
     for(const r of (data.routines||[])){ await dbPut('routines',r); }
-    for(const c of (data.completions||[])){ await dbPut('routine_completions',c); }
+    for(const c of (data.routine_completions||data.completions||[])){ await dbPut('routine_completions',c); }
     allDays = await dbGetAll('days');
     allRoutines = await dbGetAll('routines');
     routineCompletions = await dbGetAll('routine_completions');
@@ -2577,11 +2585,22 @@ async function performImport(){
     for(const [key, opts] of Object.entries(data.customTags||{})){
       if(Array.isArray(opts)) saveTagOpts(key, opts);
     }
+    // Restore custom routine categories
+    if(Array.isArray(data.customRoutineCats)) saveCustomRoutineCats(data.customRoutineCats);
     // Restore meal memory
     if(Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
     if(Array.isArray(data.medSchedule)) saveMedSchedule(data.medSchedule);
     if(Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
     if(Array.isArray(data.projects)) saveProjects(data.projects);
+    // Restore week reviews
+    if(data.weekReviews && typeof data.weekReviews === 'object') localStorage.setItem('week_reviews', JSON.stringify(data.weekReviews));
+    // Restore notification prefs
+    if(data.notifPrefs && typeof data.notifPrefs === 'object') localStorage.setItem('notif_prefs', JSON.stringify(data.notifPrefs));
+    if(data.notifSchedules && typeof data.notifSchedules === 'object') localStorage.setItem('notif_schedules', JSON.stringify(data.notifSchedules));
+    if(data.notifEnabled !== undefined && data.notifEnabled !== '') localStorage.setItem('notif_enabled', data.notifEnabled);
+    if(data.dailyReminderTime) localStorage.setItem('daily_reminder_time', data.dailyReminderTime);
+    // Restore week goals
+    if(data.weekGoals && typeof data.weekGoals === 'object') localStorage.setItem('week_goals', JSON.stringify(data.weekGoals));
     closeModal();
     showToast(imported + ' Tage importiert!');
     updateStreak();
