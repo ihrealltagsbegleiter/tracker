@@ -490,6 +490,39 @@ input[type=number] { max-width: 80px; text-align: center; }
   .modal { border-radius: 12px; margin: auto; }
 }
 
+/* ── KALENDER ── */
+.cal-wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; flex-shrink: 0; }
+.cal-nav-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 1rem; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+.cal-nav-btn:hover { color: var(--text); border-color: var(--muted); }
+.cal-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.cal-grid-head { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.cal-dow { text-align: center; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 6px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); padding: 0 12px 8px; flex: 1; gap: 2px; overflow: hidden; }
+.cal-cell { border-radius: 6px; padding: 4px 3px; display: flex; flex-direction: column; gap: 2px; cursor: default; min-height: 0; overflow: hidden; }
+.cal-cell:hover { background: rgba(255,255,255,0.03); }
+.cal-cell.today .cal-day-num { background: var(--accent); color: #111; }
+.cal-cell.other-month .cal-day-num { color: var(--muted); opacity: 0.45; }
+.cal-cell.other-month .cal-dot { opacity: 0.4; }
+.cal-day-num { font-size: 0.68rem; font-weight: 600; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--text); flex-shrink: 0; align-self: flex-start; }
+.cal-dots { display: flex; flex-direction: column; gap: 2px; overflow: hidden; flex: 1; min-height: 0; }
+.cal-dot { font-size: 0.58rem; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 1px 3px; border-radius: 3px; background: rgba(200,169,110,0.12); color: var(--accent); }
+.cal-dot.recurring { background: rgba(90,158,122,0.15); color: var(--accent2); }
+.cal-dot.overdue-dot { background: rgba(212,99,90,0.15); color: var(--danger); }
+.cal-dot.more { color: var(--muted); background: none; font-style: italic; }
+.cal-legend { display: flex; gap: 14px; padding: 8px 16px; flex-shrink: 0; border-top: 1px solid var(--border); }
+.cal-leg-item { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; color: var(--muted); }
+.cal-leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.cal-detail { flex-shrink: 0; max-height: 0; overflow: hidden; transition: max-height 0.25s ease; border-top: 1px solid var(--border); }
+.cal-detail.open { max-height: 220px; }
+.cal-detail-inner { padding: 10px 16px; overflow-y: auto; max-height: 220px; }
+.cal-detail-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+.cal-detail-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.cal-detail-item:last-child { border-bottom: none; }
+.cal-detail-icon { font-size: 0.75rem; flex-shrink: 0; margin-top: 1px; }
+.cal-detail-text { font-size: 0.8rem; color: var(--text); flex: 1; }
+.cal-detail-meta { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
 /* ── DW FLOATING TIMER ── */
 .dw-float {
   position: fixed; bottom: 72px; right: 16px;
@@ -632,6 +665,9 @@ input[type=number] { max-width: 80px; text-align: center; }
       </div>
       <div class="nav-item" data-tab="deepwork" onclick="switchTab('deepwork')">
         <span class="ni-icon">🎯</span><span class="ni-label">Deep Work</span>
+      </div>
+      <div class="nav-item" data-tab="calendar" onclick="switchTab('calendar')">
+        <span class="ni-icon">📅</span><span class="ni-label">Kalender</span>
       </div>
     </div>
   </nav>
@@ -1275,6 +1311,7 @@ function renderList() {
   if (currentTab === 'frogs') { renderFrogsTab(); return; }
   if (currentTab === 'log') { renderLogTab(); return; }
   if (currentTab === 'deepwork') { renderDeepWorkTab(); return; }
+  if (currentTab === 'calendar') { renderCalendarTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -2441,6 +2478,164 @@ function appendLog({ task, type }) {
 // ── LOG TAB ──
 let logFilter = { period: '30', projectId: '', horizon: '', frog: '' };
 
+/* ──────────── KALENDER ──────────── */
+let calState = { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: null };
+
+function calNextRecurDate(task) {
+  const done = loadDone();
+  const lastDone = done[task.id];
+  let intervalDays = 1;
+  if (task.recurring === 'daily')   intervalDays = 1;
+  else if (task.recurring === 'weekly')  intervalDays = 7;
+  else if (task.recurring === 'monthly') intervalDays = 30;
+  else if (task.recurring === 'custom')  intervalDays = task.recurDays || 7;
+  if (!lastDone) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    return today;
+  }
+  const last = new Date(lastDone + 'T00:00:00');
+  return new Date(last.getTime() + intervalDays * 86400000);
+}
+
+function calDayKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function calBuildEventMap(year, month) {
+  // Show 6 weeks around this month
+  const first = new Date(year, month, 1);
+  const startDow = first.getDay() === 0 ? 6 : first.getDay() - 1; // Mo=0
+  const gridStart = new Date(first); gridStart.setDate(1 - startDow);
+  const gridEnd = new Date(gridStart); gridEnd.setDate(gridStart.getDate() + 41);
+
+  const map = {}; // key: YYYY-MM-DD → [{title,type,proj}]
+  const addEvent = (dateObj, item) => {
+    const k = calDayKey(dateObj);
+    if (!map[k]) map[k] = [];
+    map[k].push(item);
+  };
+
+  // One-shot tasks with due date
+  tasks.forEach(t => {
+    if (!t.due || (t.recurring && t.recurring !== 'none')) return;
+    const d = new Date(t.due + 'T00:00:00');
+    if (d < gridStart || d > gridEnd) return;
+    const proj = projects.find(p => p.id === t.projectId);
+    const today = new Date(); today.setHours(0,0,0,0);
+    addEvent(d, { title: t.title, type: d < today ? 'overdue' : 'task', proj, frog: t.frog });
+  });
+
+  // Recurring tasks: next due date within grid
+  tasks.forEach(t => {
+    if (!t.recurring || t.recurring === 'none') return;
+    const next = calNextRecurDate(t);
+    next.setHours(0,0,0,0);
+    if (next < gridStart || next > gridEnd) return;
+    const proj = projects.find(p => p.id === t.projectId);
+    addEvent(next, { title: t.title, type: 'recurring', proj, recurLabel: recurLabel(t) });
+  });
+
+  return map;
+}
+
+function renderCalendarTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  const { year, month, selectedDate } = calState;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayKey = calDayKey(today);
+
+  const first = new Date(year, month, 1);
+  const startDow = first.getDay() === 0 ? 6 : first.getDay() - 1;
+  const gridStart = new Date(first); gridStart.setDate(1 - startDow);
+
+  const monthName = first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  const eventMap = calBuildEventMap(year, month);
+
+  // Build 42 cells
+  let cellsHtml = '';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart); d.setDate(gridStart.getDate() + i);
+    const key = calDayKey(d);
+    const isToday = key === todayKey;
+    const isOther = d.getMonth() !== month;
+    const isSelected = key === selectedDate;
+    const events = eventMap[key] || [];
+
+    const MAX_DOTS = 3;
+    const dotsHtml = events.slice(0, MAX_DOTS).map(ev => {
+      const cls = ev.type === 'recurring' ? 'recurring' : ev.type === 'overdue' ? 'overdue-dot' : '';
+      const icon = ev.frog ? '🐸 ' : ev.type === 'recurring' ? '↻ ' : '';
+      return `<div class="cal-dot ${cls}">${icon}${escHtml(ev.title)}</div>`;
+    }).join('');
+    const moreHtml = events.length > MAX_DOTS
+      ? `<div class="cal-dot more">+${events.length - MAX_DOTS} weitere</div>` : '';
+
+    const selStyle = isSelected ? 'outline:2px solid var(--accent);outline-offset:-2px;' : '';
+    cellsHtml += `<div class="cal-cell${isToday?' today':''}${isOther?' other-month':''}" style="${selStyle}" onclick="calSelectDay('${key}')">
+      <div class="cal-day-num">${d.getDate()}</div>
+      <div class="cal-dots">${dotsHtml}${moreHtml}</div>
+    </div>`;
+  }
+
+  // Detail panel
+  let detailHtml = '';
+  if (selectedDate && eventMap[selectedDate]) {
+    const d = new Date(selectedDate + 'T00:00:00');
+    const label = d.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long' });
+    const items = eventMap[selectedDate].map(ev => {
+      const icon = ev.frog ? '🐸' : ev.type === 'recurring' ? '↻' : '📌';
+      const meta = ev.type === 'recurring' ? ev.recurLabel : (ev.proj ? `📁 ${ev.proj.name}` : '');
+      return `<div class="cal-detail-item">
+        <div class="cal-detail-icon">${icon}</div>
+        <div>
+          <div class="cal-detail-text">${escHtml(ev.title)}</div>
+          ${meta ? `<div class="cal-detail-meta">${escHtml(meta)}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    detailHtml = `<div class="cal-detail open"><div class="cal-detail-inner">
+      <div class="cal-detail-title">${label}</div>${items}
+    </div></div>`;
+  } else {
+    detailHtml = `<div class="cal-detail"></div>`;
+  }
+
+  list.innerHTML = `<div class="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+      <div class="cal-title">${monthName}</div>
+      <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid-head">
+      ${['Mo','Di','Mi','Do','Fr','Sa','So'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+    </div>
+    <div class="cal-grid">${cellsHtml}</div>
+    <div class="cal-legend">
+      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:rgba(200,169,110,0.4)"></div>Aufgabe</div>
+      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:rgba(90,158,122,0.4)"></div>Wiederkehrend</div>
+      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:rgba(212,99,90,0.4)"></div>Überfällig</div>
+    </div>
+    ${detailHtml}
+  </div>`;
+}
+
+function calNav(dir) {
+  calState.month += dir;
+  if (calState.month < 0) { calState.month = 11; calState.year--; }
+  if (calState.month > 11) { calState.month = 0; calState.year++; }
+  calState.selectedDate = null;
+  renderCalendarTab();
+}
+
+function calSelectDay(key) {
+  calState.selectedDate = calState.selectedDate === key ? null : key;
+  renderCalendarTab();
+}
+/* ──────────── END KALENDER ──────────── */
+
+
 /* ──────────── DEEP WORK ──────────── */
 let dwState = {
   running: false,
@@ -3341,6 +3536,7 @@ function renderList() {
   if (currentTab === 'frogs') { renderFrogsTab(); return; }
   if (currentTab === 'log') { renderLogTab(); return; }
   if (currentTab === 'deepwork') { renderDeepWorkTab(); return; }
+  if (currentTab === 'calendar') { renderCalendarTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
