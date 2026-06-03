@@ -490,6 +490,16 @@ input[type=number] { max-width: 80px; text-align: center; }
   .modal { border-radius: 12px; margin: auto; }
 }
 
+/* ── INLINE EDIT ── */
+.task-title[contenteditable="true"] {
+  outline: none;
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 1px;
+  cursor: text;
+  caret-color: var(--accent);
+  white-space: pre-wrap;
+}
+
 /* ── KALENDER ── */
 .cal-wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 .cal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; flex-shrink: 0; }
@@ -1416,7 +1426,7 @@ function taskCard(task, isRecurring = false) {
     <div class="task-top">
       <div class="task-check ${''}" onclick="checkTask('${task.id}',event)"></div>
       <div class="task-body">
-        <div class="task-title">${escHtml(task.title)}</div>
+        <div class="task-title" onclick="startInlineEdit('${task.id}',event)">${escHtml(task.title)}</div>
         ${note}
         ${tags ? `<div class="task-meta">${tags}</div>` : ''}
         ${actions}
@@ -1429,9 +1439,46 @@ function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── INLINE TITLE EDIT ──
+function startInlineEdit(id, e) {
+  e.stopPropagation();
+  const el = e.currentTarget;
+  if (el.contentEditable === 'true') return;
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  el.contentEditable = 'true';
+  el.focus();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  const original = task.title;
+  function commit() {
+    el.contentEditable = 'false';
+    const newTitle = el.textContent.trim();
+    if (!newTitle) { el.textContent = original; return; }
+    if (newTitle === original) return;
+    task.title = newTitle;
+    save(tasks);
+    sbUpsertAll('tasks', tasks);
+    el.textContent = newTitle;
+  }
+  function cancel() {
+    el.contentEditable = 'false';
+    el.textContent = original;
+  }
+  el.addEventListener('blur', commit, { once: true });
+  el.addEventListener('keydown', function onKey(ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); el.removeEventListener('keydown', onKey); el.blur(); }
+    if (ev.key === 'Escape') { ev.preventDefault(); el.removeEventListener('keydown', onKey); el.removeEventListener('blur', commit); cancel(); }
+  });
+}
+
 // ── INTERACTIONS ──
 function toggleExpand(id, e) {
-  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn')) return;
+  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn') || e.target.closest('.task-title')) return;
   if (expandedIds.has(id)) expandedIds.delete(id);
   else expandedIds.add(id);
   renderList();
@@ -3641,7 +3688,7 @@ function taskCard(task, isRecurring = false) {
     <div class="task-top">
       <div class="task-check ${''}" onclick="checkTask('${task.id}',event)"></div>
       <div class="task-body">
-        <div class="task-title">${escHtml(task.title)}</div>
+        <div class="task-title" onclick="startInlineEdit('${task.id}',event)">${escHtml(task.title)}</div>
         ${note}
         ${tags ? `<div class="task-meta">${tags}</div>` : ''}
         ${actions}
@@ -3654,9 +3701,46 @@ function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── INLINE TITLE EDIT ──
+function startInlineEdit(id, e) {
+  e.stopPropagation();
+  const el = e.currentTarget;
+  if (el.contentEditable === 'true') return;
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  el.contentEditable = 'true';
+  el.focus();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  const original = task.title;
+  function commit() {
+    el.contentEditable = 'false';
+    const newTitle = el.textContent.trim();
+    if (!newTitle) { el.textContent = original; return; }
+    if (newTitle === original) return;
+    task.title = newTitle;
+    save(tasks);
+    sbUpsertAll('tasks', tasks);
+    el.textContent = newTitle;
+  }
+  function cancel() {
+    el.contentEditable = 'false';
+    el.textContent = original;
+  }
+  el.addEventListener('blur', commit, { once: true });
+  el.addEventListener('keydown', function onKey(ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); el.removeEventListener('keydown', onKey); el.blur(); }
+    if (ev.key === 'Escape') { ev.preventDefault(); el.removeEventListener('keydown', onKey); el.removeEventListener('blur', commit); cancel(); }
+  });
+}
+
 // ── INTERACTIONS ──
 function toggleExpand(id, e) {
-  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn')) return;
+  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn') || e.target.closest('.task-title')) return;
   if (expandedIds.has(id)) expandedIds.delete(id);
   else expandedIds.add(id);
   renderList();
