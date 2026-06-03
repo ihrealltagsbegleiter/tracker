@@ -490,6 +490,24 @@ input[type=number] { max-width: 80px; text-align: center; }
   .modal { border-radius: 12px; margin: auto; }
 }
 
+/* ── DW FLOATING TIMER ── */
+.dw-float {
+  position: fixed; bottom: 72px; right: 16px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 10px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  z-index: 900; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.dw-float:hover { opacity: 0.85; }
+.dw-float-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink:0; animation: dw-pulse 1.2s infinite; }
+@keyframes dw-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.dw-float-time { font-family: var(--font-mono,monospace); font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+.dw-float-label { font-size: 0.68rem; color: var(--muted); }
+.dw-float-stop { background: none; border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; font-size: 0.68rem; color: var(--muted); cursor: pointer; font-family: inherit; }
+.dw-float-stop:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ── DEEP WORK ── */
 .dw-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 24px 16px; max-width: 520px; margin: 0 auto; }
 .dw-ring-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
@@ -2452,26 +2470,28 @@ function dwStart() {
   dwState.running = true;
   dwTick = setInterval(() => {
     dwState.elapsed = Math.floor((Date.now() - dwState.startTs) / 1000);
-    renderDeepWorkTab();
+    if (currentTab === 'deepwork') renderDeepWorkTab();
+    else dwUpdateFloatingTimer();
   }, 1000);
   renderDeepWorkTab();
 }
 function dwPause() {
   dwState.running = false;
   clearInterval(dwTick); dwTick = null;
-  renderDeepWorkTab();
+  if (currentTab === 'deepwork') renderDeepWorkTab(); else { dwUpdateFloatingTimer(); render(); }
 }
 function dwStop() {
   dwState.running = false;
   clearInterval(dwTick); dwTick = null;
   if (dwState.elapsed > 5) dwState.showSave = true;
-  renderDeepWorkTab();
+  switchTab('deepwork');
 }
 function dwReset() {
   dwState.running = false; dwState.elapsed = 0;
   dwState.showSave = false; dwState.achievement = '';
   clearInterval(dwTick); dwTick = null;
-  renderDeepWorkTab();
+  dwUpdateFloatingTimer();
+  if (currentTab === 'deepwork') renderDeepWorkTab();
 }
 function dwCommit() {
   if (dwState.elapsed < 5) { dwReset(); return; }
@@ -2492,6 +2512,19 @@ function dwDeleteSession(id) {
 }
 function dwSetSubTab(t) { dwState.subTab = t; renderDeepWorkTab(); }
 function dwSetAchievement(v) { dwState.achievement = v; }
+
+function dwUpdateFloatingTimer() {
+  const el = document.getElementById('dw-float');
+  const t  = document.getElementById('dw-float-time');
+  if (!el) return;
+  if (dwState.running && currentTab !== 'deepwork') {
+    el.style.display = 'flex';
+    if (t) t.textContent = dwFmt(dwState.elapsed);
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 
 function renderDeepWorkTab() {
   const list = document.getElementById('task-list');
@@ -3473,6 +3506,7 @@ function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(el => {
     el.classList.toggle('active', el.dataset.tab === tab);
   });
+  dwUpdateFloatingTimer();
   // Update topbar button
   const addBtn = document.querySelector('.icon-btn.primary');
   if (addBtn) {
@@ -4831,6 +4865,17 @@ function checkTaskFromSearch(id, e) {
 </div>
 
 
+
+
+<!-- DW FLOATING TIMER -->
+<div class="dw-float" id="dw-float" style="display:none" onclick="switchTab('deepwork')">
+  <div class="dw-float-dot"></div>
+  <div>
+    <div class="dw-float-time" id="dw-float-time">00:00</div>
+    <div class="dw-float-label">Deep Work läuft</div>
+  </div>
+  <button class="dw-float-stop" onclick="event.stopPropagation();dwStop()">⏹</button>
+</div>
 
 
 </body>
