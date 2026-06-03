@@ -1427,15 +1427,16 @@ function checkTask(id, e) {
       if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
+      sbDelete('tasks', id);
       expandedIds.delete(id);
       showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
       render();
     }, 300);
   } else {
-    // Karte nicht sichtbar (anderer Tab aktiv) → sofort persistent entfernen
     if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
     tasks = tasks.filter(t => t.id !== id);
     save(tasks);
+    sbDelete('tasks', id);
     expandedIds.delete(id);
     showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
   }
@@ -3492,15 +3493,16 @@ function checkTask(id, e) {
       if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
       tasks = tasks.filter(t => t.id !== id);
       save(tasks);
+      sbDelete('tasks', id);
       expandedIds.delete(id);
       showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
       render();
     }, 300);
   } else {
-    // Karte nicht sichtbar (anderer Tab aktiv) → sofort persistent entfernen
     if (doneTask) appendLog({ task: doneTask, type: 'oneshot' });
     tasks = tasks.filter(t => t.id !== id);
     save(tasks);
+    sbDelete('tasks', id);
     expandedIds.delete(id);
     showToast(doneTask?.frog ? '🐸 Frosch gegessen!' : '✓ Aufgabe erledigt');
   }
