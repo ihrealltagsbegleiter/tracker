@@ -151,6 +151,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .task-card:hover { background: var(--surface); border-color: var(--border); }
 .task-card.expanded { background: var(--surface); border-color: var(--border); }
 
+.task-top { display: flex; align-items: flex-start; gap: 10px; }
 .task-check {
   width: 16px; height: 16px; border-radius: 50%;
   border: 1.5px solid var(--border); flex-shrink: 0;
@@ -169,21 +170,15 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .task-title.done { text-decoration: line-through; color: var(--muted); }
 
 .task-meta-row {
-  display: none;
+  display: flex;
   align-items: center; gap: 6px;
   margin-top: 5px; flex-wrap: wrap;
 }
-.task-card.expanded .task-meta-row {
-  display: flex;
-}
 /* actual JS-rendered tag container */
 .task-meta {
-  display: none;
+  display: flex;
   align-items: center; flex-wrap: wrap;
   gap: 5px; margin-top: 5px;
-}
-.task-card.expanded .task-meta {
-  display: flex;
 }
 .tag {
   font-size: 0.65rem; padding: 1px 7px;
@@ -206,8 +201,8 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .impact-stars { font-size: 0.7rem; color: var(--accent); letter-spacing: -1px; }
 
 /* Tags nur bei hover/expand sichtbar – Fokus-Modus Toggle */
-.focus-mode .task-meta-row { display: none !important; }
 .focus-mode .task-meta { display: none !important; }
+.focus-mode .task-meta-row { display: none !important; }
 .focus-mode .task-card { padding: 8px 10px; }
 
 /* ── EXPANDED ACTIONS ── */
