@@ -1919,6 +1919,11 @@ function renderHeatmap(){
   const lookup = {};
   allDays.forEach(d=>{ if(d.energy) lookup[d.date]=d.energy; });
 
+  // DEBUG: zeige was in allDays steckt
+  console.log('[Heatmap Debug] allDays.length:', allDays.length);
+  console.log('[Heatmap Debug] allDays:', JSON.stringify(allDays.map(d=>({date:d.date, energy:d.energy}))));
+  console.log('[Heatmap Debug] lookup:', JSON.stringify(lookup));
+
   // Show last 27 weeks = GitHub-style
   const WEEKS = 27;
   const totalDays = WEEKS * 7;
