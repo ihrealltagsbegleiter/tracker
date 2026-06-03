@@ -1314,6 +1314,11 @@ function buildPainDots(){
 // Tag option storage key per group
 const TAG_STORE = {ern:'custom_ern_opts', neg:'custom_neg_opts', akt:'custom_akt_opts', pain:'custom_pain_opts'};
 
+// Custom Routine-Kategorien (user-defined)
+const ROUTINE_CAT_STORE = 'custom_routine_cats';
+function getCustomRoutineCats(){ try{ return JSON.parse(localStorage.getItem(ROUTINE_CAT_STORE)||'[]'); }catch(e){ return []; } }
+function saveCustomRoutineCats(arr){ localStorage.setItem(ROUTINE_CAT_STORE, JSON.stringify(arr)); }
+
 // Kategorie-Mapping: Welche Routine-Kategorien fließen in welche Tag-Gruppe ein?
 const ROUTINE_CAT_MAP = {
   'Sport':       'akt',
@@ -1623,7 +1628,7 @@ function openAddRoutine(editId){
     <div class="modal-sub">An welchen Tagen und wie oft?</div>
     <input class="input" id="rName" placeholder="Routine-Name (z.B. Meditation)" type="text" value="${existing?esc(existing.name):''}"/>
     <input class="input" id="rTime" type="time" value="${existing&&existing.time?existing.time:''}"/>
-    <select class="input" id="rCat">
+    <select class="input" id="rCat" style="margin-bottom:0.3rem">
       <option value="">Kategorie wählen…</option>
       <option${existing&&existing.cat==='Morgenroutine'?' selected':''}>Morgenroutine</option>
       <option${existing&&existing.cat==='Sport'?' selected':''}>Sport ✦ fließt in Aktivitäts-Statistik</option>
@@ -1632,7 +1637,12 @@ function openAddRoutine(editId){
       <option${existing&&existing.cat==='Lernen'?' selected':''}>Lernen</option>
       <option${existing&&existing.cat==='Entspannung'?' selected':''}>Entspannung</option>
       <option${existing&&existing.cat==='Sonstiges'?' selected':''}>Sonstiges</option>
+      ${getCustomRoutineCats().map(c=>`<option${existing&&existing.cat===c?' selected':''}>${esc(c)}</option>`).join('')}
     </select>
+    <div style="display:flex;gap:0.4rem;margin-bottom:0.75rem">
+      <input class="input" id="rCatNew" placeholder="Neue Kategorie…" type="text" style="margin-bottom:0;flex:1;font-size:0.8rem;padding:0.35rem 0.6rem"/>
+      <button onclick="addCustomRoutineCat()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:0.78rem;padding:0 0.75rem;cursor:pointer;white-space:nowrap">+ Hinzufügen</button>
+    </div>
     <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:0.35rem">Wochentage</div>
     <div class="wd-row" id="wdRow">
       ${['Mo','Di','Mi','Do','Fr','Sa','So'].map((d,i)=>`
@@ -1689,6 +1699,26 @@ async function saveRoutine(editId){
   closeModal();
   renderRoutines();
   showToast(editId ? 'Routine aktualisiert!' : 'Routine hinzugefügt!');
+}
+function addCustomRoutineCat(){
+  const input = document.getElementById('rCatNew');
+  if(!input) return;
+  const val = input.value.trim();
+  if(!val){ input.style.borderColor='var(--red)'; return; }
+  const existing = getCustomRoutineCats();
+  if(existing.includes(val)){ showToast('Kategorie bereits vorhanden'); return; }
+  existing.push(val);
+  saveCustomRoutineCats(existing);
+  // Add to select
+  const sel = document.getElementById('rCat');
+  const opt = document.createElement('option');
+  opt.value = val;
+  opt.textContent = val;
+  opt.selected = true;
+  sel.appendChild(opt);
+  input.value = '';
+  input.style.borderColor = '';
+  showToast('Kategorie "'+val+'" hinzugefügt');
 }
 function deleteRoutineConfirm(rid, e){
   e.stopPropagation();
