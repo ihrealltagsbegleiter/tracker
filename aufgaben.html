@@ -2424,6 +2424,10 @@ function appendLog({ task, type }) {
   };
   logEntries.push(entry);
   saveLog(logEntries);
+  // Deep Work: Aufgabe in laufende Session-Liste aufnehmen
+  if (dwState.running) {
+    dwState.sessionTasks.push({ title: task.title, frog: task.frog || false });
+  }
 }
 
 // ── LOG TAB ──
@@ -2438,6 +2442,7 @@ let dwState = {
   achievement: '',
   subTab: 'timer',  // 'timer' | 'log' | 'stats'
   sessions: [],
+  sessionTasks: [], // Aufgaben die während laufender Session erledigt wurden
 };
 (function() {
   try { const s = localStorage.getItem('dw_sessions_v1'); if (s) dwState.sessions = JSON.parse(s); } catch {}
@@ -2466,6 +2471,7 @@ function dwGroupByDay(sessions) {
   return Object.values(m).sort((a,b) => b.date.localeCompare(a.date));
 }
 function dwStart() {
+  if (dwState.elapsed === 0) dwState.sessionTasks = []; // nur bei Neu-Start leeren, nicht bei Weiter
   dwState.startTs = Date.now() - dwState.elapsed * 1000;
   dwState.running = true;
   dwTick = setInterval(() => {
@@ -2495,14 +2501,20 @@ function dwReset() {
 }
 function dwCommit() {
   if (dwState.elapsed < 5) { dwReset(); return; }
+  const taskLines = dwState.sessionTasks.map(t => (t.frog ? '🐸 ' : '✓ ') + t.title);
+  const autoText = taskLines.length > 0 ? taskLines.join('\n') : '';
+  const manualText = dwState.achievement.trim();
+  const combined = [autoText, manualText].filter(Boolean).join('\n') || '(kein Eintrag)';
   dwState.sessions.unshift({
     id: Date.now().toString(),
     date: new Date().toISOString(),
     dur: dwState.elapsed,
-    text: dwState.achievement.trim() || '(kein Eintrag)',
+    text: combined,
+    taskCount: dwState.sessionTasks.length,
   });
   dwSave();
   dwState.showSave = false; dwState.achievement = ''; dwState.elapsed = 0;
+  dwState.sessionTasks = [];
   dwState.subTab = 'log';
   renderDeepWorkTab();
 }
@@ -2583,9 +2595,13 @@ function renderDeepWorkTab() {
       </div>` : ''}
 
       ${dwState.showSave ? `<div class="dw-save-box">
-        <div class="dw-save-label">Session: ${dwFmt(el)} · Was hast du geschafft?</div>
-        <textarea class="dw-save-textarea" rows="3"
-          placeholder="z.B. Dienstplan August abgeschlossen, Angebot überarbeitet…"
+        <div class="dw-save-label">Session: ${dwFmt(el)} · Zusammenfassung</div>
+        ${dwState.sessionTasks.length > 0 ? `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:0.78rem;line-height:1.7;color:var(--text);">
+          ${dwState.sessionTasks.map(t=>`<div>${t.frog?'🐸':'✓'} ${escHtml(t.title)}</div>`).join('')}
+        </div>` : '<div style="font-size:0.75rem;color:var(--muted);">Keine Aufgaben während der Session abgehakt.</div>'}
+        <div class="dw-save-label" style="margin-top:4px;">Eigene Notiz (optional)</div>
+        <textarea class="dw-save-textarea" rows="2"
+          placeholder="z.B. Konzept fertiggestellt, E-Mails abgearbeitet…"
           oninput="dwSetAchievement(this.value)"
         >${escHtml(dwState.achievement)}</textarea>
         <div class="dw-controls">
@@ -4451,6 +4467,10 @@ function appendLog({ task, type }) {
   };
   logEntries.push(entry);
   saveLog(logEntries);
+  // Deep Work: Aufgabe in laufende Session-Liste aufnehmen
+  if (dwState.running) {
+    dwState.sessionTasks.push({ title: task.title, frog: task.frog || false });
+  }
 }
 
 // ── LOG TAB ──
