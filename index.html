@@ -1940,6 +1940,14 @@ function renderHeatmap(){
     return '#2ecc71';
   };
 
+  // Local date formatter (avoids UTC offset bug with toISOString)
+  const localDateStr = dt => {
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth()+1).padStart(2,'0');
+    const d2 = String(dt.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d2}`;
+  };
+
   // Build cells
   const cells = [];
   const monthLabels = [];
@@ -1949,9 +1957,9 @@ function renderHeatmap(){
     for(let d=0; d<7; d++){
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + w*7 + d);
-      const ds = date.toISOString().slice(0,10);
+      const ds = localDateStr(date);
       const v = lookup[ds];
-      const isFuture = date > today;
+      const isFuture = localDateStr(date) > TODAY;
       cells.push({ds, v, isFuture});
       if(d===0 && date.getMonth()!==lastMonth){
         colMonth = date.getMonth();
