@@ -1598,12 +1598,36 @@ function isRoutineDone(rid, date){
 }
 async function toggleRoutine(rid){
   const key = rid+'_'+TODAY;
-  if(isRoutineDone(rid,TODAY)){
+  const wasDone = isRoutineDone(rid,TODAY);
+  const routine = allRoutines.find(r=>r.id===rid);
+  if(wasDone){
     await dbDelete('routine_completions', key);
     routineCompletions = routineCompletions.filter(c=>c.key!==key);
+    // Aktivitäts-Sync: Routine-Name aus state.akt entfernen (nur wenn Kategorie akt-relevant)
+    if(routine && ROUTINE_CAT_MAP[routine.cat]==='akt' && activeDate===TODAY){
+      if(!state.akt) state.akt=[];
+      state.akt = state.akt.filter(x=>x!==routine.name);
+      buildTagGrid('aktTag',[],  'akt');
+      scheduleAutoSave();
+    }
   } else {
     await dbPut('routine_completions',{key,rid,date:TODAY});
     routineCompletions.push({key,rid,date:TODAY});
+    // Aktivitäts-Sync: Routine-Name in state.akt eintragen (nur wenn Kategorie akt-relevant)
+    if(routine && ROUTINE_CAT_MAP[routine.cat]==='akt' && activeDate===TODAY){
+      if(!state.akt) state.akt=[];
+      if(!state.akt.includes(routine.name)){
+        state.akt.push(routine.name);
+        // Tag-Option anlegen falls noch nicht vorhanden
+        const opts = getTagOpts('akt');
+        if(!opts.includes(routine.name)){
+          opts.push(routine.name);
+          saveTagOpts('akt', opts);
+        }
+        buildTagGrid('aktTag',[],'akt');
+        scheduleAutoSave();
+      }
+    }
     showToast('✓ Erledigt!');
   }
   renderRoutines();
