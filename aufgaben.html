@@ -489,6 +489,56 @@ input[type=number] { max-width: 80px; text-align: center; }
   .modal-overlay { align-items: center; }
   .modal { border-radius: 12px; margin: auto; }
 }
+
+/* ── DEEP WORK ── */
+.dw-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 24px 16px; max-width: 520px; margin: 0 auto; }
+.dw-ring-wrap { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
+.dw-ring-wrap svg { transform: rotate(-90deg); }
+.dw-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.dw-time { font-family: var(--font-mono, monospace); font-size: 2rem; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+.dw-time.running { color: var(--accent); }
+.dw-status { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+.dw-goal-pct { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+.dw-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.dw-btn { font-family: inherit; font-size: 0.78rem; padding: 8px 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; }
+.dw-btn.primary { background: var(--accent); color: #111; border-color: var(--accent); }
+.dw-btn.ghost { background: transparent; color: var(--muted); }
+.dw-save-box { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.dw-save-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.dw-save-textarea { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.82rem; padding: 10px; resize: vertical; min-height: 72px; outline: none; line-height: 1.5; }
+.dw-save-textarea:focus { border-color: var(--accent); }
+.dw-today-bar { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+.dw-today-lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.dw-today-val { font-size: 1.1rem; font-weight: 700; color: var(--accent); font-family: var(--font-mono, monospace); }
+.dw-section-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); width: 100%; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.dw-kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; }
+.dw-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 10px; text-align: center; }
+.dw-kpi-val { font-size: 1.15rem; font-weight: 700; color: var(--accent); font-family: var(--font-mono, monospace); }
+.dw-kpi-lbl { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-top: 4px; }
+.dw-chart-wrap { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-sizing: border-box; }
+.dw-bars { display: flex; align-items: flex-end; gap: 3px; height: 80px; margin-top: 12px; }
+.dw-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dw-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--border); min-height: 2px; transition: height 0.3s; }
+.dw-bar.has-data { background: color-mix(in srgb, var(--accent) 50%, transparent); }
+.dw-bar.today { background: var(--accent); }
+.dw-bar-lbl { font-size: 0.52rem; color: var(--muted); transform: rotate(-45deg); white-space: nowrap; }
+.dw-log-card { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; box-sizing: border-box; }
+.dw-log-dur { font-family: var(--font-mono, monospace); font-size: 0.95rem; font-weight: 700; color: var(--accent); flex-shrink: 0; min-width: 52px; }
+.dw-log-body { flex: 1; min-width: 0; }
+.dw-log-date { font-size: 0.68rem; color: var(--muted); margin-bottom: 3px; }
+.dw-log-text { font-size: 0.8rem; color: var(--text); line-height: 1.45; }
+.dw-log-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; padding: 0; line-height: 1; flex-shrink: 0; }
+.dw-log-del:hover { color: var(--danger); }
+.dw-top-card { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-sizing: border-box; }
+.dw-top-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.dw-top-row:last-child { border-bottom: none; }
+.dw-top-left { display: flex; flex-direction: column; gap: 2px; }
+.dw-top-date { font-size: 0.68rem; color: var(--muted); }
+.dw-top-text { font-size: 0.78rem; color: var(--text); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dw-top-dur { font-family: var(--font-mono, monospace); font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+.dw-sub-tabs { display: flex; gap: 6px; width: 100%; }
+.dw-sub-tab { flex: 1; font-family: inherit; font-size: 0.72rem; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-weight: 500; text-align: center; }
+.dw-sub-tab.active { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -561,6 +611,9 @@ input[type=number] { max-width: 80px; text-align: center; }
       </div>
       <div class="nav-item" data-tab="log" onclick="switchTab('log')">
         <span class="ni-icon">📋</span><span class="ni-label">Protokoll</span>
+      </div>
+      <div class="nav-item" data-tab="deepwork" onclick="switchTab('deepwork')">
+        <span class="ni-icon">🎯</span><span class="ni-label">Deep Work</span>
       </div>
     </div>
   </nav>
@@ -1203,6 +1256,7 @@ function renderList() {
   if (currentTab === 'impact') { renderImpactTab(); return; }
   if (currentTab === 'frogs') { renderFrogsTab(); return; }
   if (currentTab === 'log') { renderLogTab(); return; }
+  if (currentTab === 'deepwork') { renderDeepWorkTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
@@ -2357,6 +2411,232 @@ function appendLog({ task, type }) {
 // ── LOG TAB ──
 let logFilter = { period: '30', projectId: '', horizon: '', frog: '' };
 
+/* ──────────── DEEP WORK ──────────── */
+let dwState = {
+  running: false,
+  elapsed: 0,       // seconds accumulated
+  startTs: null,    // Date.now() when timer started
+  showSave: false,
+  achievement: '',
+  subTab: 'timer',  // 'timer' | 'log' | 'stats'
+  sessions: [],
+};
+(function() {
+  try { const s = localStorage.getItem('dw_sessions_v1'); if (s) dwState.sessions = JSON.parse(s); } catch {}
+})();
+let dwTick = null;
+
+function dwSave() {
+  try { localStorage.setItem('dw_sessions_v1', JSON.stringify(dwState.sessions)); } catch {}
+}
+function dwFmt(sec) {
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function dwTodayKey() { return new Date().toISOString().slice(0,10); }
+function dwFmtDate(iso) {
+  return new Date(iso).toLocaleDateString('de-DE', { weekday:'short', day:'2-digit', month:'short' });
+}
+function dwGroupByDay(sessions) {
+  const m = {};
+  sessions.forEach(s => {
+    const d = s.date.slice(0,10);
+    if (!m[d]) m[d] = { date:d, total:0, count:0 };
+    m[d].total += s.dur; m[d].count++;
+  });
+  return Object.values(m).sort((a,b) => b.date.localeCompare(a.date));
+}
+function dwStart() {
+  dwState.startTs = Date.now() - dwState.elapsed * 1000;
+  dwState.running = true;
+  dwTick = setInterval(() => {
+    dwState.elapsed = Math.floor((Date.now() - dwState.startTs) / 1000);
+    renderDeepWorkTab();
+  }, 1000);
+  renderDeepWorkTab();
+}
+function dwPause() {
+  dwState.running = false;
+  clearInterval(dwTick); dwTick = null;
+  renderDeepWorkTab();
+}
+function dwStop() {
+  dwState.running = false;
+  clearInterval(dwTick); dwTick = null;
+  if (dwState.elapsed > 5) dwState.showSave = true;
+  renderDeepWorkTab();
+}
+function dwReset() {
+  dwState.running = false; dwState.elapsed = 0;
+  dwState.showSave = false; dwState.achievement = '';
+  clearInterval(dwTick); dwTick = null;
+  renderDeepWorkTab();
+}
+function dwCommit() {
+  if (dwState.elapsed < 5) { dwReset(); return; }
+  dwState.sessions.unshift({
+    id: Date.now().toString(),
+    date: new Date().toISOString(),
+    dur: dwState.elapsed,
+    text: dwState.achievement.trim() || '(kein Eintrag)',
+  });
+  dwSave();
+  dwState.showSave = false; dwState.achievement = ''; dwState.elapsed = 0;
+  dwState.subTab = 'log';
+  renderDeepWorkTab();
+}
+function dwDeleteSession(id) {
+  dwState.sessions = dwState.sessions.filter(s => s.id !== id);
+  dwSave(); renderDeepWorkTab();
+}
+function dwSetSubTab(t) { dwState.subTab = t; renderDeepWorkTab(); }
+function dwSetAchievement(v) { dwState.achievement = v; }
+
+function renderDeepWorkTab() {
+  const list = document.getElementById('task-list');
+  document.getElementById('stats-bar').style.display = 'none';
+
+  const DW_GOAL = 4 * 3600;
+  const el = dwState.elapsed;
+  const progress = Math.min(el / DW_GOAL, 1);
+  const r = 82, cx = 100, cy = 100, circ = 2 * Math.PI * r;
+  const dash = progress * circ;
+
+  const todayKey = dwTodayKey();
+  const dayGroups = dwGroupByDay(dwState.sessions);
+  const todayTotal = (dayGroups.find(g => g.date === todayKey) || {}).total || 0;
+  const grandTotal = dwState.sessions.reduce((a,s) => a+s.dur, 0);
+
+  // 14-day chart
+  const last14 = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const g = dayGroups.find(x => x.date === key);
+    last14.push({ date: key, total: g ? g.total : 0 });
+  }
+  const maxSec = Math.max(...last14.map(d => d.total), 1);
+
+  // Sub-tabs
+  const subTabsHtml = `<div class="dw-sub-tabs">
+    ${['timer','log','stats'].map(t => `<button class="dw-sub-tab${dwState.subTab===t?' active':''}" onclick="dwSetSubTab('${t}')">${t==='timer'?'⏱ Timer':t==='log'?'📋 Log':'📊 Statistik'}</button>`).join('')}
+  </div>`;
+
+  let bodyHtml = '';
+
+  if (dwState.subTab === 'timer') {
+    const ringColor = dwState.running ? 'var(--accent)' : (el > 0 ? 'color-mix(in srgb, var(--accent) 60%, transparent)' : 'var(--border)');
+    bodyHtml = `
+      <div class="dw-ring-wrap">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface)" stroke-width="10"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ringColor}"
+            stroke-width="10" stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+        <div class="dw-ring-center">
+          <div class="dw-time${dwState.running?' running':''}">${dwFmt(el)}</div>
+          <div class="dw-status">${dwState.running ? 'läuft' : el > 0 ? 'pausiert' : 'bereit'}</div>
+          ${el > 0 ? `<div class="dw-goal-pct">${Math.round(progress*100)}% von 4h</div>` : ''}
+        </div>
+      </div>
+
+      ${!dwState.showSave ? `<div class="dw-controls">
+        ${!dwState.running
+          ? `<button class="dw-btn primary" onclick="dwStart()">${el===0 ? '▶ Start' : '▶ Weiter'}</button>`
+          : `<button class="dw-btn" onclick="dwPause()">⏸ Pause</button>`}
+        ${el > 0 ? `<button class="dw-btn" onclick="dwStop()">⏹ Speichern</button>` : ''}
+        ${el > 0 && !dwState.running ? `<button class="dw-btn ghost" onclick="dwReset()">✕ Verwerfen</button>` : ''}
+      </div>` : ''}
+
+      ${dwState.showSave ? `<div class="dw-save-box">
+        <div class="dw-save-label">Session: ${dwFmt(el)} · Was hast du geschafft?</div>
+        <textarea class="dw-save-textarea" rows="3"
+          placeholder="z.B. Dienstplan August abgeschlossen, Angebot überarbeitet…"
+          oninput="dwSetAchievement(this.value)"
+        >${escHtml(dwState.achievement)}</textarea>
+        <div class="dw-controls">
+          <button class="dw-btn primary" onclick="dwCommit()">✓ Speichern</button>
+          <button class="dw-btn ghost" onclick="dwReset()">✕ Verwerfen</button>
+        </div>
+      </div>` : ''}
+
+      ${todayTotal > 0 ? `<div class="dw-today-bar">
+        <div class="dw-today-lbl">Heute gesamt</div>
+        <div class="dw-today-val">${dwFmt(todayTotal)}</div>
+      </div>` : ''}
+    `;
+  }
+
+  if (dwState.subTab === 'log') {
+    bodyHtml = dwState.sessions.length === 0
+      ? `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">Noch keine Sessions. Starte deinen ersten Deep-Work-Block.</div></div>`
+      : dwState.sessions.map(s => `
+        <div class="dw-log-card">
+          <div class="dw-log-dur">${dwFmt(s.dur)}</div>
+          <div class="dw-log-body">
+            <div class="dw-log-date">${dwFmtDate(s.date)}</div>
+            <div class="dw-log-text">${escHtml(s.text)}</div>
+          </div>
+          <button class="dw-log-del" onclick="dwDeleteSession('${s.id}')" title="Löschen">✕</button>
+        </div>`).join('');
+  }
+
+  if (dwState.subTab === 'stats') {
+    const barsHtml = last14.map(d => {
+      const h = d.total > 0 ? Math.max(5, Math.round((d.total/maxSec)*80)) : 2;
+      const cls = d.date === todayKey ? 'today' : d.total > 0 ? 'has-data' : '';
+      const lbl = new Date(d.date+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+      return `<div class="dw-bar-col">
+        <div class="dw-bar ${cls}" style="height:${h}px" title="${dwFmt(d.total)}"></div>
+        <div class="dw-bar-lbl">${lbl}</div>
+      </div>`;
+    }).join('');
+
+    const top5 = [...dwState.sessions].sort((a,b)=>b.dur-a.dur).slice(0,5);
+
+    bodyHtml = `
+      <div class="dw-kpi-row">
+        <div class="dw-kpi"><div class="dw-kpi-val">${dwFmt(todayTotal)}</div><div class="dw-kpi-lbl">Heute</div></div>
+        <div class="dw-kpi"><div class="dw-kpi-val">${dwFmt(grandTotal)}</div><div class="dw-kpi-lbl">Gesamt</div></div>
+        <div class="dw-kpi"><div class="dw-kpi-val">${dwState.sessions.length}</div><div class="dw-kpi-lbl">Sessions</div></div>
+      </div>
+
+      <div class="dw-chart-wrap">
+        <div class="dw-section-title">14 Tage Verlauf</div>
+        <div class="dw-bars">${barsHtml}</div>
+      </div>
+
+      ${dayGroups.length > 0 ? `<div class="dw-chart-wrap">
+        <div class="dw-section-title">Tage-Übersicht</div>
+        ${dayGroups.slice(0,14).map(g=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:0.8rem;color:var(--muted);">${dwFmtDate(g.date+'T12:00:00')}</span>
+            <div style="display:flex;gap:14px;align-items:center;">
+              <span style="font-size:0.68rem;color:var(--muted);">${g.count}×</span>
+              <span style="font-family:var(--font-mono,monospace);font-weight:700;color:var(--accent);font-size:0.9rem;">${dwFmt(g.total)}</span>
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+
+      ${top5.length > 0 ? `<div class="dw-chart-wrap">
+        <div class="dw-section-title">Längste Sessions</div>
+        ${top5.map(s=>`
+          <div class="dw-top-row">
+            <div class="dw-top-left">
+              <div class="dw-top-date">${dwFmtDate(s.date)}</div>
+              <div class="dw-top-text">${escHtml(s.text)}</div>
+            </div>
+            <div class="dw-top-dur">${dwFmt(s.dur)}</div>
+          </div>`).join('')}
+      </div>` : ''}
+    `;
+  }
+
+  list.innerHTML = `<div class="dw-wrap">${subTabsHtml}${bodyHtml}</div>`;
+}
+/* ──────────── END DEEP WORK ──────────── */
+
 function renderLogTab() {
   const list = document.getElementById('task-list');
   document.getElementById('stats-bar').style.display = 'none';
@@ -3003,6 +3283,7 @@ function renderList() {
   if (currentTab === 'impact') { renderImpactTab(); return; }
   if (currentTab === 'frogs') { renderFrogsTab(); return; }
   if (currentTab === 'log') { renderLogTab(); return; }
+  if (currentTab === 'deepwork') { renderDeepWorkTab(); return; }
   const list = document.getElementById('task-list');
   const tabTasks = getTabTasks(currentTab);
 
