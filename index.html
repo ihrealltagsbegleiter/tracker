@@ -2477,6 +2477,7 @@ function downloadBlob(blob, filename){
 
 function triggerImport(){ document.getElementById('importInput').click(); }
 
+let _pendingImport = null;
 async function importJSON(e){
   const file = e.target.files[0];
   e.target.value='';
@@ -2485,6 +2486,7 @@ async function importJSON(e){
     const text = await file.text();
     const data = JSON.parse(text);
     if(!data.days || !Array.isArray(data.days)) throw new Error('Ungültiges Format');
+    _pendingImport = data;
     
     // Confirm
     document.getElementById('modalContent').innerHTML = `
@@ -2493,7 +2495,7 @@ async function importJSON(e){
       Exportiert: ${data.exported ? new Date(data.exported).toLocaleDateString('de') : 'Unbekannt'}<br><br>
       <strong style="color:var(--gold)">Vorhandene Daten werden zusammengeführt (nicht überschrieben).</strong></div>
       <div class="modal-actions">
-        <button class="btn-primary" onclick="performImport(${encodeURIComponent(JSON.stringify(data))})">Importieren</button>
+        <button class="btn-primary" onclick="performImport()">Importieren</button>
         <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
       </div>`;
     document.getElementById('modal').style.display='flex';
@@ -2502,9 +2504,10 @@ async function importJSON(e){
   }
 }
 
-async function performImport(encodedData){
+async function performImport(){
   try {
-    const data = JSON.parse(decodeURIComponent(encodedData));
+    const data = _pendingImport;
+    if(!data) { showToast('Kein Backup geladen.'); return; }
     let imported = 0;
     for(const day of (data.days||[])){
       if(day.date){ await dbPut('days',day); imported++; }
