@@ -1040,6 +1040,44 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
       <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)"/>
 
+      <div class="section-title">CLOUD-BACKUP (SUPABASE)</div>
+
+      <div class="settings-row" onclick="supabaseBackupNow()">
+        <div class="settings-left">
+          <div class="settings-icon">☁️</div>
+          <div>
+            <div class="settings-label">Jetzt sichern</div>
+            <div class="settings-sub" id="supabaseBackupStatus">Letztes Backup: noch keines</div>
+          </div>
+        </div>
+        <div class="settings-arrow" id="supabaseBackupArrow">→</div>
+      </div>
+
+      <div class="settings-row" style="cursor:default">
+        <div class="settings-left">
+          <div class="settings-icon">🔄</div>
+          <div>
+            <div class="settings-label">Auto-Backup</div>
+            <div class="settings-sub">Täglich beim App-Start</div>
+          </div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="supabaseAutoToggle" onchange="toggleSupabaseAuto(this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-row" onclick="supabaseRestoreLatest()">
+        <div class="settings-left">
+          <div class="settings-icon">⬇️</div>
+          <div>
+            <div class="settings-label">Letztes Cloud-Backup wiederherstellen</div>
+            <div class="settings-sub">Überschreibt lokale Daten</div>
+          </div>
+        </div>
+        <div class="settings-arrow">→</div>
+      </div>
+
       <div class="section-title">PUSH-BENACHRICHTIGUNGEN</div>
 
       <div class="settings-row" style="cursor:default">
@@ -1069,7 +1107,7 @@ input:checked + .toggle-slider:before{transform:translateX(20px);background:#fff
       </div>
 
       <div style="font-size:0.7rem;color:var(--text3);text-align:center;margin-top:1.5rem;line-height:1.6">
-        Daily Tracker · Daten lokal gespeichert (IndexedDB)<br>Kein Server · Kein Account
+        Daily Tracker · Lokale Daten (IndexedDB) + Cloud-Backup (Supabase)
       </div>
 
     </div><!-- /view-einstellungen -->
@@ -2223,7 +2261,7 @@ function showView(name, btn){
   btn.classList.add('active');
   if(name==='routinen') renderRoutines();
   if(name==='stats') renderStats();
-  if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); }
+  if(name==='einstellungen'){ initNotifications(); renderRoutineNotifList(); initSupabaseUI(); }
   if(name==='insights'||name==='stats') { renderInsights(); } if(name==='ernaehrung') { renderAllMeals(); renderMedList(); }
   document.getElementById('appContent').scrollTop=0;
 }
@@ -2366,6 +2404,9 @@ init().then(()=>{
       }, 4000);
     }
   }
+  // Supabase UI + Auto-Backup
+  initSupabaseUI();
+  maybeAutoBackup();
 }).catch(console.error);
 
 
@@ -3391,8 +3432,173 @@ Gib 2-3 konkrete Beobachtungen und einen Handlungsvorschlag für morgen.`;
 }
 
 </script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE CLOUD-BACKUP
+// ═══════════════════════════════════════════════════════════════
+const SUPA_URL  = 'https://cuukfowezhcosjnuckuo.supabase.co';
+const SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1dWtmb3dlemhjb3NqbnVja3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTc3MTYsImV4cCI6MjA5NTk3MzcxNn0.vMs9Z4Hk0oe2k-qPR9Nq0oUNsO_3X-DbTu8Y5OyK_NA';
+const SUPA_TABLE = 'tracker_backup';
+
+// Geräte-ID: einmalig generiert, lokal gespeichert, kein PII
+function getDeviceId() {
+  let id = localStorage.getItem('tracker_device_id');
+  if (!id) {
+    id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('tracker_device_id', id);
+  }
+  return id;
+}
+
+// Backup-Payload aus dem bestehenden exportJSON()-Schema bauen
+function buildBackupPayload() {
+  const customTags = {};
+  try { ['ern','neg','akt','pain'].forEach(k => {
+    const v = localStorage.getItem('custom_' + k + '_opts');
+    if (v) customTags[k] = JSON.parse(v);
+  }); } catch(e) {}
+  return {
+    exported: new Date().toISOString(),
+    days: allDays,
+    routines: allRoutines,
+    routine_completions: routineCompletions,
+    customTags,
+    customRoutineCats: getCustomRoutineCats(),
+    mealMemory: (() => { try { return JSON.parse(localStorage.getItem('meal_memory') || '{}'); } catch(e) { return {}; } })(),
+    notifPrefs: (() => { try { return JSON.parse(localStorage.getItem('notif_prefs') || '{}'); } catch(e) { return {}; } })(),
+    notifSchedules: (() => { try { return JSON.parse(localStorage.getItem('notif_schedules') || '{}'); } catch(e) { return {}; } })(),
+    notifEnabled: localStorage.getItem('notif_enabled') || '0',
+    dailyReminderTime: localStorage.getItem('daily_reminder_time') || '',
+    weekGoals: (() => { try { return JSON.parse(localStorage.getItem('week_goals') || '{}'); } catch(e) { return {}; } })(),
+    medSchedule: getMedSchedule(),
+    medMemory: getMedMemory(),
+    weekReviews: getWeekReviews(),
+    projects: getProjects(),
+  };
+}
+
+// Backup hochladen
+async function supabaseBackupNow(silent = false) {
+  const arrow = document.getElementById('supabaseBackupArrow');
+  const status = document.getElementById('supabaseBackupStatus');
+  if (arrow) arrow.textContent = '⏳';
+  try {
+    const payload = buildBackupPayload();
+    const body = {
+      device_id:     getDeviceId(),
+      app_version:   '1',
+      day_count:     (payload.days || []).length,
+      routine_count: (payload.routines || []).length,
+      payload:       payload,
+    };
+    const res = await fetch(`${SUPA_URL}/rest/v1/${SUPA_TABLE}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    const now = new Date().toLocaleString('de-DE');
+    localStorage.setItem('supabase_last_backup', now);
+    if (status) status.textContent = 'Letztes Backup: ' + now;
+    if (arrow) arrow.textContent = '✅';
+    if (!silent) showToast('☁️ Cloud-Backup gespeichert (' + body.day_count + ' Tage)');
+    setTimeout(() => { if (arrow) arrow.textContent = '→'; }, 3000);
+  } catch(e) {
+    if (arrow) arrow.textContent = '❌';
+    if (!silent) showToast('Backup fehlgeschlagen: ' + e.message);
+    console.error('Supabase Backup Error:', e);
+    setTimeout(() => { if (arrow) arrow.textContent = '→'; }, 3000);
+  }
+}
+
+// Letztes Backup wiederherstellen
+async function supabaseRestoreLatest() {
+  if (!confirm('Letztes Cloud-Backup wiederherstellen?\n\nAktuelle lokale Daten werden überschrieben!')) return;
+  showToast('Cloud-Backup wird geladen…');
+  try {
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/${SUPA_TABLE}?device_id=eq.${getDeviceId()}&order=backed_up_at.desc&limit=1`,
+      {
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + SUPA_KEY,
+        },
+      }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      showToast('Kein Cloud-Backup für dieses Gerät gefunden.');
+      return;
+    }
+    const data = rows[0].payload;
+    // Wiederherstellen (gleiche Logik wie importJSON)
+    if (!data.days || !Array.isArray(data.days)) throw new Error('Ungültiges Backup-Format');
+    for (const day of (data.days || [])) { await dbPut('days', day); }
+    for (const r of (data.routines || [])) { await dbPut('routines', r); }
+    for (const c of (data.routine_completions || [])) { await dbPut('routine_completions', c); }
+    if (data.customTags) {
+      ['ern','neg','akt','pain'].forEach(k => {
+        if (data.customTags[k]) localStorage.setItem('custom_' + k + '_opts', JSON.stringify(data.customTags[k]));
+      });
+    }
+    if (data.customRoutineCats) saveCustomRoutineCats(data.customRoutineCats);
+    if (Array.isArray(data.mealMemory)) localStorage.setItem('meal_memory', JSON.stringify(data.mealMemory));
+    if (Array.isArray(data.medMemory)) localStorage.setItem('med_memory', JSON.stringify(data.medMemory));
+    if (data.weekReviews) localStorage.setItem('week_reviews', JSON.stringify(data.weekReviews));
+    if (data.notifPrefs) localStorage.setItem('notif_prefs', JSON.stringify(data.notifPrefs));
+    if (data.notifSchedules) localStorage.setItem('notif_schedules', JSON.stringify(data.notifSchedules));
+    if (data.notifEnabled !== undefined) localStorage.setItem('notif_enabled', data.notifEnabled);
+    if (data.dailyReminderTime) localStorage.setItem('daily_reminder_time', data.dailyReminderTime);
+    if (data.weekGoals) localStorage.setItem('week_goals', JSON.stringify(data.weekGoals));
+    if (data.medSchedule) saveMedSchedule(data.medSchedule);
+    if (data.projects) saveProjects(data.projects);
+    allDays = await dbGetAll('days');
+    allRoutines = await dbGetAll('routines');
+    routineCompletions = await dbGetAll('routine_completions');
+    const ts = new Date(rows[0].backed_up_at).toLocaleString('de-DE');
+    showToast('✅ Wiederhergestellt: Backup vom ' + ts + ' (' + data.days.length + ' Tage)');
+    await loadDateData();
+  } catch(e) {
+    showToast('Wiederherstellung fehlgeschlagen: ' + e.message);
+    console.error('Supabase Restore Error:', e);
+  }
+}
+
+// Auto-Backup Toggle
+function toggleSupabaseAuto(enabled) {
+  localStorage.setItem('supabase_auto_backup', enabled ? '1' : '0');
+  showToast(enabled ? '🔄 Auto-Backup aktiviert' : 'Auto-Backup deaktiviert');
+}
+
+// Status beim Laden der Einstellungen anzeigen
+function initSupabaseUI() {
+  const last = localStorage.getItem('supabase_last_backup');
+  const status = document.getElementById('supabaseBackupStatus');
+  if (status) status.textContent = last ? 'Letztes Backup: ' + last : 'Noch kein Backup';
+  const autoToggle = document.getElementById('supabaseAutoToggle');
+  if (autoToggle) autoToggle.checked = localStorage.getItem('supabase_auto_backup') === '1';
+}
+
+// Auto-Backup beim Start (max. einmal täglich)
+function maybeAutoBackup() {
+  if (localStorage.getItem('supabase_auto_backup') !== '1') return;
+  const lastRaw = localStorage.getItem('supabase_last_backup');
+  if (lastRaw) {
+    const lastDate = new Date(lastRaw).toDateString();
+    if (lastDate === new Date().toDateString()) return; // heute bereits gesichert
+  }
+  // 5 Sekunden nach App-Start sichern (nicht beim Laden blockieren)
+  setTimeout(() => supabaseBackupNow(true), 5000);
+}
+</script>
 </body>
 </html>
-
-
-
