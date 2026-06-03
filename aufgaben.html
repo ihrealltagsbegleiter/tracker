@@ -169,8 +169,13 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .task-title.done { text-decoration: line-through; color: var(--muted); }
 
 .task-meta-row {
-  display: flex; align-items: center; gap: 6px;
+  display: none;
+  align-items: center; gap: 6px;
   margin-top: 5px; flex-wrap: wrap;
+}
+.task-card:hover .task-meta-row,
+.task-card.expanded .task-meta-row {
+  display: flex;
 }
 .tag {
   font-size: 0.65rem; padding: 1px 7px;
