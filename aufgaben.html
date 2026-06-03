@@ -491,12 +491,16 @@ input[type=number] { max-width: 80px; text-align: center; }
 }
 
 /* ── QUICK EDIT FELDER ── */
-.qe-section { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.qe-panel { display: none; flex-direction: column; gap: 6px; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface2,#1a1917); }
+.qe-panel.open { display: flex; }
 .qe-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .qe-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); min-width: 52px; flex-shrink: 0; }
 .qe-date { background: var(--surface2,#222); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: inherit; font-size: 0.75rem; padding: 3px 7px; cursor: pointer; }
 .qe-date:focus { outline: none; border-color: var(--accent); }
 .qe-date::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+.tag-clickable { cursor: pointer; transition: opacity 0.12s; }
+.tag-clickable:hover { opacity: 0.75; }
+.tag-clickable.qe-active { outline: 1px solid var(--accent); outline-offset: 1px; }
 .qe-btn { font-family: inherit; font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
 .qe-btn:hover { border-color: var(--accent); color: var(--accent); }
 .qe-btn.active-q1 { border-color: var(--danger); color: var(--danger); background: rgba(212,99,90,0.1); }
@@ -1382,31 +1386,31 @@ function taskCard(task, isRecurring = false) {
 
   let tags = '';
   if (currentTab === 'inbox' && false) {
-    tags += `<span class="tag tag-horizon-${task.horizon}">${horizonLabels[task.horizon]||''}</span>`;
+    tags += `<span class="tag tag-horizon-${task.horizon} tag-clickable" onclick="qeOpenField('${task.id}','horizon',event)">${horizonLabels[task.horizon]||''}</span>`;
   }
   if (task.impact) {
     const imp = parseInt(task.impact) || 3;
     const stars = '★'.repeat(imp) + '☆'.repeat(5 - imp);
-    tags += `<span class="tag tag-impact-${imp}" title="Impact: ${IMPACT_LABELS[imp]}">${stars}</span>`;
+    tags += `<span class="tag tag-impact-${imp} tag-clickable" title="Impact: ${IMPACT_LABELS[imp]}" onclick="qeOpenField('${task.id}','impact',event)">${stars}</span>`;
   }
   if (task.eisen) {
     const eisenInfo = {1:['I','Wichtig+Dringend','var(--danger)'],2:['II','Wichtig+Geplant','var(--today)'],3:['III','Delegieren','var(--warn)'],4:['IV','Eliminieren','var(--muted)']};
     const [num, lbl, col] = eisenInfo[task.eisen] || ['?','?','var(--muted)'];
-    tags += `<span class="tag tag-eisen-${task.eisen}" title="${lbl}">Q${num}</span>`;
+    tags += `<span class="tag tag-eisen-${task.eisen} tag-clickable" title="${lbl}" onclick="qeOpenField('${task.id}','eisen',event)">Q${num}</span>`;
   }
   if (task.context) {
-    tags += `<span class="tag tag-context">${contextLabels[task.context]||task.context}</span>`;
+    tags += `<span class="tag tag-context tag-clickable" onclick="qeOpenField('${task.id}','context',event)">${contextLabels[task.context]||task.context}</span>`;
   }
   if (task.projectId) {
     const proj = projects.find(p => p.id === task.projectId);
-    if (proj) tags += `<span class="tag tag-context" style="border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
+    if (proj) tags += `<span class="tag tag-context tag-clickable" style="border-color:${proj.color};color:${proj.color};" onclick="qeOpenField('${task.id}','projectId',event)">📁 ${escHtml(proj.name)}</span>`;
   }
   if (task.frog) {
     const dreadEmoji = ['','😊','🙂','😐','😟','😰'][task.dread || 3];
     tags += `<span class="tag tag-frog">🐸 Frosch ${dreadEmoji}</span>`;
   }
   if (task.recurring && task.recurring !== 'none') {
-    tags += `<span class="tag tag-recurring">${recurLabel(task)}</span>`;
+    tags += `<span class="tag tag-recurring tag-clickable" onclick="qeOpenField('${task.id}','recurring',event)">${recurLabel(task)}</span>`;
   }
   if (task.waiting) {
     const wb = task.waitingFor ? `⏳ Warten: ${escHtml(task.waitingFor)}` : '⏳ Warten auf Rückmeldung';
@@ -1415,7 +1419,7 @@ function taskCard(task, isRecurring = false) {
     tags += `<span class="tag" style="color:${wOverdue?'var(--danger)':'var(--warn)'};border-color:${wOverdue?'var(--danger)':'var(--warn)'};background:${wOverdue?'rgba(196,107,90,0.1)':'rgba(196,154,74,0.1)'};">${wb}${wd}</span>`;
   }
   if (due) {
-    tags += `<span class="due-tag ${due.cls}">📅 ${due.label}</span>`;
+    tags += `<span class="due-tag ${due.cls} tag-clickable" onclick="qeOpenField('${task.id}','due',event)">📅 ${due.label}</span>`;
   }
 
   let actions = '';
@@ -1471,16 +1475,33 @@ function taskCard(task, isRecurring = false) {
       ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${tid}',event)">▶ Reaktivieren</button>`
       : `<button class="task-action-btn" onclick="openWaitModal('${tid}',event)">⏳ Warten auf…</button>`;
 
+    const af = activeQeField;
+    const isOpen = (f) => af && af.id === tid && af.field === f;
+
     actions = `
-    <div class="qe-section">
-      <div class="qe-row"><span class="qe-label">Horizont</span>${!task.waiting?`<div class="horizon-picker" style="margin:0;">${horizonBtns}</div>`:'(Warten-Aufgabe)'}</div>
-      <div class="qe-row"><span class="qe-label">Eisenhower</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${eisenBtns}</div></div>
-      <div class="qe-row"><span class="qe-label">Priorität</span>${stars}</div>
-      <div class="qe-row"><span class="qe-label">Fällig</span><input type="date" class="qe-date" value="${dueVal}" onchange="qeSetField('${tid}','due',this.value,event)" onclick="event.stopPropagation()"/>${dueVal?`<button class="qe-btn" onclick="qeSetField('${tid}','due',null,event)">✕</button>`:''}</div>
-      <div class="qe-row"><span class="qe-label">Kontext</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${ctxBtns}</div></div>
-      ${projects.length>0?`<div class="qe-row"><span class="qe-label">Projekt</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${projBtns}${task.projectId?`<button class="qe-btn" onclick="qeSetField('${tid}','projectId',null,event)">✕ keins</button>`:''}</div></div>`:''}
-      <div class="qe-row"><span class="qe-label">Intervall</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${recurBtns}</div></div>
-      <div class="qe-row" style="flex-direction:column;align-items:stretch;"><span class="qe-label" style="margin-bottom:3px;">Notiz</span><textarea class="qe-note-input" onclick="event.stopPropagation()" onchange="qeSetField('${tid}','note',this.value,event)" onblur="qeSetField('${tid}','note',this.value,event)">${noteVal}</textarea></div>
+    <div class="qe-panel${isOpen('horizon')?' open':''}" id="qep-${tid}-horizon">
+      <div class="qe-row">${!task.waiting?`<div class="horizon-picker" style="margin:0;">${horizonBtns}</div>`:'(Warten-Aufgabe)'}</div>
+    </div>
+    <div class="qe-panel${isOpen('eisen')?' open':''}" id="qep-${tid}-eisen">
+      <div class="qe-row" style="flex-wrap:wrap;">${eisenBtns}</div>
+    </div>
+    <div class="qe-panel${isOpen('impact')?' open':''}" id="qep-${tid}-impact">
+      <div class="qe-row">${stars}</div>
+    </div>
+    <div class="qe-panel${isOpen('due')?' open':''}" id="qep-${tid}-due">
+      <div class="qe-row"><input type="date" class="qe-date" value="${dueVal}" onchange="qeSetField('${tid}','due',this.value,event)" onclick="event.stopPropagation()"/>${dueVal?`<button class="qe-btn" onclick="qeSetField('${tid}','due',null,event)">✕ entfernen</button>`:''}</div>
+    </div>
+    <div class="qe-panel${isOpen('context')?' open':''}" id="qep-${tid}-context">
+      <div class="qe-row" style="flex-wrap:wrap;">${ctxBtns}</div>
+    </div>
+    ${projects.length>0?`<div class="qe-panel${isOpen('projectId')?' open':''}" id="qep-${tid}-projectId">
+      <div class="qe-row" style="flex-wrap:wrap;">${projBtns}${task.projectId?`<button class="qe-btn" onclick="qeSetField('${tid}','projectId',null,event)">✕ keins</button>`:''}</div>
+    </div>`:''}
+    <div class="qe-panel${isOpen('recurring')?' open':''}" id="qep-${tid}-recurring">
+      <div class="qe-row" style="flex-wrap:wrap;">${recurBtns}</div>
+    </div>
+    <div class="qe-panel${isOpen('note')?' open':''}" id="qep-${tid}-note">
+      <textarea class="qe-note-input" onclick="event.stopPropagation()" onchange="qeSetField('${tid}','note',this.value,event)" onblur="qeSetField('${tid}','note',this.value,event)">${noteVal}</textarea>
     </div>
     <div class="task-actions" style="margin-top:8px;">
       ${waitBtn}
@@ -1506,6 +1527,36 @@ function taskCard(task, isRecurring = false) {
 
 function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── QUICK EDIT TOGGLE ──
+let activeQeField = null; // { id, field }
+
+function qeOpenField(id, field, e) {
+  if (e) e.stopPropagation();
+  // Aufgabe aufklappen falls noch nicht
+  if (!expandedIds.has(id)) expandedIds.add(id);
+  // Toggle: selbes Feld nochmal → schließen
+  if (activeQeField && activeQeField.id === id && activeQeField.field === field) {
+    activeQeField = null;
+  } else {
+    activeQeField = { id, field };
+  }
+  renderList();
+  // Bei Datum: Picker automatisch öffnen
+  if (activeQeField && field === 'due') {
+    setTimeout(() => {
+      const inp = document.querySelector(`#qep-${id}-due input`);
+      if (inp) inp.showPicker && inp.showPicker();
+    }, 50);
+  }
+  // Bei Notiz: Textarea fokussieren
+  if (activeQeField && field === 'note') {
+    setTimeout(() => {
+      const ta = document.querySelector(`#qep-${id}-note textarea`);
+      if (ta) ta.focus();
+    }, 50);
+  }
 }
 
 // ── QUICK EDIT FELDER ──
@@ -1570,9 +1621,13 @@ function startInlineEdit(id, e) {
 
 // ── INTERACTIONS ──
 function toggleExpand(id, e) {
-  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn') || e.target.closest('.task-title')) return;
-  if (expandedIds.has(id)) expandedIds.delete(id);
-  else expandedIds.add(id);
+  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn') || e.target.closest('.task-title') || e.target.closest('.tag-clickable')) return;
+  if (expandedIds.has(id)) {
+    expandedIds.delete(id);
+    if (activeQeField && activeQeField.id === id) activeQeField = null;
+  } else {
+    expandedIds.add(id);
+  }
   renderList();
 }
 
@@ -3715,31 +3770,31 @@ function taskCard(task, isRecurring = false) {
 
   let tags = '';
   if (currentTab === 'inbox' && false) {
-    tags += `<span class="tag tag-horizon-${task.horizon}">${horizonLabels[task.horizon]||''}</span>`;
+    tags += `<span class="tag tag-horizon-${task.horizon} tag-clickable" onclick="qeOpenField('${task.id}','horizon',event)">${horizonLabels[task.horizon]||''}</span>`;
   }
   if (task.impact) {
     const imp = parseInt(task.impact) || 3;
     const stars = '★'.repeat(imp) + '☆'.repeat(5 - imp);
-    tags += `<span class="tag tag-impact-${imp}" title="Impact: ${IMPACT_LABELS[imp]}">${stars}</span>`;
+    tags += `<span class="tag tag-impact-${imp} tag-clickable" title="Impact: ${IMPACT_LABELS[imp]}" onclick="qeOpenField('${task.id}','impact',event)">${stars}</span>`;
   }
   if (task.eisen) {
     const eisenInfo = {1:['I','Wichtig+Dringend','var(--danger)'],2:['II','Wichtig+Geplant','var(--today)'],3:['III','Delegieren','var(--warn)'],4:['IV','Eliminieren','var(--muted)']};
     const [num, lbl, col] = eisenInfo[task.eisen] || ['?','?','var(--muted)'];
-    tags += `<span class="tag tag-eisen-${task.eisen}" title="${lbl}">Q${num}</span>`;
+    tags += `<span class="tag tag-eisen-${task.eisen} tag-clickable" title="${lbl}" onclick="qeOpenField('${task.id}','eisen',event)">Q${num}</span>`;
   }
   if (task.context) {
-    tags += `<span class="tag tag-context">${contextLabels[task.context]||task.context}</span>`;
+    tags += `<span class="tag tag-context tag-clickable" onclick="qeOpenField('${task.id}','context',event)">${contextLabels[task.context]||task.context}</span>`;
   }
   if (task.projectId) {
     const proj = projects.find(p => p.id === task.projectId);
-    if (proj) tags += `<span class="tag tag-context" style="border-color:${proj.color};color:${proj.color};">📁 ${escHtml(proj.name)}</span>`;
+    if (proj) tags += `<span class="tag tag-context tag-clickable" style="border-color:${proj.color};color:${proj.color};" onclick="qeOpenField('${task.id}','projectId',event)">📁 ${escHtml(proj.name)}</span>`;
   }
   if (task.frog) {
     const dreadEmoji = ['','😊','🙂','😐','😟','😰'][task.dread || 3];
     tags += `<span class="tag tag-frog">🐸 Frosch ${dreadEmoji}</span>`;
   }
   if (task.recurring && task.recurring !== 'none') {
-    tags += `<span class="tag tag-recurring">${recurLabel(task)}</span>`;
+    tags += `<span class="tag tag-recurring tag-clickable" onclick="qeOpenField('${task.id}','recurring',event)">${recurLabel(task)}</span>`;
   }
   if (task.waiting) {
     const wb = task.waitingFor ? `⏳ Warten: ${escHtml(task.waitingFor)}` : '⏳ Warten auf Rückmeldung';
@@ -3748,7 +3803,7 @@ function taskCard(task, isRecurring = false) {
     tags += `<span class="tag" style="color:${wOverdue?'var(--danger)':'var(--warn)'};border-color:${wOverdue?'var(--danger)':'var(--warn)'};background:${wOverdue?'rgba(196,107,90,0.1)':'rgba(196,154,74,0.1)'};">${wb}${wd}</span>`;
   }
   if (due) {
-    tags += `<span class="due-tag ${due.cls}">📅 ${due.label}</span>`;
+    tags += `<span class="due-tag ${due.cls} tag-clickable" onclick="qeOpenField('${task.id}','due',event)">📅 ${due.label}</span>`;
   }
 
   let actions = '';
@@ -3804,16 +3859,33 @@ function taskCard(task, isRecurring = false) {
       ? `<button class="task-action-btn" style="color:var(--accent2);border-color:var(--accent2);" onclick="unWaitTask('${tid}',event)">▶ Reaktivieren</button>`
       : `<button class="task-action-btn" onclick="openWaitModal('${tid}',event)">⏳ Warten auf…</button>`;
 
+    const af = activeQeField;
+    const isOpen = (f) => af && af.id === tid && af.field === f;
+
     actions = `
-    <div class="qe-section">
-      <div class="qe-row"><span class="qe-label">Horizont</span>${!task.waiting?`<div class="horizon-picker" style="margin:0;">${horizonBtns}</div>`:'(Warten-Aufgabe)'}</div>
-      <div class="qe-row"><span class="qe-label">Eisenhower</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${eisenBtns}</div></div>
-      <div class="qe-row"><span class="qe-label">Priorität</span>${stars}</div>
-      <div class="qe-row"><span class="qe-label">Fällig</span><input type="date" class="qe-date" value="${dueVal}" onchange="qeSetField('${tid}','due',this.value,event)" onclick="event.stopPropagation()"/>${dueVal?`<button class="qe-btn" onclick="qeSetField('${tid}','due',null,event)">✕</button>`:''}</div>
-      <div class="qe-row"><span class="qe-label">Kontext</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${ctxBtns}</div></div>
-      ${projects.length>0?`<div class="qe-row"><span class="qe-label">Projekt</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${projBtns}${task.projectId?`<button class="qe-btn" onclick="qeSetField('${tid}','projectId',null,event)">✕ keins</button>`:''}</div></div>`:''}
-      <div class="qe-row"><span class="qe-label">Intervall</span><div style="display:flex;gap:4px;flex-wrap:wrap;">${recurBtns}</div></div>
-      <div class="qe-row" style="flex-direction:column;align-items:stretch;"><span class="qe-label" style="margin-bottom:3px;">Notiz</span><textarea class="qe-note-input" onclick="event.stopPropagation()" onchange="qeSetField('${tid}','note',this.value,event)" onblur="qeSetField('${tid}','note',this.value,event)">${noteVal}</textarea></div>
+    <div class="qe-panel${isOpen('horizon')?' open':''}" id="qep-${tid}-horizon">
+      <div class="qe-row">${!task.waiting?`<div class="horizon-picker" style="margin:0;">${horizonBtns}</div>`:'(Warten-Aufgabe)'}</div>
+    </div>
+    <div class="qe-panel${isOpen('eisen')?' open':''}" id="qep-${tid}-eisen">
+      <div class="qe-row" style="flex-wrap:wrap;">${eisenBtns}</div>
+    </div>
+    <div class="qe-panel${isOpen('impact')?' open':''}" id="qep-${tid}-impact">
+      <div class="qe-row">${stars}</div>
+    </div>
+    <div class="qe-panel${isOpen('due')?' open':''}" id="qep-${tid}-due">
+      <div class="qe-row"><input type="date" class="qe-date" value="${dueVal}" onchange="qeSetField('${tid}','due',this.value,event)" onclick="event.stopPropagation()"/>${dueVal?`<button class="qe-btn" onclick="qeSetField('${tid}','due',null,event)">✕ entfernen</button>`:''}</div>
+    </div>
+    <div class="qe-panel${isOpen('context')?' open':''}" id="qep-${tid}-context">
+      <div class="qe-row" style="flex-wrap:wrap;">${ctxBtns}</div>
+    </div>
+    ${projects.length>0?`<div class="qe-panel${isOpen('projectId')?' open':''}" id="qep-${tid}-projectId">
+      <div class="qe-row" style="flex-wrap:wrap;">${projBtns}${task.projectId?`<button class="qe-btn" onclick="qeSetField('${tid}','projectId',null,event)">✕ keins</button>`:''}</div>
+    </div>`:''}
+    <div class="qe-panel${isOpen('recurring')?' open':''}" id="qep-${tid}-recurring">
+      <div class="qe-row" style="flex-wrap:wrap;">${recurBtns}</div>
+    </div>
+    <div class="qe-panel${isOpen('note')?' open':''}" id="qep-${tid}-note">
+      <textarea class="qe-note-input" onclick="event.stopPropagation()" onchange="qeSetField('${tid}','note',this.value,event)" onblur="qeSetField('${tid}','note',this.value,event)">${noteVal}</textarea>
     </div>
     <div class="task-actions" style="margin-top:8px;">
       ${waitBtn}
@@ -3880,9 +3952,13 @@ function startInlineEdit(id, e) {
 
 // ── INTERACTIONS ──
 function toggleExpand(id, e) {
-  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn') || e.target.closest('.task-title')) return;
-  if (expandedIds.has(id)) expandedIds.delete(id);
-  else expandedIds.add(id);
+  if (e.target.closest('.task-check') || e.target.closest('.task-action-btn') || e.target.closest('.task-title') || e.target.closest('.tag-clickable')) return;
+  if (expandedIds.has(id)) {
+    expandedIds.delete(id);
+    if (activeQeField && activeQeField.id === id) activeQeField = null;
+  } else {
+    expandedIds.add(id);
+  }
   renderList();
 }
 
