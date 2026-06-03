@@ -4,6 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#111110"/>
+<link rel="manifest" href="/tracker/manifest-aufgaben.json"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Aufgaben"/>
+<link rel="apple-touch-icon" href="/tracker/icon-192.png"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -625,9 +630,46 @@ input[type=number] { max-width: 80px; text-align: center; }
 .dw-sub-tabs { display: flex; gap: 6px; width: 100%; }
 .dw-sub-tab { flex: 1; font-family: inherit; font-size: 0.72rem; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-weight: 500; text-align: center; }
 .dw-sub-tab.active { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); border-color: var(--accent); }
+
+/* ── AUTH ── */
+#auth-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #111110;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px; gap: 0;
+}
+#auth-screen.hidden { display: none; }
+.auth-logo { font-size: 2rem; margin-bottom: 8px; }
+.auth-title { font-size: 1.1rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 4px; }
+.auth-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 32px; }
+.auth-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; }
+.auth-input { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: inherit; font-size: 0.9rem; padding: 12px 14px; outline: none; }
+.auth-input:focus { border-color: var(--accent); }
+.auth-btn { background: var(--accent); color: #111; border: none; border-radius: 8px;
+  font-family: inherit; font-size: 0.9rem; font-weight: 700; padding: 13px; cursor: pointer; }
+.auth-btn:hover { opacity: 0.9; }
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-error { font-size: 0.78rem; color: var(--danger); text-align: center; min-height: 18px; }
+.auth-hint { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 8px; }
 </style>
 </head>
 <body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-logo">📋</div>
+  <div class="auth-title">Aufgaben · IAB</div>
+  <div class="auth-sub">Ihre Alltagsbegleiter</div>
+  <div class="auth-box">
+    <input class="auth-input" type="email" id="auth-email" placeholder="E-Mail" autocomplete="email"/>
+    <input class="auth-input" type="password" id="auth-pw" placeholder="Passwort" autocomplete="current-password"/>
+    <button class="auth-btn" id="auth-btn" onclick="authSignIn()">Anmelden</button>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-hint">Kein Account? <a href="#" onclick="authSignUp();return false;" style="color:var(--accent);">Registrieren</a></div>
+  </div>
+</div>
 
 <!-- TOPBAR -->
 <div class="topbar">
@@ -635,6 +677,7 @@ input[type=number] { max-width: 80px; text-align: center; }
   <div class="topbar-spacer"></div>
   <div class="topbar-actions">
     <span id="sync-status"></span>
+    <button class="btn-icon" onclick="authSignOut()" title="Abmelden" style="font-size:0.9rem;opacity:0.6;">⎋</button>
     <button class="btn-icon" id="search-btn" onclick="openSearch()" title="Suchen (S)">🔍</button>
     <button class="btn-icon" id="filter-btn" onclick="toggleFilterPanel(event)" title="Filtern">⚙</button>
     <span class="filter-active-bar" id="filter-active-bar" onclick="clearAllFilters()">× Filter</span>
@@ -2644,7 +2687,7 @@ async function init() {
   render();
 }
 
-init();
+// init() wird von startup() nach Auth aufgerufen
 
 
 // ── APPEND LOG ──
@@ -4960,7 +5003,7 @@ async function init() {
   render();
 }
 
-init();
+// init() wird von startup() nach Auth aufgerufen
 
 
 // ── APPEND LOG ──
@@ -5271,6 +5314,135 @@ function checkTaskFromSearch(id, e) {
 }
 
 
+
+
+
+// ── PWA SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/tracker/sw-aufgaben.js')
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.warn('SW error:', e));
+  });
+}
+
+// ── SUPABASE AUTH ──
+const SB_AUTH = SB_URL + '/auth/v1';
+
+let currentUser = null;
+
+async function authGetSession() {
+  const stored = localStorage.getItem('iab_session');
+  if (!stored) return null;
+  try {
+    const sess = JSON.parse(stored);
+    // Token-Ablauf prüfen
+    if (sess.expires_at && Date.now() / 1000 > sess.expires_at - 60) {
+      return await authRefresh(sess.refresh_token);
+    }
+    return sess;
+  } catch { return null; }
+}
+
+async function authRefresh(refreshToken) {
+  try {
+    const res = await fetch(SB_AUTH + '/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (!res.ok) { localStorage.removeItem('iab_session'); return null; }
+    const sess = await res.json();
+    localStorage.setItem('iab_session', JSON.stringify(sess));
+    return sess;
+  } catch { return null; }
+}
+
+function authGetHeaders(sess) {
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + sess.access_token,
+    'Prefer': 'resolution=merge-duplicates'
+  };
+}
+
+async function authSignIn() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pw = document.getElementById('auth-pw').value;
+  const btn = document.getElementById('auth-btn');
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+  if (!email || !pw) { err.textContent = 'E-Mail und Passwort erforderlich.'; return; }
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const res = await fetch(SB_AUTH + '/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error_description || data.msg || 'Fehler beim Anmelden.'; return; }
+    localStorage.setItem('iab_session', JSON.stringify(data));
+    await authLaunchApp(data);
+  } catch(e) { err.textContent = 'Netzwerkfehler. Offline?'; }
+  finally { btn.disabled = false; btn.textContent = 'Anmelden'; }
+}
+
+async function authSignUp() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pw = document.getElementById('auth-pw').value;
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+  if (!email || !pw) { err.textContent = 'E-Mail und Passwort erforderlich.'; return; }
+  if (pw.length < 6) { err.textContent = 'Passwort min. 6 Zeichen.'; return; }
+  try {
+    const res = await fetch(SB_AUTH + '/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error_description || data.msg || 'Registrierung fehlgeschlagen.'; return; }
+    if (data.access_token) {
+      localStorage.setItem('iab_session', JSON.stringify(data));
+      await authLaunchApp(data);
+    } else {
+      err.style.color = 'var(--accent2)';
+      err.textContent = 'Bestätigungs-E-Mail gesendet – bitte bestätigen.';
+    }
+  } catch(e) { err.textContent = 'Netzwerkfehler.'; }
+}
+
+async function authLaunchApp(sess) {
+  currentUser = sess.user || sess;
+  // SB_HEADERS mit Auth-Token überschreiben
+  Object.assign(SB_HEADERS, authGetHeaders(sess));
+  document.getElementById('auth-screen').classList.add('hidden');
+  await init();
+}
+
+function authSignOut() {
+  localStorage.removeItem('iab_session');
+  location.reload();
+}
+
+// ── STARTUP ──
+(async function startup() {
+  const sess = await authGetSession();
+  if (sess && sess.access_token) {
+    await authLaunchApp(sess);
+  } else {
+    // Auth-Screen anzeigen, Enter-Key support
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('auth-pw').addEventListener('keydown', e => {
+      if (e.key === 'Enter') authSignIn();
+    });
+    document.getElementById('auth-email').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('auth-pw').focus();
+    });
+  }
+})();
 
 </script>
 
