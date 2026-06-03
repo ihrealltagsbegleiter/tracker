@@ -176,6 +176,15 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .task-card.expanded .task-meta-row {
   display: flex;
 }
+/* actual JS-rendered tag container */
+.task-meta {
+  display: none;
+  align-items: center; flex-wrap: wrap;
+  gap: 5px; margin-top: 5px;
+}
+.task-card.expanded .task-meta {
+  display: flex;
+}
 .tag {
   font-size: 0.65rem; padding: 1px 7px;
   border-radius: 20px; border: 1px solid var(--border);
@@ -198,6 +207,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 /* Tags nur bei hover/expand sichtbar – Fokus-Modus Toggle */
 .focus-mode .task-meta-row { display: none !important; }
+.focus-mode .task-meta { display: none !important; }
 .focus-mode .task-card { padding: 8px 10px; }
 
 /* ── EXPANDED ACTIONS ── */
