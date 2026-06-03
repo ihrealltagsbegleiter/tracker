@@ -1919,10 +1919,12 @@ function renderHeatmap(){
   const lookup = {};
   allDays.forEach(d=>{ if(d.energy) lookup[d.date]=d.energy; });
 
-  // Show last 53 weeks (371 days) = GitHub-style
-  const today = new Date(TODAY);
-  const WEEKS = 27; // ~6 months fits mobile
+  // Show last 27 weeks = GitHub-style
+  const WEEKS = 27;
   const totalDays = WEEKS * 7;
+  // Use local date (avoid UTC offset bug: new Date("YYYY-MM-DD") = UTC midnight)
+  const _now = new Date();
+  const today = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
   // Start on Monday
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - totalDays + 1);
