@@ -142,7 +142,6 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 /* ── TASK CARD ── */
 .task-card {
-  display: flex; align-items: flex-start; gap: 10px;
   padding: 9px 10px; border-radius: var(--r);
   cursor: pointer; border: 1px solid transparent;
   transition: border-color 0.1s, background 0.1s;
@@ -151,7 +150,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .task-card:hover { background: var(--surface); border-color: var(--border); }
 .task-card.expanded { background: var(--surface); border-color: var(--border); }
 
-.task-top { display: flex; align-items: flex-start; gap: 10px; }
+.task-top { display: flex; align-items: flex-start; gap: 10px; width: 100%; }
 .task-check {
   width: 16px; height: 16px; border-radius: 50%;
   border: 1.5px solid var(--border); flex-shrink: 0;
